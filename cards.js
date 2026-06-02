@@ -872,5 +872,91 @@ window.SWIPE_CARDS = [
       "governance"
     ],
     "src": "https://www.carlosacchi.cloud/data-contracts-the-missing-handshake-between-data-producers-and-consumers-2468cf220d42"
+  },
+  {
+    "id": "auto-20260602-1",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Fivetran and dbt Labs merged",
+    "hook": "The two tools you are learning are now one company.",
+    "body": "<p>The merger completed on 1 June 2026 (all-stock, the combined company nearing ~$600M ARR): Fivetran's George Fraser is CEO, dbt's Tristan Handy is President. Alongside it, <code>dbt Core v2.0</code> shipped in alpha under Apache 2.0, running on the Rust Fusion engine. The pitch is one stack from ingestion through transformation to feed trustworthy AI agents. For your pivot: the ingest and transform layers are consolidating, so fluency in both halves is now baseline.</p>",
+    "tags": [
+      "dbt",
+      "fivetran",
+      "industry"
+    ],
+    "src": "https://www.businesswire.com/news/home/20260601514374/en/Fivetran-dbt-Labs-Complete-Merger-to-Create-the-Data-Infrastructure-for-Trusted-AI-Agents"
+  },
+  {
+    "id": "auto-20260602-2",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "DuckLake puts metadata in a SQL database",
+    "hook": "Iceberg and Delta keep metadata in files. DuckLake keeps it in Postgres.",
+    "body": "<p>DuckLake (v1.0, April 2026) stores table metadata in a SQL catalog &mdash; SQLite, Postgres or DuckDB &mdash; instead of a pile of JSON and Avro manifest files in object storage. One transactional query replaces listing thousands of tiny metadata files, so snapshots, schema changes and multi-table commits are fast and fully ACID. Data still lives in Parquet. v1.0 adds data inlining for small writes plus Iceberg-compatible deletion vectors; clients exist for Spark, Trino and DataFusion.</p>",
+    "tags": [
+      "ducklake",
+      "table-format",
+      "catalog"
+    ],
+    "src": "https://ducklake.select/2026/04/13/ducklake-10/"
+  },
+  {
+    "id": "auto-20260602-3",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakebase: Postgres inside the lakehouse",
+    "hook": "OLTP and OLAP stop being two separate databases.",
+    "body": "<p>Lakebase (GA February 2026, built on the Neon Postgres engine Databricks acquired for ~$1B) is serverless Postgres that sits next to Unity Catalog. Separated compute and storage give single-digit-millisecond latency and over 10K QPS for app and agent workloads, and it syncs with managed Delta tables &mdash; no custom ETL to shuttle operational data into analytics. You can branch the database like code and reset to prod data instantly. The lakehouse now serves transactions, not just analytics.</p>",
+    "tags": [
+      "lakebase",
+      "postgres",
+      "oltp",
+      "databricks"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-lakebase-public-preview"
+  },
+  {
+    "id": "auto-20260602-4",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "VARIANT beats JSON-in-a-string",
+    "hook": "Stop dumping JSON into a string column and re-parsing it every query.",
+    "body": "<p>VARIANT is the open binary type for semi-structured data across Parquet, Delta and Iceberg. Versus JSON held in a string it is parsed once and reads about 8x faster, while still accepting any nested shape. <em>Shredding</em> goes further: hot fields are written as real Parquet columns, so a query touching a few keys reads only those &mdash; up to 30x faster reads (writes 20-50% slower). DBR 17.2+ does it transparently. Navigate with path syntax:</p><pre><code>select payload:user.id, payload:items[0].sku\nfrom events;</code></pre>",
+    "tags": [
+      "variant",
+      "semi-structured",
+      "shredding"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-open-variant-data-type-delta-lake-and-apache-spark"
+  },
+  {
+    "id": "auto-20260602-5",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Spark Declarative Pipelines: DLT goes open source",
+    "hook": "Declare the tables you want; Spark wires the DAG.",
+    "body": "<p>Databricks donated Delta Live Tables to the Apache Spark project as <strong>Spark Declarative Pipelines</strong>, landing as a native capability in the Spark 4.x series. You declare the streaming and materialized tables you want plus their queries; the engine derives the dependency DAG, checkpoints, retries, CDC handling and observability instead of you wiring task order by hand. It is the open, vendor-neutral form of the declarative-asset idea Dagster popularised &mdash; now built into Spark itself, not a proprietary add-on.</p>",
+    "tags": [
+      "spark",
+      "declarative-pipelines",
+      "dlt"
+    ],
+    "src": "https://www.databricks.com/blog/bringing-declarative-pipelines-apache-spark-open-source-project"
+  },
+  {
+    "id": "auto-20260602-6",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "Open Semantic Interchange standardises metrics",
+    "hook": "A vendor-neutral file format for your metric definitions.",
+    "body": "<p>OSI (launched September 2025 by Snowflake, dbt Labs, Salesforce and others) is a vendor-neutral YAML spec for semantic constructs &mdash; datasets, metrics, dimensions, relationships &mdash; built on dbt's MetricFlow format. The point: define <em>revenue</em> once and carry that definition between dbt, Snowflake, Tableau and AI tools without re-implementing it per tool. It is the interchange layer that sits above any single semantic engine, so an AI agent reads the same metric meaning everywhere it asks.</p>",
+    "tags": [
+      "semantic-layer",
+      "osi",
+      "metrics",
+      "interop"
+    ],
+    "src": "https://www.snowflake.com/en/blog/open-semantic-interchange-ai-standard/"
   }
 ];

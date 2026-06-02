@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge · Analytics & Data Engineering Mastery Course</title>
+<style>
+:root {
+  --bg: #07091a;
+  --bg-elev: #0f1330;
+  --bg-card: #1a1f44;
+  --bg-card-hover: #232a55;
+  --border: #2a3565;
+  --text: #ecefff;
+  --text-dim: #a5acd0;
+  --text-muted: #6a7299;
+  --accent: #7aa2ff;
+  --accent-2: #a78bfa;
+  --accent-3: #f472b6;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --gold: #fbbf24;
+  --xp: #a78bfa;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --glow: 0 0 24px rgba(167, 139, 250, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse at top, rgba(122,162,255,0.08), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(167,139,250,0.06), transparent 70%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.container { max-width: 1280px; margin: 0 auto; padding: 32px; }
+
+/* TOP NAV */
+nav.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(15, 19, 48, 0.6);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 700;
+}
+.brand .logo {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800;
+  box-shadow: var(--glow);
+}
+.brand .name {
+  background: linear-gradient(135deg, var(--accent), var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; gap: 4px; }
+.nav-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+  transition: all .15s;
+}
+.nav-links a:hover { color: var(--text); background: var(--bg-card); }
+.nav-links a.active { color: var(--accent); background: var(--bg-card); }
+
+/* HERO + STATS */
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+  padding: 40px 32px;
+  background: linear-gradient(135deg, rgba(122,162,255,0.04), rgba(167,139,250,0.06));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(167,139,250,0.1), transparent 50%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent-2);
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero .tagline {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  max-width: 540px;
+}
+.hero-stats {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+.lvl-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.lvl-circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800;
+  position: relative;
+  box-shadow: var(--glow);
+}
+.lvl-info .title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+}
+.lvl-info .rank {
+  font-size: 20px; font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.xp-row { margin-bottom: 16px; }
+.xp-bar-wrap {
+  background: var(--border);
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 6px;
+  position: relative;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--xp), var(--accent-3));
+  width: 0%;
+  transition: width 1s ease-out;
+  box-shadow: 0 0 12px rgba(167,139,250,0.6);
+}
+.xp-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-dim);
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stat-mini {
+  background: var(--bg-card);
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.stat-mini .num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+.stat-mini .lbl {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.stat-mini .num.gold { color: var(--gold); }
+.stat-mini .num.green { color: var(--green); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 32px; }
+}
+
+/* SECTIONS */
+section { margin-bottom: 64px; }
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.section-header .sub {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* SKILL TREE */
+.skill-tree {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  overflow-x: auto;
+}
+.skill-tree svg { display: block; min-width: 900px; margin: 0 auto; }
+.tree-node { cursor: pointer; }
+.tree-node circle { transition: all .2s; }
+.tree-node:hover circle { stroke-width: 3; filter: brightness(1.2); }
+.tree-node.locked circle { fill: #1a1f44; stroke: #2a3565; }
+.tree-node.locked text { fill: #555a7a; }
+.tree-node.available circle { fill: #1a1f44; stroke: var(--accent); stroke-width: 2; }
+.tree-node.available circle.glow {
+  filter: drop-shadow(0 0 6px rgba(122, 162, 255, 0.6));
+}
+.tree-node.completed circle { fill: var(--accent); stroke: var(--accent-2); }
+.tree-node.completed text { fill: white; }
+.tree-node.mastered circle { fill: var(--gold); stroke: var(--gold); }
+.tree-node.mastered text { fill: #1a1f44; font-weight: 700; }
+.tree-edge { stroke: var(--border); stroke-width: 2; fill: none; }
+.tree-edge.active { stroke: var(--accent); }
+
+/* MODULE GRID */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.mod-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.mod-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, rgba(167,139,250,0.05));
+  opacity: 0;
+  transition: opacity .2s;
+}
+.mod-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--shadow); }
+.mod-card:hover::before { opacity: 1; }
+.mod-card .mod-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.mod-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 8px 0;
+  letter-spacing: -0.3px;
+}
+.mod-card .desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  min-height: 40px;
+}
+.mod-card .meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mod-card .badge-lvl {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.lvl-foundations { color: var(--green); border-color: var(--green); }
+.lvl-core { color: var(--amber); border-color: var(--amber); }
+.lvl-advanced { color: var(--accent-3); border-color: var(--accent-3); }
+.mod-card .prog-bar {
+  margin-top: 12px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.mod-card .prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  width: 0%;
+  transition: width .4s;
+}
+.mod-card .xp-tag {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--xp);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+.mod-card.completed { background: linear-gradient(135deg, var(--bg-elev), rgba(74,222,128,0.05)); border-color: rgba(74,222,128,0.3); }
+.mod-card.completed::after { content: '✓'; position: absolute; bottom: 16px; right: 16px; color: var(--green); font-weight: 700; font-size: 18px; }
+
+/* LEARNING PATHS */
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.path-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  position: relative;
+}
+.path-card.featured { border-color: var(--accent); background: linear-gradient(135deg, var(--bg-elev), rgba(122,162,255,0.05)); }
+.path-card .feat-tag { position: absolute; top: 16px; right: 16px; background: var(--accent); color: white; font-size: 9px; padding: 2px 8px; border-radius: 8px; font-weight: 700; letter-spacing: 1px; }
+.path-card h3 { font-size: 18px; margin-bottom: 4px; }
+.path-card .duration { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+.path-card ul { list-style: none; padding: 0; margin: 0; }
+.path-card li {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 5px 0;
+  display: flex;
+  align-items: start;
+  gap: 8px;
+}
+.path-card li::before { content: '▸'; color: var(--accent-2); flex-shrink: 0; }
+
+/* BADGES */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+.badge {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  transition: all .2s;
+  position: relative;
+}
+.badge.locked { opacity: 0.4; filter: grayscale(0.6); }
+.badge.earned { border-color: var(--gold); background: linear-gradient(135deg, var(--bg-elev), rgba(251,191,36,0.05)); box-shadow: 0 0 20px rgba(251,191,36,0.15); }
+.badge .icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+.badge .name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.badge .desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.badge.earned .name { color: var(--gold); }
+
+/* RESOURCES */
+.resource-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.res-tab {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.res-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.res-tab:hover { color: var(--text); }
+.res-content { display: none; }
+.res-content.active { display: block; }
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.res-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: all .2s;
+  position: relative;
+}
+.res-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.res-card .tier {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tier.essential { color: var(--gold); border-color: var(--gold); }
+.tier.recommended { color: var(--accent); border-color: var(--accent); }
+.tier.optional { color: var(--text-muted); }
+.tier.advanced { color: var(--accent-3); border-color: var(--accent-3); }
+.res-card .res-type { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.res-card h4 { font-size: 15px; margin-bottom: 6px; }
+.res-card .author { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.res-card .why { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+/* TIPS TICKER */
+.tip-ticker {
+  background: linear-gradient(135deg, rgba(122,162,255,0.06), rgba(167,139,250,0.04));
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-2);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.tip-ticker .tip-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+.tip-ticker .tip-content { flex: 1; }
+.tip-ticker .tip-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--accent-2); font-weight: 700; margin-bottom: 4px;
+}
+.tip-ticker .tip-text { font-size: 14px; color: var(--text); }
+.tip-ticker button { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.tip-ticker button:hover { border-color: var(--accent); }
+
+/* CTA Block */
+.cta-block {
+  background: linear-gradient(135deg, rgba(122,162,255,0.1), rgba(167,139,250,0.08));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  margin: 48px 0;
+}
+.cta-block h3 { font-size: 24px; margin-bottom: 8px; }
+.cta-block p { color: var(--text-dim); margin-bottom: 24px; }
+.cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-cta {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all .2s;
+  box-shadow: var(--shadow);
+}
+.btn-cta:hover { transform: translateY(-2px); }
+.btn-cta.secondary { background: var(--bg-card); border: 1px solid var(--border); }
+
+/* FAQ */
+.faq-list { display: flex; flex-direction: column; gap: 8px; }
+.faq-item {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.faq-q {
+  padding: 16px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-q:hover { background: var(--bg-card); }
+.faq-a {
+  padding: 0 20px 16px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  display: none;
+}
+.faq-item.open .faq-a { display: block; }
+.faq-item.open .faq-q::after { transform: rotate(180deg); }
+.faq-q::after { content: '⌃'; transform: rotate(180deg); transition: transform .2s; }
+.faq-item.open .faq-q::after { transform: rotate(0deg); }
+
+footer { padding: 32px; text-align: center; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border); margin-top: 64px; }
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07091a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">F</div>
+    <span class="name">Forge</span>
+    <span style="font-size:11px;color:var(--text-muted);margin-left:4px;font-weight:400;">· Analytics & Data Engineering</span>
+  </div>
+  <div class="nav-links">
+    <a href="course.html" class="active">Course</a>
+    <a href="index.html">Modules</a>
+    <a href="practice.html">Practice</a>
+    <a href="swipe.html">Daily</a>
+    <a href="relationships-explainer.html">Deep Dives</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <span class="hero-eyebrow">From Analyst → Expert</span>
+      <h1>Forge yourself into a senior data engineer.</h1>
+      <p class="tagline">A complete, structured, gamified course taking you from "writes SQL" to "designs lakehouses." Built around a modern data stack — dbt, Databricks, Spark, Salesforce — but the patterns generalise to every modern data stack.</p>
+      <div class="cta-buttons">
+        <a href="index.html" class="btn-cta">📘 Start the modules</a>
+        <a href="practice.html" class="btn-cta secondary">🎯 Practice arena</a>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="lvl-row">
+        <div class="lvl-circle" id="lvl-num">1</div>
+        <div class="lvl-info">
+          <div class="title">Current Level</div>
+          <div class="rank" id="rank-title">Curious Analyst</div>
+        </div>
+      </div>
+      <div class="xp-row">
+        <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar"></div></div>
+        <div class="xp-label">
+          <span><span id="xp-cur">0</span> XP</span>
+          <span><span id="xp-next">100</span> to next level</span>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-mini">
+          <div class="num gold" id="stat-badges">0</div>
+          <div class="lbl">Badges</div>
+        </div>
+        <div class="stat-mini">
+          <div class="num green" id="stat-streak">0</div>
+          <div class="lbl">Day streak</div>
+        </div>
+        <div class="stat-mini">
+          <div class="num" id="stat-modules">0/13</div>
+          <div class="lbl">Modules</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIP OF DAY -->
+  <div class="tip-ticker">
+    <div class="tip-icon">💡</div>
+    <div class="tip-content">
+      <div class="tip-label">Tip of the moment</div>
+      <div class="tip-text" id="tip-text">Always test grain after a join: <code>count(*) vs count(distinct primary_key)</code>. If they differ, you have fan-out.</div>
+    </div>
+    <button onclick="nextTip()">Next tip →</button>
+  </div>
+
+  <!-- SKILL TREE -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>The skill tree</h2>
+        <div class="sub">Concepts unlock in dependency order. Hover any node to see what it teaches.</div>
+      </div>
+    </div>
+    <div class="skill-tree">
+      <svg viewBox="0 0 1100 700">
+        <defs>
+          <marker id="treearrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#2a3565" />
+          </marker>
+        </defs>
+
+        <!-- ROW 1: FOUNDATIONS -->
+        <g class="tree-node available" data-node="sql">
+          <circle cx="100" cy="80" r="36" />
+          <text x="100" y="78" text-anchor="middle" font-size="10" fill="#a5acd0">SQL</text>
+          <text x="100" y="92" text-anchor="middle" font-size="9" fill="#7aa2ff">Adv</text>
+        </g>
+        <g class="tree-node available" data-node="python">
+          <circle cx="240" cy="80" r="36" />
+          <text x="240" y="78" text-anchor="middle" font-size="10" fill="#a5acd0">Python</text>
+          <text x="240" y="92" text-anchor="middle" font-size="9" fill="#7aa2ff">DE</text>
+        </g>
+        <g class="tree-node available" data-node="git">
+          <circle cx="380" cy="80" r="36" />
+          <text x="380" y="78" text-anchor="middle" font-size="10" fill="#a5acd0">Git</text>
+          <text x="380" y="92" text-anchor="middle" font-size="9" fill="#7aa2ff">CI/CD</text>
+        </g>
+
+        <!-- ROW 2: CORE -->
+        <path class="tree-edge" d="M 100 116 Q 100 165, 160 200" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="modeling">
+          <circle cx="180" cy="240" r="38" />
+          <text x="180" y="238" text-anchor="middle" font-size="11" fill="#a5acd0">Data</text>
+          <text x="180" y="252" text-anchor="middle" font-size="11" fill="#a5acd0">Modeling</text>
+        </g>
+
+        <path class="tree-edge" d="M 100 116 Q 200 160, 320 200" marker-end="url(#treearrow)"/>
+        <path class="tree-edge" d="M 240 116 L 320 200" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="warehouse">
+          <circle cx="340" cy="240" r="38" />
+          <text x="340" y="238" text-anchor="middle" font-size="10" fill="#a5acd0">Warehouse</text>
+          <text x="340" y="252" text-anchor="middle" font-size="9" fill="#7aa2ff">Internals</text>
+        </g>
+
+        <path class="tree-edge" d="M 380 116 Q 420 160, 500 200" marker-end="url(#treearrow)"/>
+        <path class="tree-edge" d="M 180 278 Q 350 320, 500 280" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="dbt">
+          <circle cx="520" cy="240" r="42" />
+          <text x="520" y="238" text-anchor="middle" font-size="13" fill="#a5acd0" font-weight="700">dbt</text>
+          <text x="520" y="252" text-anchor="middle" font-size="9" fill="#a78bfa">Mastery</text>
+        </g>
+
+        <path class="tree-edge" d="M 340 278 Q 500 340, 700 280" marker-end="url(#treearrow)"/>
+        <path class="tree-edge" d="M 562 240 L 700 240" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="spark">
+          <circle cx="720" cy="240" r="38" />
+          <text x="720" y="238" text-anchor="middle" font-size="10" fill="#a5acd0">Databricks</text>
+          <text x="720" y="252" text-anchor="middle" font-size="10" fill="#a5acd0">Spark</text>
+        </g>
+
+        <!-- ROW 3: PRODUCTION -->
+        <path class="tree-edge" d="M 520 282 L 380 380" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="orchestration">
+          <circle cx="340" cy="400" r="38" />
+          <text x="340" y="398" text-anchor="middle" font-size="10" fill="#a5acd0">Orchestration</text>
+          <text x="340" y="412" text-anchor="middle" font-size="9" fill="#7aa2ff">Airflow</text>
+        </g>
+
+        <path class="tree-edge" d="M 720 278 L 560 380" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="ingestion">
+          <circle cx="540" cy="400" r="38" />
+          <text x="540" y="398" text-anchor="middle" font-size="10" fill="#a5acd0">Ingestion</text>
+          <text x="540" y="412" text-anchor="middle" font-size="10" fill="#a5acd0">CDC · Kafka</text>
+        </g>
+
+        <path class="tree-edge" d="M 520 282 L 740 380" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="dq">
+          <circle cx="740" cy="400" r="38" />
+          <text x="740" y="398" text-anchor="middle" font-size="10" fill="#a5acd0">Data</text>
+          <text x="740" y="412" text-anchor="middle" font-size="10" fill="#a5acd0">Quality</text>
+        </g>
+
+        <!-- ROW 4: SENIOR -->
+        <path class="tree-edge" d="M 340 438 L 480 540" marker-end="url(#treearrow)"/>
+        <path class="tree-edge" d="M 540 438 L 540 540" marker-end="url(#treearrow)"/>
+        <path class="tree-edge" d="M 740 438 L 600 540" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="sysdesign">
+          <circle cx="540" cy="580" r="44" />
+          <text x="540" y="576" text-anchor="middle" font-size="11" fill="#a5acd0" font-weight="700">System</text>
+          <text x="540" y="592" text-anchor="middle" font-size="11" fill="#a5acd0" font-weight="700">Design</text>
+        </g>
+
+        <path class="tree-edge" d="M 584 580 L 880 580" marker-end="url(#treearrow)"/>
+        <g class="tree-node available" data-node="interview">
+          <circle cx="920" cy="580" r="40" />
+          <text x="920" y="576" text-anchor="middle" font-size="11" fill="#a5acd0">Interview</text>
+          <text x="920" y="592" text-anchor="middle" font-size="11" fill="#a5acd0">Portfolio</text>
+        </g>
+
+        <!-- Legend -->
+        <g transform="translate(900, 60)">
+          <text x="0" y="0" font-size="11" fill="#a5acd0" font-weight="700">LEGEND</text>
+          <circle cx="10" cy="20" r="8" fill="#1a1f44" stroke="#7aa2ff" stroke-width="2"/>
+          <text x="24" y="24" font-size="10" fill="#a5acd0">Available</text>
+          <circle cx="10" cy="42" r="8" fill="#7aa2ff" stroke="#a78bfa"/>
+          <text x="24" y="46" font-size="10" fill="#a5acd0">Completed</text>
+          <circle cx="10" cy="64" r="8" fill="#fbbf24" stroke="#fbbf24"/>
+          <text x="24" y="68" font-size="10" fill="#a5acd0">Mastered</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- LEARNING PATHS -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>Learning paths</h2>
+        <div class="sub">Pick a track based on your goal and timeline.</div>
+      </div>
+    </div>
+    <div class="paths-grid">
+      <div class="path-card featured">
+        <span class="feat-tag">RECOMMENDED</span>
+        <h3>🎯 Pivot to Analytics Engineer</h3>
+        <div class="duration">12 weeks · 5h/week</div>
+        <ul>
+          <li>Modules 1–6 (foundations → dbt)</li>
+          <li>40 SQL/dbt practice problems</li>
+          <li>Build a public dbt project on GitHub</li>
+          <li>3 mock case-study interviews</li>
+          <li><b>Outcome:</b> AE-ready portfolio + interview prep</li>
+        </ul>
+      </div>
+      <div class="path-card">
+        <h3>⚡ Pivot to Data Engineer</h3>
+        <div class="duration">16 weeks · 6h/week</div>
+        <ul>
+          <li>All 13 modules</li>
+          <li>Heavy Python + Spark + orchestration</li>
+          <li>Build a CDC + streaming pipeline</li>
+          <li>System design weekly drills</li>
+          <li><b>Outcome:</b> DE-ready, Databricks certified</li>
+        </ul>
+      </div>
+      <div class="path-card">
+        <h3>🚀 Senior AE Track</h3>
+        <div class="duration">24 weeks · 4h/week</div>
+        <ul>
+          <li>All modules + advanced deep-dives</li>
+          <li>Lead a real refactor end-to-end</li>
+          <li>Mentor another analyst</li>
+          <li>Present at internal data guild</li>
+          <li><b>Outcome:</b> Senior AE / Tech Lead capable</li>
+        </ul>
+      </div>
+      <div class="path-card">
+        <h3>🔁 Daily sharpener</h3>
+        <div class="duration">20 min/day · ongoing</div>
+        <ul>
+          <li>One SQL problem per day</li>
+          <li>Weekly system design challenge</li>
+          <li>Monthly portfolio refresh</li>
+          <li>Stay current as the stack evolves</li>
+          <li><b>Outcome:</b> Maintain expert edge</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES GRID -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>The 13 modules</h2>
+        <div class="sub">Click any to dive in. Progress saves automatically.</div>
+      </div>
+      <a href="index.html" style="color:var(--accent);text-decoration:none;font-size:13px;">Open module hub →</a>
+    </div>
+    <div class="module-grid" id="module-grid"></div>
+  </section>
+
+  <!-- BADGES -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>Badge collection</h2>
+        <div class="sub">Earn by completing modules, solving practice problems, and hitting streak milestones.</div>
+      </div>
+      <span id="badge-counter" style="font-size:13px;color:var(--text-muted);">0 / 18 earned</span>
+    </div>
+    <div class="badges-grid" id="badges-grid"></div>
+  </section>
+
+  <!-- RESOURCES -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>Resource library</h2>
+        <div class="sub">The curated set. Annotated with what each is good for and how it fits your stack.</div>
+      </div>
+    </div>
+    <div class="resource-tabs">
+      <button class="res-tab active" onclick="showRes(this,'r-books')">📚 Books</button>
+      <button class="res-tab" onclick="showRes(this,'r-courses')">🎓 Courses</button>
+      <button class="res-tab" onclick="showRes(this,'r-blogs')">📝 Blogs & Newsletters</button>
+      <button class="res-tab" onclick="showRes(this,'r-yt')">📺 YouTube</button>
+      <button class="res-tab" onclick="showRes(this,'r-pods')">🎧 Podcasts</button>
+      <button class="res-tab" onclick="showRes(this,'r-certs')">🏆 Certifications</button>
+      <button class="res-tab" onclick="showRes(this,'r-tools')">🛠 Tools</button>
+    </div>
+    <div class="res-content active" id="r-books"></div>
+    <div class="res-content" id="r-courses"></div>
+    <div class="res-content" id="r-blogs"></div>
+    <div class="res-content" id="r-yt"></div>
+    <div class="res-content" id="r-pods"></div>
+    <div class="res-content" id="r-certs"></div>
+    <div class="res-content" id="r-tools"></div>
+  </section>
+
+  <!-- BEST PRACTICES -->
+  <section>
+    <div class="section-header">
+      <div>
+        <h2>Top 20 best-practice rules</h2>
+        <div class="sub">Internalize these. They're the difference between "writes SQL" and "writes production data."</div>
+      </div>
+    </div>
+    <div class="module-grid" id="practices-grid"></div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-block">
+    <h3>Ready to forge yourself?</h3>
+    <p>The fastest path: start the practice arena. Solve one problem now.</p>
+    <div class="cta-buttons">
+      <a href="practice.html" class="btn-cta">🎯 Open Practice Arena</a>
+      <a href="index.html" class="btn-cta secondary">📘 Read modules first</a>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section>
+    <div class="section-header"><div><h2>FAQ</h2></div></div>
+    <div class="faq-list" id="faq-list"></div>
+  </section>
+
+</div>
+
+<footer>
+  Built for Jian's AE → DE pivot. Single-file, no tracking, progress saved locally. <br>
+  Update content by editing this HTML — the patterns are reusable.
+</footer>
+
+<script>
+// ====================== DATA ======================
+const MODULES = [
+  { id:'m0', n:'00', title:'Roadmap & Mindset', desc:"Why the pivot, what's the muscle gap, the 12-week plan.", lvl:'foundations', xp:50 },
+  { id:'m1', n:'01', title:'Advanced SQL', desc:'Window functions, dedupe, fan-out, NULL traps, query plans.', lvl:'foundations', xp:120 },
+  { id:'m2', n:'02', title:'Python for DE', desc:'pandas → PySpark, requests, click CLIs, retries.', lvl:'foundations', xp:100 },
+  { id:'m3', n:'03', title:'Git & CI/CD', desc:'Branches, PRs, rebase, slim CI for dbt.', lvl:'foundations', xp:80 },
+  { id:'m4', n:'04', title:'Data Modeling', desc:'Star schema, SCDs, grain, dimensional thinking.', lvl:'core', xp:140 },
+  { id:'m5', n:'05', title:'Data Warehousing', desc:'OLAP vs OLTP, columnar, partitions, Delta Lake internals.', lvl:'core', xp:120 },
+  { id:'m6', n:'06', title:'dbt Mastery', desc:'Materializations, tests, macros, snapshots, contracts.', lvl:'core', xp:160 },
+  { id:'m7', n:'07', title:'Databricks & Spark', desc:'Spark UI, joins, skew, Photon, Unity Catalog.', lvl:'core', xp:160 },
+  { id:'m8', n:'08', title:'Orchestration', desc:'Airflow / Dagster / Workflows. Idempotency, SLAs.', lvl:'core', xp:100 },
+  { id:'m9', n:'09', title:'Ingestion & CDC', desc:'Batch vs streaming, Kafka, soft-deletes, schema evolution.', lvl:'advanced', xp:140 },
+  { id:'m10', n:'10', title:'Data Quality & Testing', desc:'dbt tests, contracts, observability, Elementary, anomalies.', lvl:'core', xp:120 },
+  { id:'m11', n:'11', title:'System Design', desc:'Lakehouse, latency vs cost, capacity planning, trade-offs.', lvl:'advanced', xp:180 },
+  { id:'m12', n:'12', title:'Interview & Portfolio', desc:'Mock loops, STAR stories, the public dbt project.', lvl:'advanced', xp:100 },
+];
+
+const BADGES = [
+  { id:'first-step',  icon:'👣', name:'First Step',         desc:'Complete your first module',        cond: s => s.completed.length >= 1 },
+  { id:'sql-slinger', icon:'⚔️',  name:'SQL Slinger',        desc:'Complete the Advanced SQL module',  cond: s => s.completed.includes('m1') },
+  { id:'pythonista',  icon:'🐍', name:'Pythonista',          desc:'Complete Python for DE',             cond: s => s.completed.includes('m2') },
+  { id:'git-flow',    icon:'🌿', name:'Git Flow',            desc:'Master Git & CI/CD',                 cond: s => s.completed.includes('m3') },
+  { id:'modeler',     icon:'🏗️',  name:'Modeling Master',    desc:'Complete Data Modeling',             cond: s => s.completed.includes('m4') },
+  { id:'warehouseman',icon:'🏭', name:'Warehouseman',        desc:'Complete Warehousing internals',     cond: s => s.completed.includes('m5') },
+  { id:'dbt-disciple',icon:'💎', name:'dbt Disciple',        desc:'Complete dbt Mastery',               cond: s => s.completed.includes('m6') },
+  { id:'spark-whisperer',icon:'⚡',name:'Spark Whisperer',   desc:'Complete Databricks & Spark',        cond: s => s.completed.includes('m7') },
+  { id:'plumber',     icon:'🔧', name:'Pipeline Plumber',    desc:'Complete Orchestration',             cond: s => s.completed.includes('m8') },
+  { id:'cdc-detective',icon:'🕵️',name:'CDC Detective',      desc:'Complete Ingestion & CDC',           cond: s => s.completed.includes('m9') },
+  { id:'guardian',    icon:'🛡️',  name:'DQ Guardian',        desc:'Complete Data Quality & Testing',    cond: s => s.completed.includes('m10') },
+  { id:'architect',   icon:'🏛️',  name:'System Architect',   desc:'Complete System Design',             cond: s => s.completed.includes('m11') },
+  { id:'interviewee', icon:'🎯', name:'Interview Ready',     desc:'Complete Interview & Portfolio',     cond: s => s.completed.includes('m12') },
+  { id:'half-way',    icon:'🌗', name:'Half Way',            desc:'Complete 7 modules',                 cond: s => s.completed.length >= 7 },
+  { id:'completionist',icon:'🏆',name:'The Completionist',  desc:'Complete all 13 modules',            cond: s => s.completed.length >= 13 },
+  { id:'streak-7',    icon:'🔥', name:'Hot Streak',          desc:'7-day learning streak',              cond: s => s.streak >= 7 },
+  { id:'streak-30',   icon:'☄️',  name:'On Fire',            desc:'30-day learning streak',             cond: s => s.streak >= 30 },
+  { id:'practice-10', icon:'💪', name:'Practice Devotee',    desc:'Solve 10 practice problems',         cond: s => (s.solved||0) >= 10 },
+];
+
+const LEVELS = [
+  { lvl: 1,  xp:    0, title: 'Curious Analyst' },
+  { lvl: 2,  xp:  100, title: 'Active Learner' },
+  { lvl: 3,  xp:  250, title: 'SQL Scribbler' },
+  { lvl: 4,  xp:  450, title: 'Pattern Spotter' },
+  { lvl: 5,  xp:  700, title: 'Junior Engineer Mindset' },
+  { lvl: 6,  xp: 1000, title: 'dbt Initiate' },
+  { lvl: 7,  xp: 1350, title: 'Model Builder' },
+  { lvl: 8,  xp: 1750, title: 'Lineage Walker' },
+  { lvl: 9,  xp: 2200, title: 'AE in Training' },
+  { lvl: 10, xp: 2700, title: 'Analytics Engineer' },
+  { lvl: 11, xp: 3250, title: 'Spark Apprentice' },
+  { lvl: 12, xp: 3850, title: 'Pipeline Practitioner' },
+  { lvl: 13, xp: 4500, title: 'Mid AE' },
+  { lvl: 14, xp: 5200, title: 'System Thinker' },
+  { lvl: 15, xp: 6000, title: 'Senior AE' },
+  { lvl: 16, xp: 6900, title: 'Data Engineer' },
+  { lvl: 17, xp: 7900, title: 'Senior DE' },
+  { lvl: 18, xp: 9000, title: 'Staff Engineer' },
+  { lvl: 19, xp:10300, title: 'Domain Expert' },
+  { lvl: 20, xp:12000, title: 'Principal · The Forge Master' },
+];
+
+const TIPS = [
+  "Always test grain after a join: <code>count(*) vs count(distinct primary_key)</code>. If they differ, you have fan-out.",
+  "<code>NOT IN (subquery)</code> returns zero rows if the subquery has any NULL. Use <code>NOT EXISTS</code>.",
+  "Every model in the dbt project ends with <code>{{ audit_columns() }}</code>. It's how you trace which run loaded what.",
+  "Fix metrics in the canonical dbt model, not in the Tableau calc. Otherwise every dashboard inherits the same bug.",
+  "<code>SELECT *</code> is cheap in OLTP and expensive in OLAP. Columnar storage rewards projecting only what you need.",
+  "Use <code>severity: warn</code> when introducing new tests. Harden to <code>error</code> after the data has proven clean.",
+  "PySpark transformations are lazy. Only an action (<code>.show()</code>, <code>.collect()</code>, <code>.write()</code>) triggers execution.",
+  "Slim CI for dbt: <code>dbt build -s state:modified+</code>. Only builds changed models + their downstream.",
+  "Broadcast small dim tables explicitly: <code>/*+ BROADCAST(dim) */</code>. The planner gets it wrong on bigger sources.",
+  "Surrogate keys built from <code>md5(NULL || …)</code> collapse all NULL-rows to the same key. Always use a guaranteed-unique column.",
+  "Idempotency is non-negotiable. Same input → same output, every retry. MERGE, not INSERT.",
+  "CDC tables (accounts, jobs, etc.) need <code>WHERE __is_deleted = false</code>. Missing it = production correctness bug.",
+  "OPTIMIZE compacts files; ZORDER sorts within. Use both regularly on hot tables.",
+  "When stakeholder says 'real-time', ask 'what latency is actually fine?'. 5-minute micro-batch saves 10× cost vs full streaming.",
+  "Data contracts move the failure left: catch the schema change at PR time, not at 9pm Friday.",
+  "Use <code>{{ ref() }}</code>, never hardcoded paths. The whole dbt DAG depends on it.",
+  "Naming convention beats cleverness. <code>fct_jobs</code> > <code>jobs_v3_final</code>.",
+  "Test for what you'd be embarrassed by, not what's easy to test. Edge cases > happy paths.",
+  "Read query plans bottom-up. The lowest exchange is usually the bottleneck.",
+  "Document the grain in every fact model. 'One row per (job_id, contractor_id, event_ts)' — write it.",
+];
+
+const PRACTICES = [
+  { n:'01', t:'CTEs over subqueries', d:'Every dbt model is a top-down CTE chain. Subqueries become unreadable past 2 levels.' },
+  { n:'02', t:'Declare the grain', d:'In every fact, state explicitly what one row represents. Validate with COUNT(*) vs COUNT(DISTINCT pk).' },
+  { n:'03', t:'Never SELECT * in marts', d:'Project explicitly. Schema changes upstream break dashboards silently otherwise.' },
+  { n:'04', t:'Test the FK at the mart layer', d:'relationships test on consumer-facing fact. Use severity: warn to start.' },
+  { n:'05', t:'audit_columns() everywhere', d:'Every model ends with {{ audit_columns() }}. dbt_loaded_at + run_id traces incidents.' },
+  { n:'06', t:'Filter CDC tombstones', d:'WHERE __is_deleted = false on every CDC table. Always.' },
+  { n:'07', t:'Idempotent loads', d:'MERGE on unique_key, never bare INSERT. Backfills must replay safely.' },
+  { n:'08', t:'Slim CI in PRs', d:'dbt build -s state:modified+ runs only changed models + downstream. 10× faster than full builds.' },
+  { n:'09', t:'Document Why, not What', d:'Code shows what. Description should explain why this column exists, what business concept it encodes.' },
+  { n:'10', t:'Declare meta.join_to on every FK', d:'Structured intent feeds catalogs, AI tools, and future metric views.' },
+  { n:'11', t:'Surrogate keys without NULLs', d:'dbt_utils.generate_surrogate_key with a nullable column collapses NULL-rows. Use guaranteed-unique input.' },
+  { n:'12', t:'Aggregate before joining big × big', d:'Fan-out kills sums. GROUP BY one side first, then join — preserves grain.' },
+  { n:'13', t:'OPTIMIZE + ZORDER weekly', d:'Hot Delta tables need OPTIMIZE for compaction, ZORDER for high-cardinality filter pruning.' },
+  { n:'14', t:'Broadcast small dims explicitly', d:'Stats-based broadcasting is unreliable. Use the hint when you know one side is small.' },
+  { n:'15', t:'Latency before architecture', d:'Real-time? Ask what SLO. 5-min micro-batch covers 90% of "real-time" asks at 30% of cost.' },
+  { n:'16', t:'Source contracts > goodwill', d:'Producer agrees a schema; consumer validates it. Schema change = explicit migration, not surprise.' },
+  { n:'17', t:'Lowercase all SQL in PRs', d:'Style is a lint gate. Consistency reduces review time and code-review fatigue.' },
+  { n:'18', t:'Conventional commits + Jira', d:'feat: [DAE-422] Add stg_accounts. Searchable, traceable, automated changelog.' },
+  { n:'19', t:'PRs ship one model chain', d:'src + stg + downstream in one PR. Reviewers see the full data flow, not isolated pieces.' },
+  { n:'20', t:'Never force-push main', d:'Rebase your feature branch. Main is sacred — its history is the audit trail.' },
+];
+
+const RESOURCES = {
+  'r-books': [
+    { type:'Book', title:'The Data Warehouse Toolkit', author:'Ralph Kimball & Margy Ross', tier:'essential', why:'The Bible for dimensional modeling. Read chapters 1-3 + your industry chapter.' },
+    { type:'Book', title:'Fundamentals of Data Engineering', author:'Joe Reis & Matt Housley', tier:'essential', why:'Modern overview of the DE lifecycle. Read cover to cover for orientation.' },
+    { type:'Book', title:'Designing Data-Intensive Applications', author:'Martin Kleppmann', tier:'recommended', why:'Distributed systems deep dive. Skim chapters 1-4 + 10 for AE; full read for DE.' },
+    { type:'Book', title:'SQL Antipatterns', author:'Bill Karwin', tier:'recommended', why:'200 pages of "don\'t do this." Inoculates you against common bugs.' },
+    { type:'Book', title:'Star Schema: The Complete Reference', author:'Christopher Adamson', tier:'recommended', why:'Companion to Kimball — more practical examples, faster reading.' },
+    { type:'Book', title:'Streaming Systems', author:'Tyler Akidau et al.', tier:'advanced', why:'The reference on event-time, watermarks, exactly-once. Read once you touch streaming.' },
+    { type:'Book', title:'High Performance Spark', author:'Holden Karau & Rachel Warren', tier:'recommended', why:'Practical Spark tuning. Read alongside the Spark module.' },
+    { type:'Book', title:'The DataOps Cookbook', author:'Christopher Bergh et al.', tier:'optional', why:'Process patterns for treating analytics like software. Skimmable.' },
+    { type:'Book', title:'97 Things Every Data Engineer Should Know', author:'Tobias Macey (ed.)', tier:'optional', why:'Short essays. Good for breakfast reading. Mixed quality.' },
+    { type:'Book', title:'Learning SQL', author:'Alan Beaulieu', tier:'optional', why:'If your SQL foundation feels shaky. Skip if you\'re already comfortable with windows.' },
+  ],
+  'r-courses': [
+    { type:'Course', title:'dbt Learn — Fundamentals', author:'dbt Labs (free)', tier:'essential', why:'Official, gold-standard, ~6 hours. Do this first if you\'re new to dbt.' },
+    { type:'Course', title:'dbt Learn — Advanced Materializations', author:'dbt Labs', tier:'essential', why:'Incremental, snapshots, contracts. Critical for production dbt.' },
+    { type:'Course', title:'dbt Learn — Jinja, Macros, Packages', author:'dbt Labs', tier:'recommended', why:'Once you\'re writing macros. Required for DRY codebases.' },
+    { type:'Course', title:'Databricks Academy', author:'Databricks (free)', tier:'essential', why:'Self-paced. Cover "Data Engineer Associate" prep.' },
+    { type:'Course', title:'StrataScratch SQL Bootcamp', author:'StrataScratch', tier:'recommended', why:'Real interview SQL problems. Best paid resource for SQL interview prep.' },
+    { type:'Course', title:'Mode Analytics SQL Tutorial', author:'Mode (free)', tier:'recommended', why:'Free, comprehensive, includes window functions. Good warm-up.' },
+    { type:'Course', title:'Udacity Data Engineer Nanodegree', author:'Udacity ($)', tier:'optional', why:'Project-driven; good if you need external structure. Pricey.' },
+    { type:'Course', title:'Confluent Kafka Tutorial', author:'Confluent (free)', tier:'recommended', why:'When you\'re ready to deeply understand Kafka. Hands-on.' },
+    { type:'Course', title:'Maven Analytics — Data Modeling', author:'Maven ($)', tier:'optional', why:'Practical Kimball walkthrough if Kimball\'s book feels heavy.' },
+  ],
+  'r-blogs': [
+    { type:'Blog', title:'Locally Optimistic', author:'AE practitioner collective', tier:'essential', why:'AEs writing about real production problems. Searchable archive.' },
+    { type:'Newsletter', title:'Data Engineering Weekly', author:'Ananth Packkildurai', tier:'essential', why:'The best Sunday digest. ~10 min weekly read.' },
+    { type:'Blog', title:'dbt Labs Engineering Blog', author:'dbt Labs', tier:'recommended', why:'Updates on dbt features and patterns. Practical not theoretical.' },
+    { type:'Blog', title:'Databricks Blog', author:'Databricks', tier:'recommended', why:'Filter for "engineering" and "patterns." Marketing content is noise.' },
+    { type:'Blog', title:'The Daily Pull', author:'Various', tier:'optional', why:'Curated DE news. Light reading.' },
+    { type:'Newsletter', title:'Benn.substack', author:'Benn Stancil', tier:'recommended', why:'Industry strategy + the metric layer wars. Good for sense-making.' },
+    { type:'Blog', title:'Towards Data Science', author:'Medium pub', tier:'optional', why:'Mixed quality. Cherry-pick by author after a few reads.' },
+    { type:'Blog', title:'Maxime Beauchemin\'s Medium', author:'Maxime Beauchemin', tier:'recommended', why:'Founder of Airflow + Superset. His "Functional Data Engineering" essay is a must.' },
+    { type:'Newsletter', title:'Recurse SQL', author:'Various', tier:'optional', why:'Weekly SQL puzzles. Good for keeping skills sharp.' },
+    { type:'Blog', title:'High Growth Engineer', author:'Jordan Cutler', tier:'optional', why:'Engineering-career-arc content. Not data-specific but applicable.' },
+  ],
+  'r-yt': [
+    { type:'YouTube', title:'Coalesce (annual dbt conference)', author:'dbt Labs', tier:'essential', why:'Annual conference talks. Real production stories. Watch the talks tagged "case study."' },
+    { type:'YouTube', title:'Databricks Data + AI Summit', author:'Databricks', tier:'recommended', why:'Annual. Watch "performance" and "architecture" tracks for tuning intuition.' },
+    { type:'YouTube', title:'Seattle Data Guy', author:'Ben Rogojan', tier:'recommended', why:'Practical interview prep + DE career content. ~10 min videos.' },
+    { type:'YouTube', title:'Joe Reis (autodidacts)', author:'Joe Reis', tier:'recommended', why:'Author of Fundamentals of Data Engineering. Industry-wide perspective.' },
+    { type:'YouTube', title:'Mehdi Ouazza (mehdio DataTV)', author:'Mehdi Ouazza', tier:'optional', why:'Modern data stack walkthroughs. French accent ✨.' },
+    { type:'YouTube', title:'Karpov.courses', author:'Karpov', tier:'optional', why:'Russian channel, English subs. Solid SQL and warehousing tutorials.' },
+    { type:'YouTube', title:'Andreas Kretz', author:'Andreas Kretz', tier:'recommended', why:'Engineering-track Data Engineer content. Heavy Kafka/Spark.' },
+    { type:'YouTube', title:'Data with Zach', author:'Zach Wilson', tier:'optional', why:'Hot takes + career advice. Skim for signal.' },
+  ],
+  'r-pods': [
+    { type:'Podcast', title:'Analytics Engineering Podcast', author:'Tristan Handy', tier:'essential', why:'The AE category-defining conversations. ~45 min episodes.' },
+    { type:'Podcast', title:'Data Engineering Podcast', author:'Tobias Macey', tier:'essential', why:'Deep technical interviews. Longer (~1hr) but high-density.' },
+    { type:'Podcast', title:'The Sequel Show', author:'Mikkel Dengsøe + Petr Janda', tier:'recommended', why:'Modern data stack culture + operational topics.' },
+    { type:'Podcast', title:'Data Brew by Databricks', author:'Databricks', tier:'optional', why:'Heavily Databricks-flavoured but good Spark internals episodes.' },
+    { type:'Podcast', title:'Open||Source||Data', author:'OpenLineage et al.', tier:'optional', why:'Open-source DE projects. Episodic quality.' },
+    { type:'Podcast', title:'Catalog & Cocktails', author:'Tim Gasper + Juan Sequeda', tier:'recommended', why:'Metadata, catalogs, governance — the unsexy critical stuff.' },
+  ],
+  'r-certs': [
+    { type:'Cert', title:'Databricks Certified Data Engineer Associate', author:'Databricks', tier:'essential', why:'Free study material + nominal $200 exam. Signals capability + forces structured study.' },
+    { type:'Cert', title:'dbt Analytics Engineering Certification', author:'dbt Labs', tier:'essential', why:'$200 exam. Aligned exactly with the AE role. Renewed yearly.' },
+    { type:'Cert', title:'Databricks Certified Data Engineer Professional', author:'Databricks', tier:'recommended', why:'After Associate. Tests deeper Spark + Delta + production patterns.' },
+    { type:'Cert', title:'AWS Certified Data Analytics — Specialty', author:'AWS', tier:'optional', why:'Useful if your stack is on AWS. Otherwise skip.' },
+    { type:'Cert', title:'GCP Professional Data Engineer', author:'Google Cloud', tier:'optional', why:'Useful if on GCP. Snowflake/Databricks certs are higher leverage.' },
+    { type:'Cert', title:'Snowflake SnowPro Core', author:'Snowflake', tier:'optional', why:'Only if your future role uses Snowflake. Skip if Databricks-bound.' },
+    { type:'Cert', title:'Confluent Certified Developer for Apache Kafka', author:'Confluent', tier:'optional', why:'Worth it if you\'ll own streaming pipelines.' },
+  ],
+  'r-tools': [
+    { type:'Tool', title:'DBeaver', author:'Open source', tier:'essential', why:'Free SQL IDE. Connects to Databricks, Postgres, MySQL — works everywhere.' },
+    { type:'Tool', title:'dbt-core CLI', author:'dbt Labs (free)', tier:'essential', why:'The terminal tool. Install via pip. Foundation of everything dbt.' },
+    { type:'Tool', title:'sqlfluff', author:'Open source', tier:'essential', why:'SQL linter. Make CI fail on style violations. Configure once, save reviews forever.' },
+    { type:'Tool', title:'Databricks CLI', author:'Databricks', tier:'essential', why:'Talk to your workspace from the terminal. Deploy dashboards, manage jobs.' },
+    { type:'Tool', title:'Elementary', author:'Elementary Data', tier:'recommended', why:'Open-source data observability for dbt. Anomaly detection + Slack alerts.' },
+    { type:'Tool', title:'dbt-codegen', author:'dbt Labs', tier:'recommended', why:'Auto-generate model yml from warehouse schemas. Saves hours.' },
+    { type:'Tool', title:'dbt-utils', author:'dbt Labs', tier:'essential', why:'~50 extra macros and tests. Treat as part of dbt core.' },
+    { type:'Tool', title:'dbt-expectations', author:'Calogica', tier:'recommended', why:'Great Expectations-style assertions for dbt. ~100 extra tests.' },
+    { type:'Tool', title:'pre-commit', author:'Open source', tier:'essential', why:'Hooks for sqlfluff, ruff, black, yaml-lint. Catches mistakes before push.' },
+    { type:'Tool', title:'pytest', author:'Open source', tier:'recommended', why:'Standard for Python tests. Use for custom dbt macros, ingestion scripts.' },
+  ],
+};
+
+const FAQ = [
+  { q:'How long does the full course actually take?', a:'12 weeks at 5h/week gets you AE-ready with the public portfolio. 16-24 weeks at the same pace covers DE depth. Daily 20-min sharpener keeps you current after.' },
+  { q:'Do I need to do every module in order?', a:'Foundations (SQL, Python, Git) first. After that, dbt and Data Modeling are the highest-leverage. Spark/Databricks before Orchestration. System Design comes last for context.' },
+  { q:'What if I can\'t install a local dbt project?', a:'Use Databricks Community Edition (free) or sign up for dbt Cloud free tier. Both let you complete every dbt exercise without local setup.' },
+  { q:'How do you earn XP and badges?', a:'XP from completing modules (variable amount) and solving practice problems. Badges trigger when you cross thresholds — complete a module, finish a track, hit a streak.' },
+  { q:'Is this company-specific?', a:'The patterns are universal. Production-flavored examples (CDC tables, dbt project conventions) ground the concepts. Strip out the names and the same lessons apply to any modern data stack.' },
+  { q:'Should I get certifications?', a:'Databricks Certified Data Engineer Associate + dbt Analytics Engineering Certification are the only two that signal AE/DE capability strongly. Both worth the $200 + study time.' },
+  { q:'Internal pivot or external job?', a:'Internal is lowest-friction — you already have domain. Pitch shadowing dbt project PRs for 4 weeks, then owning a model. External pays more but takes longer and harder. Try internal first.' },
+  { q:'What if I don\'t finish in a year?', a:'Then it took 18 months. Or 24. The arc matters more than the speed. Daily consistent practice beats sporadic intensity.' },
+  { q:'How is this different from Coursera / Datacamp?', a:'Those teach concepts in isolation. This course is structured around the actual decisions an AE/DE makes in production, with the patterns wired through every module. And it\'s free + open source.' },
+  { q:'Can I share my progress?', a:'Progress is localStorage-only — private to your browser. If you want bragging rights, screenshot the badges and post 🏅' },
+];
+
+// ====================== STATE ======================
+function getState() {
+  return {
+    completed: JSON.parse(localStorage.getItem('forge-completed') || '[]'),
+    xp: parseInt(localStorage.getItem('forge-xp') || '0'),
+    streak: parseInt(localStorage.getItem('forge-streak') || '0'),
+    solved: parseInt(localStorage.getItem('forge-solved') || '0'),
+    lastVisit: localStorage.getItem('forge-last-visit'),
+  };
+}
+function saveState(s) {
+  localStorage.setItem('forge-completed', JSON.stringify(s.completed));
+  localStorage.setItem('forge-xp', s.xp);
+  localStorage.setItem('forge-streak', s.streak);
+  localStorage.setItem('forge-solved', s.solved);
+  localStorage.setItem('forge-last-visit', s.lastVisit);
+}
+
+function calcLevel(xp) {
+  let lvl = LEVELS[0];
+  let next = LEVELS[1];
+  for (let i=LEVELS.length-1; i>=0; i--) {
+    if (xp >= LEVELS[i].xp) { lvl = LEVELS[i]; next = LEVELS[i+1] || LEVELS[i]; break; }
+  }
+  return { lvl, next };
+}
+
+function updateStreak() {
+  const s = getState();
+  const today = new Date().toDateString();
+  if (!s.lastVisit) {
+    s.streak = 1;
+  } else {
+    const last = new Date(s.lastVisit);
+    const diff = (new Date(today) - new Date(last.toDateString())) / 86400000;
+    if (diff === 0) {} // same day
+    else if (diff === 1) { s.streak += 1; }
+    else { s.streak = 1; }
+  }
+  s.lastVisit = today;
+  saveState(s);
+}
+
+// ====================== RENDER ======================
+function render() {
+  // sync XP with completed modules (XP = sum of module xp values)
+  const state = getState();
+  const completedXP = state.completed.reduce((sum, id) => {
+    const m = MODULES.find(x => x.id === id);
+    return sum + (m ? m.xp : 0);
+  }, 0);
+  const solvedXP = (state.solved || 0) * 30; // ~30 XP per practice problem solved
+  state.xp = completedXP + solvedXP;
+  saveState(state);
+
+  // displayed XP/level also counts Daily-swipe XP (saved forge-xp stays the base)
+  const dispXp = state.xp + parseInt(localStorage.getItem('forge-swipe-xp') || '0');
+  const { lvl, next } = calcLevel(dispXp);
+  document.getElementById('lvl-num').textContent = lvl.lvl;
+  document.getElementById('rank-title').textContent = lvl.title;
+  const xpInLvl = dispXp - lvl.xp;
+  const xpToNext = next.xp - lvl.xp;
+  const pct = lvl === next ? 100 : Math.min(100, (xpInLvl / xpToNext) * 100);
+  document.getElementById('xp-bar').style.width = pct + '%';
+  document.getElementById('xp-cur').textContent = dispXp;
+  document.getElementById('xp-next').textContent = lvl === next ? '—' : (next.xp - dispXp);
+  document.getElementById('stat-streak').textContent = state.streak;
+  document.getElementById('stat-modules').textContent = `${state.completed.length}/13`;
+
+  // module grid
+  const grid = document.getElementById('module-grid');
+  grid.innerHTML = '';
+  MODULES.forEach(m => {
+    const done = state.completed.includes(m.id);
+    const lvlClass = `lvl-${m.lvl}`;
+    grid.innerHTML += `
+      <a href="index.html#${m.id}" class="mod-card ${done ? 'completed' : ''}">
+        <div class="mod-num">MODULE ${m.n}</div>
+        <h3>${m.title}</h3>
+        <div class="desc">${m.desc}</div>
+        <div class="meta-row">
+          <span class="badge-lvl ${lvlClass}">${m.lvl}</span>
+          <span class="xp-tag">+${m.xp} XP</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${done ? 100 : 0}%"></div></div>
+      </a>
+    `;
+  });
+
+  // badges
+  let earned = 0;
+  const bgrid = document.getElementById('badges-grid');
+  bgrid.innerHTML = '';
+  BADGES.forEach(b => {
+    const got = b.cond(state);
+    if (got) earned++;
+    bgrid.innerHTML += `
+      <div class="badge ${got ? 'earned' : 'locked'}">
+        <div class="icon">${b.icon}</div>
+        <div class="name">${b.name}</div>
+        <div class="desc">${b.desc}</div>
+      </div>
+    `;
+  });
+  document.getElementById('stat-badges').textContent = earned;
+  document.getElementById('badge-counter').textContent = `${earned} / ${BADGES.length} earned`;
+
+  // resources
+  Object.entries(RESOURCES).forEach(([tab, items]) => {
+    const el = document.getElementById(tab);
+    el.innerHTML = `<div class="res-grid">` + items.map(it => `
+      <div class="res-card">
+        <span class="tier ${it.tier}">${it.tier}</span>
+        <div class="res-type">${it.type}</div>
+        <h4>${it.title}</h4>
+        <div class="author">${it.author}</div>
+        <div class="why">${it.why}</div>
+      </div>
+    `).join('') + `</div>`;
+  });
+
+  // best practices
+  const pg = document.getElementById('practices-grid');
+  pg.innerHTML = PRACTICES.map(p => `
+    <div class="mod-card" style="cursor:default;">
+      <div class="mod-num">RULE ${p.n}</div>
+      <h3>${p.t}</h3>
+      <div class="desc">${p.d}</div>
+    </div>
+  `).join('');
+
+  // FAQ
+  const faqEl = document.getElementById('faq-list');
+  faqEl.innerHTML = FAQ.map(f => `
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">${f.q}</div>
+      <div class="faq-a">${f.a}</div>
+    </div>
+  `).join('');
+}
+
+function showRes(btn, id) {
+  btn.parentElement.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.res-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+let tipIdx = 0;
+function nextTip() {
+  tipIdx = (tipIdx + 1) % TIPS.length;
+  document.getElementById('tip-text').innerHTML = TIPS[tipIdx];
+}
+
+// init
+updateStreak();
+render();
+tipIdx = Math.floor(Math.random() * TIPS.length);
+document.getElementById('tip-text').innerHTML = TIPS[tipIdx];
+</script>
+
+<div id="__fb" style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:6px;opacity:.45;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.45">
+  <button onclick="__fbExport()" title="Export progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8595;</button>
+  <button onclick="document.getElementById('__fbFile').click()" title="Import progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8593;</button>
+</div>
+<input type="file" id="__fbFile" accept="application/json" style="display:none" onchange="__fbImport(event)">
+<script>
+function __fbSnap(){var s={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('forge-')===0)s[k]=localStorage.getItem(k);}return s;}
+function __fbExport(){var b=new Blob([JSON.stringify(__fbSnap(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='forge-progress-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();}
+function __fbImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);Object.keys(o).forEach(function(k){if(k.indexOf('forge-')===0)localStorage.setItem(k,o[k]);});location.reload();}catch(x){alert('Invalid backup file');}};r.readAsText(f);}
+</script>
+</body>
+</html>

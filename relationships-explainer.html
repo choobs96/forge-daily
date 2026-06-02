@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relationships Tests in Multi-Layer Lineage · Explainer</title>
+<style>
+:root {
+  --bg: #0b1020;
+  --bg-elev: #131a32;
+  --bg-card: #1a2244;
+  --border: #2a3563;
+  --text: #e8ecf7;
+  --text-dim: #a0a8c8;
+  --text-muted: #6b7290;
+  --accent: #7aa2ff;
+  --accent-2: #a78bfa;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --orphan: #f87171;
+  --valid: #4ade80;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 40px 20px 80px;
+  min-height: 100vh;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+header { margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+header .sub { color: var(--text-dim); font-size: 16px; }
+header .back { color: var(--text-muted); font-size: 13px; text-decoration: none; }
+header .back:hover { color: var(--accent); }
+
+section { margin-bottom: 56px; }
+h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.step-num {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 28px;
+}
+h3 { font-size: 18px; margin: 20px 0 10px; }
+p { color: var(--text-dim); margin-bottom: 12px; font-size: 15px; }
+.lead { font-size: 17px; color: var(--text); margin-bottom: 16px; }
+
+code {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 13px;
+  background: var(--bg-card);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+/* Diagram panel */
+.diagram {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px 0;
+}
+.diagram svg { width: 100%; height: auto; display: block; }
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+button {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+button:hover { border-color: var(--accent); background: var(--bg-card); }
+button.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: white; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Table-like row visualization */
+.row-vis {
+  display: inline-block;
+  width: 70px;
+  text-align: center;
+  padding: 6px 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  margin: 2px;
+}
+.row-vis.valid { background: rgba(74,222,128,.15); border-color: var(--valid); color: var(--valid); }
+.row-vis.orphan { background: rgba(248,113,113,.15); border-color: var(--orphan); color: var(--orphan); animation: pulse 1.5s infinite; }
+.row-vis.missing { background: transparent; border-style: dashed; color: var(--text-muted); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-card);
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.callout.warn { border-color: var(--amber); }
+.callout.danger { border-color: var(--red); }
+.callout.success { border-color: var(--green); }
+.callout-title {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+.callout.warn .callout-title { color: var(--amber); }
+.callout.danger .callout-title { color: var(--red); }
+.callout.success .callout-title { color: var(--green); }
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+pre {
+  background: #0a1024;
+  color: #e8ecf7;
+  padding: 14px 18px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  border: 1px solid var(--border);
+}
+.kw { color: #f472b6; }
+.str { color: #a7f3d0; }
+.cm { color: #6b7290; font-style: italic; }
+.fn { color: #93c5fd; }
+
+/* Node */
+.node-label { font-size: 13px; font-weight: 600; }
+.node-sublabel { font-size: 10px; fill: var(--text-muted); }
+.test-marker {
+  fill: var(--accent);
+  stroke: white;
+  stroke-width: 2;
+  cursor: pointer;
+}
+.test-marker.active { fill: var(--amber); }
+.arrow { stroke: var(--text-muted); stroke-width: 2; fill: none; marker-end: url(#arrow); }
+.arrow.flow { stroke: var(--accent); }
+.arrow.filter { stroke: var(--amber); stroke-dasharray: 4,4; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.tab {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+@media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+.split > div {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.split h4 { font-size: 14px; margin-bottom: 8px; color: var(--accent); }
+
+.test-query {
+  background: #0a1024;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 12px;
+  margin-top: 12px;
+  display: none;
+}
+.test-query.show { display: block; animation: slideIn .3s; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.scenario {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.scenario:hover { border-color: var(--accent); transform: translateY(-2px); }
+.scenario h4 { font-size: 14px; margin-bottom: 6px; }
+.scenario p { font-size: 12.5px; margin: 0; }
+.scenario .verdict { display: inline-block; margin-top: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.verdict.pass { background: rgba(74,222,128,.15); color: var(--green); }
+.verdict.fail { background: rgba(248,113,113,.15); color: var(--red); }
+.verdict.warn { background: rgba(251,191,36,.15); color: var(--amber); }
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07091a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <a href="index.html" class="back">← Back to AE Pivot Hub</a>
+  <h1>Relationships Tests in Multi-Layer Lineage</h1>
+  <p class="sub">How dbt's <code>relationships</code> test actually behaves when data flows A → B → C — visually.</p>
+</header>
+
+<!-- =================== STEP 1: ONE HOP =================== -->
+<section>
+  <h2><span class="step-num">1</span> The test is one-hop, not a chain walker</h2>
+  <p class="lead">A <code>relationships</code> test on a column compares <b>exactly two tables</b>: the model it's declared on (child) and the <code>to:</code> target (parent). It does not traverse lineage.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 240">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#a0a8c8" />
+        </marker>
+        <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#7aa2ff" />
+        </marker>
+      </defs>
+
+      <!-- dim_account -->
+      <g>
+        <rect x="80" y="50" width="180" height="140" rx="8" fill="#1a2244" stroke="#2a3563" stroke-width="1.5"/>
+        <text x="170" y="35" text-anchor="middle" class="node-label" fill="#a78bfa">dim_account (parent)</text>
+        <text x="100" y="80" font-family="monospace" font-size="12" fill="#e8ecf7">account_id</text>
+        <line x1="100" y1="88" x2="240" y2="88" stroke="#2a3563"/>
+        <text x="100" y="108" font-family="monospace" font-size="12" fill="#4ade80">A001</text>
+        <text x="100" y="128" font-family="monospace" font-size="12" fill="#4ade80">A002</text>
+        <text x="100" y="148" font-family="monospace" font-size="12" fill="#4ade80">A003</text>
+        <text x="100" y="168" font-family="monospace" font-size="12" fill="#4ade80">A004</text>
+      </g>
+
+      <!-- fct_jobs -->
+      <g>
+        <rect x="440" y="50" width="180" height="180" rx="8" fill="#1a2244" stroke="#2a3563" stroke-width="1.5"/>
+        <text x="530" y="35" text-anchor="middle" class="node-label" fill="#7aa2ff">fct_jobs (child)</text>
+        <text x="460" y="80" font-family="monospace" font-size="12" fill="#e8ecf7">account_id</text>
+        <line x1="460" y1="88" x2="600" y2="88" stroke="#2a3563"/>
+        <text x="460" y="108" font-family="monospace" font-size="12" fill="#4ade80">A001</text>
+        <text x="460" y="128" font-family="monospace" font-size="12" fill="#4ade80">A002</text>
+        <text x="460" y="148" font-family="monospace" font-size="12" fill="#4ade80">A001</text>
+        <text x="460" y="168" font-family="monospace" font-size="12" fill="#f87171" id="orphan-1">A999</text>
+        <text x="460" y="188" font-family="monospace" font-size="12" fill="#4ade80">A003</text>
+      </g>
+
+      <!-- arrow -->
+      <path d="M 440 140 C 380 140, 320 140, 260 140" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="350" y="130" text-anchor="middle" font-size="11" fill="#7aa2ff">relationships test</text>
+      <text x="350" y="155" text-anchor="middle" font-size="10" fill="#a0a8c8">"every child FK must exist in parent"</text>
+    </svg>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--valid)"></span> Valid FK (exists in parent)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--orphan)"></span> Orphan (no matching parent)</div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-title">Test would FAIL</div>
+    <code>A999</code> in <code>fct_jobs.account_id</code> has no matching row in <code>dim_account.account_id</code>. The test returns 1 orphan row → severity <code>error</code> blocks the build.
+  </div>
+
+  <p>The reverse situation — <code>A004</code> exists in the parent but no child references it — <b>does NOT fail</b>. Unused dim rows are fine.</p>
+</section>
+
+<!-- =================== STEP 2: 3-LAYER CHAIN =================== -->
+<section>
+  <h2><span class="step-num">2</span> A → B → C: where do you put the test?</h2>
+  <p class="lead">When the same column flows through 3 layers (staging → intermediate → marts), you don't test every hop. Pick the layer that matters.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 800 280">
+      <!-- Layer A -->
+      <g>
+        <rect x="40" y="80" width="160" height="120" rx="8" fill="#1a2244" stroke="#2a3563" stroke-width="1.5"/>
+        <text x="120" y="65" text-anchor="middle" class="node-label" fill="#a0a8c8">A: stg_jobs</text>
+        <text x="120" y="105" text-anchor="middle" font-size="11" fill="#a0a8c8">staging</text>
+        <text x="120" y="135" text-anchor="middle" font-family="monospace" font-size="12" fill="#e8ecf7">account_id</text>
+        <text x="120" y="160" text-anchor="middle" font-size="10" fill="#a0a8c8">[passthrough]</text>
+      </g>
+
+      <!-- arrow A → B -->
+      <path d="M 200 140 L 270 140" class="arrow" marker-end="url(#arrow)"/>
+
+      <!-- Layer B -->
+      <g>
+        <rect x="270" y="80" width="160" height="120" rx="8" fill="#1a2244" stroke="#2a3563" stroke-width="1.5"/>
+        <text x="350" y="65" text-anchor="middle" class="node-label" fill="#a0a8c8">B: int_jobs_enriched</text>
+        <text x="350" y="105" text-anchor="middle" font-size="11" fill="#a0a8c8">intermediate</text>
+        <text x="350" y="135" text-anchor="middle" font-family="monospace" font-size="12" fill="#e8ecf7">account_id</text>
+        <text x="350" y="160" text-anchor="middle" font-size="10" fill="#a0a8c8">[joins + enrich]</text>
+      </g>
+
+      <!-- arrow B → C -->
+      <path d="M 430 140 L 500 140" class="arrow" marker-end="url(#arrow)"/>
+
+      <!-- Layer C -->
+      <g>
+        <rect x="500" y="80" width="160" height="120" rx="8" fill="#1a2244" stroke="#7aa2ff" stroke-width="2"/>
+        <text x="580" y="65" text-anchor="middle" class="node-label" fill="#7aa2ff">C: fct_jobs</text>
+        <text x="580" y="105" text-anchor="middle" font-size="11" fill="#7aa2ff">marts (gold)</text>
+        <text x="580" y="135" text-anchor="middle" font-family="monospace" font-size="12" fill="#e8ecf7">account_id</text>
+        <text x="580" y="160" text-anchor="middle" font-size="10" fill="#7aa2ff">[stakeholder reads]</text>
+      </g>
+
+      <!-- Test marker -->
+      <circle cx="580" cy="220" r="14" class="test-marker" id="testpos-c">
+        <title>relationships test → dim_account</title>
+      </circle>
+      <text x="580" y="225" text-anchor="middle" font-size="13" fill="white" font-weight="700">✓</text>
+      <text x="580" y="255" text-anchor="middle" font-size="11" fill="#7aa2ff">relationships test here</text>
+
+      <!-- dim_account off to the side -->
+      <g>
+        <rect x="680" y="200" width="100" height="60" rx="6" fill="#131a32" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <text x="730" y="220" text-anchor="middle" font-size="11" fill="#a78bfa">dim_account</text>
+        <text x="730" y="240" text-anchor="middle" font-size="10" fill="#a0a8c8">(parent)</text>
+      </g>
+      <path d="M 660 220 C 680 220, 680 230, 680 230" stroke="#a78bfa" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+    </svg>
+  </div>
+
+  <h3>Why only the terminal layer?</h3>
+  <p>The column is the same value at every layer (passthrough). If the test would pass on C, it would also pass on A and B. Testing all three is redundant work for the warehouse.</p>
+
+  <div class="callout success">
+    <div class="callout-title">The rule</div>
+    Test <code>relationships</code> at the layer where stakeholders consume — typically marts. Earlier layers covered transitively.
+  </div>
+</section>
+
+<!-- =================== STEP 3: WHEN FILTERS BREAK TRANSITIVITY =================== -->
+<section>
+  <h2><span class="step-num">3</span> When transitivity breaks: filters in the chain</h2>
+  <p class="lead">If a middle layer <b>filters out rows</b>, you can't rely on testing only the terminal layer. Click between scenarios:</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(this, 't-clean')">Clean passthrough</button>
+    <button class="tab" onclick="showTab(this, 't-filter')">Middle layer filters</button>
+  </div>
+
+  <div class="tab-content active" id="t-clean">
+    <div class="diagram">
+      <svg viewBox="0 0 800 220">
+        <g>
+          <rect x="40" y="60" width="160" height="100" rx="8" fill="#1a2244" stroke="#2a3563"/>
+          <text x="120" y="90" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_lead</text>
+          <text x="120" y="115" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">10,000 leads</text>
+          <text x="120" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ade80">all active + inactive</text>
+        </g>
+        <path d="M 200 110 L 270 110" class="arrow" marker-end="url(#arrow)"/>
+
+        <g>
+          <rect x="270" y="60" width="160" height="100" rx="8" fill="#1a2244" stroke="#2a3563"/>
+          <text x="350" y="90" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_quote</text>
+          <text x="350" y="115" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">8,000 quotes</text>
+          <text x="350" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ade80">FK→ lead PASSES ✓</text>
+        </g>
+        <path d="M 430 110 L 500 110" class="arrow" marker-end="url(#arrow)"/>
+
+        <g>
+          <rect x="500" y="60" width="160" height="100" rx="8" fill="#1a2244" stroke="#7aa2ff" stroke-width="2"/>
+          <text x="580" y="90" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_invoice</text>
+          <text x="580" y="115" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">3,000 invoices</text>
+          <text x="580" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ade80">FK→ quote PASSES ✓</text>
+        </g>
+      </svg>
+    </div>
+    <div class="callout success">
+      <div class="callout-title">Transitive guarantee holds</div>
+      <code>invoice → quote</code> passes and <code>quote → lead</code> passes, so every invoice transitively has a valid lead. You don't need a third test <code>invoice → lead</code>.
+    </div>
+  </div>
+
+  <div class="tab-content" id="t-filter">
+    <div class="diagram">
+      <svg viewBox="0 0 800 280">
+        <g>
+          <rect x="40" y="80" width="160" height="100" rx="8" fill="#1a2244" stroke="#2a3563"/>
+          <text x="120" y="110" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_lead</text>
+          <text x="120" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">10,000 leads</text>
+          <text x="120" y="155" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ade80">all leads</text>
+        </g>
+        <path d="M 200 130 L 270 130" class="arrow filter" marker-end="url(#arrow)"/>
+        <text x="235" y="115" text-anchor="middle" font-size="10" fill="#fbbf24">WHERE active</text>
+
+        <g>
+          <rect x="270" y="80" width="160" height="100" rx="8" fill="#1a2244" stroke="#fbbf24"/>
+          <text x="350" y="110" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_active_quote</text>
+          <text x="350" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">5,000 quotes</text>
+          <text x="350" y="155" text-anchor="middle" font-family="monospace" font-size="11" fill="#fbbf24">filtered subset</text>
+        </g>
+        <path d="M 430 130 L 500 130" class="arrow" marker-end="url(#arrow)"/>
+
+        <g>
+          <rect x="500" y="80" width="160" height="100" rx="8" fill="#1a2244" stroke="#f87171" stroke-width="2"/>
+          <text x="580" y="110" text-anchor="middle" font-size="13" fill="#e8ecf7">dim_invoice</text>
+          <text x="580" y="135" text-anchor="middle" font-family="monospace" font-size="11" fill="#a0a8c8">3,000 invoices</text>
+          <text x="580" y="155" text-anchor="middle" font-family="monospace" font-size="11" fill="#f87171">5% orphan!</text>
+        </g>
+
+        <!-- failing test marker -->
+        <circle cx="580" cy="220" r="14" fill="#f87171" stroke="white" stroke-width="2"/>
+        <text x="580" y="225" text-anchor="middle" font-size="13" fill="white" font-weight="700">✗</text>
+        <text x="580" y="252" text-anchor="middle" font-size="11" fill="#f87171">invoice→quote FAILS</text>
+      </svg>
+    </div>
+    <div class="callout danger">
+      <div class="callout-title">Transitivity broken</div>
+      <code>dim_active_quote</code> dropped 3,000 inactive quotes. Invoices referencing those quotes are now <b>orphans relative to the filtered dim</b>, even though they're valid relative to the upstream unfiltered table. The test failure is real — it surfaces a business question: "why do we have invoices for inactive quotes?"
+    </div>
+    <div class="callout warn">
+      <div class="callout-title">Decision time</div>
+      Either fix data ("invoices shouldn't reference inactive quotes"), or relax the test (<code>severity: warn</code> + investigate periodically), or change the FK target (<code>dim_invoice → dim_lead</code> directly, skipping the filtered layer).
+    </div>
+  </div>
+</section>
+
+<!-- =================== STEP 4: INTERACTIVE PLACEMENT PICKER =================== -->
+<section>
+  <h2><span class="step-num">4</span> Interactive: where should the test go?</h2>
+  <p class="lead">Click a node to "place" the relationships test there. See what each placement actually verifies.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 800 240" id="picker-svg">
+      <!-- dim spine -->
+      <g>
+        <rect x="40" y="60" width="160" height="80" rx="8" fill="#1a2244" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="120" y="90" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">dim_account</text>
+        <text x="120" y="115" text-anchor="middle" font-size="11" fill="#a0a8c8">parent (always)</text>
+      </g>
+
+      <!-- chain -->
+      <g class="placement-node" data-pos="A" onclick="pickerPlace('A')">
+        <rect x="280" y="40" width="140" height="60" rx="6" fill="#1a2244" stroke="#2a3563" stroke-width="1.5" id="node-A"/>
+        <text x="350" y="65" text-anchor="middle" font-size="12" fill="#e8ecf7">A: stg_jobs</text>
+        <text x="350" y="85" text-anchor="middle" font-size="10" fill="#a0a8c8">staging</text>
+      </g>
+      <path d="M 350 100 L 350 130" class="arrow" marker-end="url(#arrow)"/>
+
+      <g class="placement-node" data-pos="B" onclick="pickerPlace('B')">
+        <rect x="280" y="130" width="140" height="60" rx="6" fill="#1a2244" stroke="#2a3563" stroke-width="1.5" id="node-B"/>
+        <text x="350" y="155" text-anchor="middle" font-size="12" fill="#e8ecf7">B: int_jobs_enriched</text>
+        <text x="350" y="175" text-anchor="middle" font-size="10" fill="#a0a8c8">intermediate (joins!)</text>
+      </g>
+      <path d="M 420 160 L 500 160" class="arrow" marker-end="url(#arrow)"/>
+
+      <g class="placement-node" data-pos="C" onclick="pickerPlace('C')">
+        <rect x="500" y="130" width="140" height="60" rx="6" fill="#1a2244" stroke="#2a3563" stroke-width="1.5" id="node-C"/>
+        <text x="570" y="155" text-anchor="middle" font-size="12" fill="#e8ecf7">C: fct_jobs</text>
+        <text x="570" y="175" text-anchor="middle" font-size="10" fill="#a0a8c8">marts (consumed)</text>
+      </g>
+    </svg>
+    <div class="controls">
+      <button onclick="pickerPlace('A')">Place on A (stg)</button>
+      <button onclick="pickerPlace('B')">Place on B (int)</button>
+      <button onclick="pickerPlace('C')">Place on C (mart)</button>
+      <button onclick="pickerPlace('all')">Place on all 3</button>
+      <button onclick="pickerPlace(null)">Clear</button>
+    </div>
+    <div id="picker-feedback" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+<!-- =================== STEP 5: 5 MODELS SAME FK =================== -->
+<section>
+  <h2><span class="step-num">5</span> Five facts, one dim — fan-out pattern</h2>
+  <p class="lead">When 5 different fact tables all have <code>account_id</code> referencing <code>dim_account</code>, each declares its own test. dbt runs 5 separate queries.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 800 320">
+      <!-- center dim -->
+      <g>
+        <rect x="320" y="130" width="160" height="80" rx="8" fill="#1a2244" stroke="#a78bfa" stroke-width="2"/>
+        <text x="400" y="160" text-anchor="middle" font-size="14" fill="#a78bfa" font-weight="600">dim_account</text>
+        <text x="400" y="180" text-anchor="middle" font-size="11" fill="#a0a8c8">parent (single)</text>
+      </g>
+
+      <!-- 5 facts arrayed -->
+      <g>
+        <rect x="40" y="20" width="130" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="105" y="50" text-anchor="middle" font-size="12" fill="#7aa2ff">fct_jobs</text>
+      </g>
+      <path d="M 170 45 Q 280 60, 320 140" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="240" y="80" font-size="10" fill="#7aa2ff">FK test 1</text>
+
+      <g>
+        <rect x="40" y="90" width="130" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="105" y="120" text-anchor="middle" font-size="12" fill="#7aa2ff">fct_quotes</text>
+      </g>
+      <path d="M 170 115 L 320 150" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="220" y="130" font-size="10" fill="#7aa2ff">FK test 2</text>
+
+      <g>
+        <rect x="40" y="160" width="130" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="105" y="190" text-anchor="middle" font-size="12" fill="#7aa2ff">fct_invoices</text>
+      </g>
+      <path d="M 170 185 L 320 175" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="220" y="170" font-size="10" fill="#7aa2ff">FK test 3</text>
+
+      <g>
+        <rect x="40" y="230" width="130" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="105" y="260" text-anchor="middle" font-size="12" fill="#7aa2ff">fct_payments</text>
+      </g>
+      <path d="M 170 255 L 320 200" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="220" y="245" font-size="10" fill="#7aa2ff">FK test 4</text>
+
+      <g>
+        <rect x="40" y="300" width="130" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="105" y="330" text-anchor="middle" font-size="12" fill="#7aa2ff">fct_appointments</text>
+      </g>
+      <path d="M 170 320 Q 280 280, 320 210" class="arrow" marker-end="url(#arrow-accent)" stroke="#7aa2ff"/>
+      <text x="230" y="305" font-size="10" fill="#7aa2ff">FK test 5</text>
+
+      <!-- explanation -->
+      <text x="640" y="160" font-size="12" fill="#e8ecf7" font-weight="600">5 declarations</text>
+      <text x="640" y="180" font-size="11" fill="#a0a8c8">→ 5 separate SQL queries</text>
+      <text x="640" y="200" font-size="11" fill="#a0a8c8">→ 5 pass/fail signals</text>
+    </svg>
+  </div>
+
+  <h3>Three ways to keep it DRY</h3>
+  <div class="split">
+    <div>
+      <h4>1. YAML anchors</h4>
+      <p style="font-size:13px;">Define once in a single file, reference 5× via <code>*anchor</code>. Works within one yml.</p>
+      <pre><code><span class="cm"># in one file only</span>
+x-account-fk: &amp;account-fk
+  - relationships:
+      to: ref(<span class="str">'dim_account'</span>)
+      field: account_id
+
+models:
+  - name: fct_jobs
+    columns:
+      - name: account_id
+        tests: *account-fk</code></pre>
+    </div>
+    <div>
+      <h4>2. Custom generic test</h4>
+      <p style="font-size:13px;">Write a test macro once, call it by name 50×.</p>
+      <pre><code><span class="cm">-- tests/generic/fk_to_dim_account.sql</span>
+<span class="fn">{% test fk_to_dim_account(model, column_name) %}</span>
+  <span class="kw">select count</span>(*) <span class="kw">from</span> <span class="fn">{{ model }}</span> c
+  <span class="kw">left join</span> <span class="fn">{{ ref('dim_account') }}</span> p
+    <span class="kw">on</span> c.<span class="fn">{{ column_name }}</span> = p.account_id
+  <span class="kw">where</span> c.<span class="fn">{{ column_name }}</span> <span class="kw">is not null</span>
+    <span class="kw">and</span> p.account_id <span class="kw">is null</span>
+<span class="fn">{% endtest %}</span></code></pre>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">Performance reality</div>
+    5 tests = 5 aggregation queries. On a serverless DBSQL warehouse with parallel test execution, this is seconds, not minutes. Slim CI (<code>dbt build -s state:modified+</code>) only runs tests on changed models — even cheaper.
+  </div>
+</section>
+
+<!-- =================== STEP 6: META PATTERN =================== -->
+<section>
+  <h2><span class="step-num">6</span> Pattern 1: <code>meta:</code> — structured documentation</h2>
+  <p class="lead"><code>meta:</code> is a free-form key-value block on any dbt resource. It's pure documentation — never validated, never run as SQL — but it's <b>machine-readable</b>, which is what makes it useful.</p>
+
+  <h3>What it looks like</h3>
+  <pre><code><span class="cm"># declare the FK intent — no test, no enforcement</span>
+- <span class="kw">name</span>: <span class="str">fct_opportunities</span>
+  <span class="kw">columns</span>:
+    - <span class="kw">name</span>: <span class="str">account_id</span>
+      <span class="kw">description</span>: <span class="str">"Salesforce 18-char Account ID. Joins to dim_accounts.id."</span>
+      <span class="kw">meta</span>:
+        <span class="kw">join_to</span>: <span class="str">"dim_accounts.id"</span>
+        <span class="kw">fk_strict</span>: <span class="str">false</span>      <span class="cm"># your own convention — orphans tolerated</span>
+        <span class="kw">owner</span>: <span class="str">"sales-analytics"</span>
+        <span class="kw">pii</span>: <span class="str">false</span></code></pre>
+
+  <h3>How it flows through dbt's pipeline</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 800 240">
+      <!-- yml -->
+      <g>
+        <rect x="20" y="80" width="140" height="80" rx="8" fill="#1a2244" stroke="#2a3563"/>
+        <text x="90" y="110" text-anchor="middle" font-size="13" fill="#e8ecf7" font-weight="600">_models.yml</text>
+        <text x="90" y="130" text-anchor="middle" font-size="11" fill="#a0a8c8">meta:</text>
+        <text x="90" y="145" text-anchor="middle" font-size="11" fill="#a0a8c8">  join_to: ...</text>
+      </g>
+
+      <path d="M 160 120 L 220 120" class="arrow" marker-end="url(#arrow)"/>
+      <text x="190" y="110" text-anchor="middle" font-size="10" fill="#a0a8c8">dbt parse</text>
+
+      <!-- manifest -->
+      <g>
+        <rect x="220" y="80" width="140" height="80" rx="8" fill="#1a2244" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="290" y="110" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">manifest.json</text>
+        <text x="290" y="130" text-anchor="middle" font-size="11" fill="#a0a8c8">nodes[].columns</text>
+        <text x="290" y="145" text-anchor="middle" font-size="11" fill="#a0a8c8">  .meta object</text>
+      </g>
+
+      <path d="M 360 120 L 420 120" class="arrow" marker-end="url(#arrow)"/>
+
+      <!-- consumers -->
+      <g>
+        <rect x="420" y="20" width="160" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="500" y="40" text-anchor="middle" font-size="12" fill="#7aa2ff">dbt docs / Explorer</text>
+        <text x="500" y="58" text-anchor="middle" font-size="10" fill="#a0a8c8">searchable, surfaced</text>
+      </g>
+      <g>
+        <rect x="420" y="80" width="160" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="500" y="100" text-anchor="middle" font-size="12" fill="#7aa2ff">Atlan / DataHub</text>
+        <text x="500" y="118" text-anchor="middle" font-size="10" fill="#a0a8c8">renders FK lineage</text>
+      </g>
+      <g>
+        <rect x="420" y="140" width="160" height="50" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="500" y="160" text-anchor="middle" font-size="12" fill="#7aa2ff">Genie / AI tools</text>
+        <text x="500" y="178" text-anchor="middle" font-size="10" fill="#a0a8c8">writes correct JOINs</text>
+      </g>
+      <g>
+        <rect x="420" y="200" width="160" height="40" rx="6" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="500" y="225" text-anchor="middle" font-size="12" fill="#7aa2ff">Custom scripts</text>
+      </g>
+
+      <path d="M 360 130 L 420 45" class="arrow" marker-end="url(#arrow)"/>
+      <path d="M 360 130 L 420 105" class="arrow" marker-end="url(#arrow)"/>
+      <path d="M 360 130 L 420 165" class="arrow" marker-end="url(#arrow)"/>
+      <path d="M 360 130 L 420 220" class="arrow" marker-end="url(#arrow)"/>
+
+      <!-- arrow markers reused from earlier -->
+      <text x="700" y="120" text-anchor="middle" font-size="11" fill="#a0a8c8" font-style="italic">structured = composable</text>
+    </svg>
+  </div>
+
+  <h3>What you get — 4 concrete benefits</h3>
+  <div class="scenario-grid">
+    <div class="scenario">
+      <h4>1. Lineage for tools that can read it</h4>
+      <p>Atlan, DataHub, dbt Cloud Explorer parse <code>meta</code> and draw FK lines between models on lineage diagrams. dbt's own DAG won't, but third-party catalogs will.</p>
+    </div>
+    <div class="scenario">
+      <h4>2. Better AI-generated SQL</h4>
+      <p>Genie, Cursor, and any LLM-driven query writer get a structured signal that "account_id on this model joins to dim_accounts.id." Free-text descriptions don't parse reliably.</p>
+    </div>
+    <div class="scenario">
+      <h4>3. Programmatic audits</h4>
+      <p>Write a Python script that walks <code>manifest.json</code> and lists every declared FK, every PII column, every owner. Impossible with prose descriptions.</p>
+    </div>
+    <div class="scenario">
+      <h4>4. Future-proof</h4>
+      <p>Once meta is in place, a future PR can read all <code>join_to:</code> declarations and auto-generate <code>relationships</code> tests. The data is structured; tests become a downstream artifact.</p>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">When to reach for meta</div>
+    <ul style="margin:6px 0 0 18px;padding:0;color:var(--text-dim);font-size:14px;">
+      <li>You want to document an FK without enforcing it (orphans tolerated)</li>
+      <li>You want lineage to surface in external catalog tools</li>
+      <li>You need conventions for ownership, PII flags, freshness expectations</li>
+      <li>You're laying groundwork for future automation/tests</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Cost</div>
+    Free to add. Zero runtime cost. The only "cost" is convention discipline — meta keys are free-form, so the team needs to agree on naming (<code>join_to</code> vs <code>references</code> vs <code>fk</code>) and document it in AGENTS.md or it drifts.
+  </div>
+</section>
+
+<!-- =================== STEP 7: RELATIONSHIPS DEEP =================== -->
+<section>
+  <h2><span class="step-num">7</span> Pattern 2: <code>relationships</code> — drift detection</h2>
+  <p class="lead"><code>relationships</code> is a generic test that runs at build time. It's not documentation — it's an assertion that <b>fires an alert when reality drifts from intent</b>.</p>
+
+  <h3>The three configurations you'll actually use</h3>
+
+  <h4 style="margin-top:18px;">Basic — strict FK enforcement</h4>
+  <pre><code>- <span class="kw">name</span>: <span class="str">account_id</span>
+  <span class="kw">tests</span>:
+    - <span class="kw">relationships</span>:
+        <span class="kw">to</span>: <span class="fn">ref</span>(<span class="str">'dim_accounts'</span>)
+        <span class="kw">field</span>: <span class="str">id</span></code></pre>
+  <p style="font-size:13px;">Fails the build on any orphan. Use only when you're confident the FK truly holds.</p>
+
+  <h4>Pragmatic — warn instead of block</h4>
+  <pre><code>- <span class="kw">name</span>: <span class="str">account_id</span>
+  <span class="kw">tests</span>:
+    - <span class="kw">relationships</span>:
+        <span class="kw">to</span>: <span class="fn">ref</span>(<span class="str">'dim_accounts'</span>)
+        <span class="kw">field</span>: <span class="str">id</span>
+        <span class="kw">config</span>:
+          <span class="kw">severity</span>: <span class="str">warn</span></code></pre>
+  <p style="font-size:13px;">Logs orphans without blocking. Surfaces in <code>run_results.json</code>, Elementary, Slack. Ideal entry-point for adding relationships to a legacy codebase.</p>
+
+  <h4>Surgical — known-orphan filter</h4>
+  <pre><code>- <span class="kw">name</span>: <span class="str">account_id</span>
+  <span class="kw">tests</span>:
+    - <span class="kw">relationships</span>:
+        <span class="kw">to</span>: <span class="fn">ref</span>(<span class="str">'dim_accounts'</span>)
+        <span class="kw">field</span>: <span class="str">id</span>
+        <span class="kw">config</span>:
+          <span class="kw">severity</span>: <span class="str">warn</span>
+          <span class="kw">where</span>: <span class="str">"account_id != '0010000000000000AAA'"</span>
+          <span class="kw">error_if</span>: <span class="str">"&gt;100"</span>
+          <span class="kw">warn_if</span>: <span class="str">"&gt;0"</span></code></pre>
+  <p style="font-size:13px;">Excludes a known sentinel ('Unknown Account' MD5 = <code>cfcd2084…</code>), warns above 0 orphans, fails only if it explodes past 100. The compromise the dbt project should have made instead of disabling the test entirely.</p>
+
+  <h3>What happens at <code>dbt build</code> time</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 800 200">
+      <g>
+        <rect x="20" y="70" width="140" height="60" rx="6" fill="#1a2244" stroke="#2a3563"/>
+        <text x="90" y="95" text-anchor="middle" font-size="13" fill="#e8ecf7">dbt build</text>
+        <text x="90" y="115" text-anchor="middle" font-size="11" fill="#a0a8c8">fct_opportunities</text>
+      </g>
+      <path d="M 160 100 L 220 100" class="arrow" marker-end="url(#arrow)"/>
+
+      <g>
+        <rect x="220" y="70" width="160" height="60" rx="6" fill="#1a2244" stroke="#a78bfa"/>
+        <text x="300" y="95" text-anchor="middle" font-size="13" fill="#a78bfa">test query runs</text>
+        <text x="300" y="115" text-anchor="middle" font-size="10" fill="#a0a8c8">LEFT JOIN + COUNT(orphans)</text>
+      </g>
+      <path d="M 380 100 L 440 100" class="arrow" marker-end="url(#arrow)"/>
+
+      <!-- 3 outcomes -->
+      <g>
+        <rect x="440" y="20" width="160" height="40" rx="6" fill="#1a2244" stroke="#4ade80"/>
+        <text x="520" y="45" text-anchor="middle" font-size="12" fill="#4ade80">0 orphans → PASS</text>
+      </g>
+      <g>
+        <rect x="440" y="80" width="160" height="40" rx="6" fill="#1a2244" stroke="#fbbf24"/>
+        <text x="520" y="105" text-anchor="middle" font-size="12" fill="#fbbf24">12 orphans → WARN</text>
+      </g>
+      <g>
+        <rect x="440" y="140" width="160" height="40" rx="6" fill="#1a2244" stroke="#f87171"/>
+        <text x="520" y="165" text-anchor="middle" font-size="12" fill="#f87171">500 orphans → ERROR</text>
+      </g>
+      <path d="M 380 100 L 440 40" class="arrow" marker-end="url(#arrow)"/>
+      <path d="M 380 100 L 440 100" class="arrow" marker-end="url(#arrow)"/>
+      <path d="M 380 100 L 440 160" class="arrow" marker-end="url(#arrow)"/>
+
+      <text x="700" y="50" text-anchor="middle" font-size="11" fill="#4ade80">downstream continues</text>
+      <text x="700" y="105" text-anchor="middle" font-size="11" fill="#fbbf24">logged + alerted</text>
+      <text x="700" y="165" text-anchor="middle" font-size="11" fill="#f87171">build halts</text>
+    </svg>
+  </div>
+
+  <h3>What you get — 4 concrete benefits</h3>
+  <div class="scenario-grid">
+    <div class="scenario">
+      <h4>1. Catches regressions automatically</h4>
+      <p>The moment orphan rate goes from 0.1% to 5% (upstream bug, broken filter, schema change), the build alerts. Meta would stay silent forever.</p>
+    </div>
+    <div class="scenario">
+      <h4>2. Defines a measurable SLA</h4>
+      <p>"Less than 100 orphans" is an explicit, testable contract. Stakeholders can ask "is the FK clean?" and get a deterministic answer.</p>
+    </div>
+    <div class="scenario">
+      <h4>3. Blocks bad data from spreading</h4>
+      <p>With severity <code>error</code>, downstream models don't get built if the FK is broken. Stops a bad metric reaching Tableau before anyone sees it.</p>
+    </div>
+    <div class="scenario">
+      <h4>4. Generates evidence for incidents</h4>
+      <p>Failed test results land in <code>run_results.json</code>, Elementary, or your alerting tool — searchable history of when drift started.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Cost</div>
+    One aggregation SQL query per declared test, per build. Cheap individually, adds up at scale. Mitigate with slim CI (<code>state:modified+</code>), tags, and <code>severity: warn</code> on non-critical FKs.
+  </div>
+</section>
+
+<!-- =================== STEP 8: BOTH TOGETHER =================== -->
+<section>
+  <h2><span class="step-num">8</span> The layered approach — use both together</h2>
+  <p class="lead">meta and relationships aren't substitutes. Each answers a different question. The mature pattern is to declare intent in <code>meta</code> on every FK, and add a <code>relationships</code> test where drift is worth monitoring.</p>
+
+  <h3>Side-by-side comparison</h3>
+  <div class="diagram">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:var(--bg-card);">
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Question</th>
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);color:#a78bfa;">meta.join_to</th>
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);color:#7aa2ff;">relationships test</th>
+      </tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>What does it answer?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">"This is intended to join here"</td><td style="padding:10px;border-bottom:1px solid var(--border);">"Does the join actually hold?"</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>When does it run?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">Never — pure metadata</td><td style="padding:10px;border-bottom:1px solid var(--border);">Every <code>dbt build</code> / <code>dbt test</code></td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>Cost</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">Zero runtime cost</td><td style="padding:10px;border-bottom:1px solid var(--border);">1 SQL query per declaration</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>Catches drift?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">No</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes (the whole point)</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>External catalogs see it?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes (Atlan, DataHub render FK lineage)</td><td style="padding:10px;border-bottom:1px solid var(--border);">Partially (results, not the declaration)</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>AI tools see it?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes — structured = LLM-friendly</td><td style="padding:10px;border-bottom:1px solid var(--border);">Indirectly</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);"><b>Blocks bad builds?</b></td><td style="padding:10px;border-bottom:1px solid var(--border);">No</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes (with severity: error)</td></tr>
+      <tr><td style="padding:10px;"><b>Good when data is messy?</b></td><td style="padding:10px;">Yes — document without enforcing</td><td style="padding:10px;">Use <code>severity: warn</code> to soften</td></tr>
+    </table>
+  </div>
+
+  <h3>The recommended pattern in full</h3>
+  <pre><code><span class="kw">version</span>: <span class="num">2</span>
+<span class="kw">models</span>:
+  - <span class="kw">name</span>: <span class="str">fct_opportunities</span>
+    <span class="kw">description</span>: <span class="str">"Salesforce opportunities. Grain: one row per opportunity_id."</span>
+    <span class="kw">meta</span>:
+      <span class="kw">owner</span>: <span class="str">"sales-analytics"</span>
+      <span class="kw">grain</span>: <span class="str">"opportunity_id"</span>
+    <span class="kw">columns</span>:
+      - <span class="kw">name</span>: <span class="str">opportunity_id</span>
+        <span class="kw">description</span>: <span class="str">"Primary key — Salesforce 18-char ID"</span>
+        <span class="kw">tests</span>:
+          - <span class="kw">unique</span>
+          - <span class="kw">not_null</span>
+
+      - <span class="kw">name</span>: <span class="str">account_id</span>
+        <span class="kw">description</span>: <span class="str">"FK to dim_accounts.id (Salesforce Account.Id)"</span>
+        <span class="kw">meta</span>:                                  <span class="cm"># intent → structured, machine-readable</span>
+          <span class="kw">join_to</span>: <span class="str">"dim_accounts.id"</span>
+          <span class="kw">fk_strict</span>: <span class="str">false</span>
+        <span class="kw">tests</span>:                                 <span class="cm"># reality → drift detection</span>
+          - <span class="kw">not_null</span>
+          - <span class="kw">relationships</span>:
+              <span class="kw">to</span>: <span class="fn">ref</span>(<span class="str">'dim_accounts'</span>)
+              <span class="kw">field</span>: <span class="str">id</span>
+              <span class="kw">config</span>:
+                <span class="kw">severity</span>: <span class="str">warn</span>           <span class="cm"># start gentle, harden later</span></code></pre>
+
+  <h3>How they reinforce each other</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 800 240">
+      <!-- col in middle -->
+      <g>
+        <rect x="320" y="90" width="160" height="60" rx="8" fill="#1a2244" stroke="#7aa2ff" stroke-width="2"/>
+        <text x="400" y="115" text-anchor="middle" font-size="14" fill="#7aa2ff" font-weight="600">account_id</text>
+        <text x="400" y="135" text-anchor="middle" font-size="11" fill="#a0a8c8">on fct_opportunities</text>
+      </g>
+
+      <!-- meta side (left) -->
+      <g>
+        <rect x="20" y="60" width="220" height="120" rx="8" fill="#1a2244" stroke="#a78bfa"/>
+        <text x="130" y="85" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">meta: { join_to: ... }</text>
+        <text x="130" y="110" text-anchor="middle" font-size="11" fill="#a0a8c8">→ catalog FK lineage</text>
+        <text x="130" y="128" text-anchor="middle" font-size="11" fill="#a0a8c8">→ AI/Genie join hints</text>
+        <text x="130" y="146" text-anchor="middle" font-size="11" fill="#a0a8c8">→ programmatic audits</text>
+        <text x="130" y="164" text-anchor="middle" font-size="11" fill="#a0a8c8">→ owner/PII tags</text>
+      </g>
+      <path d="M 240 110 L 320 110" class="arrow" marker-end="url(#arrow)"/>
+      <text x="280" y="100" text-anchor="middle" font-size="10" fill="#a78bfa">intent</text>
+
+      <!-- test side (right) -->
+      <path d="M 480 130 L 560 130" class="arrow" marker-end="url(#arrow)"/>
+      <text x="520" y="120" text-anchor="middle" font-size="10" fill="#7aa2ff">reality</text>
+      <g>
+        <rect x="560" y="60" width="220" height="120" rx="8" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="670" y="85" text-anchor="middle" font-size="13" fill="#7aa2ff" font-weight="600">tests: [ relationships ]</text>
+        <text x="670" y="110" text-anchor="middle" font-size="11" fill="#a0a8c8">→ drift detection</text>
+        <text x="670" y="128" text-anchor="middle" font-size="11" fill="#a0a8c8">→ build-time alerting</text>
+        <text x="670" y="146" text-anchor="middle" font-size="11" fill="#a0a8c8">→ regression evidence</text>
+        <text x="670" y="164" text-anchor="middle" font-size="11" fill="#a0a8c8">→ blocks bad deploys</text>
+      </g>
+
+      <text x="400" y="220" text-anchor="middle" font-size="13" fill="#e8ecf7" font-style="italic">two halves of a complete FK contract</text>
+    </svg>
+  </div>
+
+  <h3>Decision flow — what to add when</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 800 360">
+      <!-- start -->
+      <g>
+        <rect x="320" y="20" width="160" height="40" rx="20" fill="#1a2244" stroke="#7aa2ff" stroke-width="2"/>
+        <text x="400" y="45" text-anchor="middle" font-size="13" fill="#e8ecf7">FK column added</text>
+      </g>
+
+      <!-- step 1: always add meta -->
+      <path d="M 400 60 L 400 90" class="arrow" marker-end="url(#arrow)"/>
+      <g>
+        <rect x="270" y="90" width="260" height="50" rx="8" fill="#1a2244" stroke="#a78bfa"/>
+        <text x="400" y="113" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">Always: add meta.join_to</text>
+        <text x="400" y="130" text-anchor="middle" font-size="10" fill="#a0a8c8">free, structures the intent</text>
+      </g>
+
+      <!-- step 2: decision -->
+      <path d="M 400 140 L 400 170" class="arrow" marker-end="url(#arrow)"/>
+      <g>
+        <polygon points="400,170 480,210 400,250 320,210" fill="#1a2244" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="400" y="207" text-anchor="middle" font-size="11" fill="#fbbf24">Is the FK</text>
+        <text x="400" y="222" text-anchor="middle" font-size="11" fill="#fbbf24">expected to hold?</text>
+      </g>
+
+      <!-- yes branch -->
+      <path d="M 480 210 L 600 210" class="arrow" marker-end="url(#arrow)"/>
+      <text x="540" y="200" text-anchor="middle" font-size="11" fill="#4ade80">yes / mostly</text>
+      <g>
+        <rect x="600" y="180" width="180" height="60" rx="8" fill="#1a2244" stroke="#7aa2ff"/>
+        <text x="690" y="205" text-anchor="middle" font-size="12" fill="#7aa2ff">Add relationships test</text>
+        <text x="690" y="223" text-anchor="middle" font-size="10" fill="#a0a8c8">severity: warn → error</text>
+      </g>
+
+      <!-- no branch -->
+      <path d="M 320 210 L 200 210" class="arrow" marker-end="url(#arrow)"/>
+      <text x="260" y="200" text-anchor="middle" font-size="11" fill="#f87171">no / known orphans</text>
+      <g>
+        <rect x="20" y="180" width="180" height="60" rx="8" fill="#1a2244" stroke="#f87171"/>
+        <text x="110" y="205" text-anchor="middle" font-size="12" fill="#f87171">Skip the test</text>
+        <text x="110" y="223" text-anchor="middle" font-size="10" fill="#a0a8c8">meta still documents intent</text>
+      </g>
+
+      <!-- harden over time -->
+      <path d="M 690 240 L 690 280" class="arrow" marker-end="url(#arrow)" stroke-dasharray="3,3"/>
+      <g>
+        <rect x="560" y="280" width="260" height="60" rx="8" fill="#131a32" stroke="#4ade80" stroke-dasharray="4,2"/>
+        <text x="690" y="305" text-anchor="middle" font-size="12" fill="#4ade80">As FK gets cleaner over time:</text>
+        <text x="690" y="323" text-anchor="middle" font-size="10" fill="#a0a8c8">tighten where: clause, raise severity</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">The practical recommendation</div>
+    <p style="margin-bottom:8px;">For a dbt project where 0 FKs are currently documented or tested:</p>
+    <ol style="margin:6px 0 0 18px;padding:0;color:var(--text-dim);font-size:13.5px;">
+      <li><b>Week 1:</b> Add <code>meta.join_to</code> to every FK column across marts. Zero risk, zero cost, pure documentation upgrade.</li>
+      <li><b>Week 2:</b> Pick 3 marts with cleanest data (e.g. <code>fct_opportunities</code>, <code>dim_accounts</code> downstream). Add <code>relationships</code> tests with <code>severity: warn</code>.</li>
+      <li><b>Week 3+:</b> Monitor warn-only test results. Where orphan rate is &lt;0.1%, harden to <code>severity: error</code>. Where it's higher, investigate root cause (CDC timing, soft-delete asymmetry, missing dim rows).</li>
+      <li><b>Add to AGENTS.md:</b> "All FK columns must declare <code>meta.join_to</code>. relationships tests on FKs are encouraged with severity: warn at minimum."</li>
+    </ol>
+  </div>
+</section>
+
+<!-- =================== STEP 9: SCENARIOS QUIZ =================== -->
+<section>
+  <h2><span class="step-num">9</span> Quick scenarios — does the test pass?</h2>
+  <p>Click each scenario to reveal the verdict.</p>
+
+  <div class="scenario-grid">
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario A</h4>
+      <p>fact has rows with <code>account_id</code> = A001, A002. dim has A001, A002, A003.</p>
+      <span class="verdict pass" style="display:none;">PASS — every child FK exists in parent; extras in parent are fine</span>
+    </div>
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario B</h4>
+      <p>fact has A001, A002, A999. dim has A001, A002.</p>
+      <span class="verdict fail" style="display:none;">FAIL — A999 in child has no match in parent (orphan)</span>
+    </div>
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario C</h4>
+      <p>fact has A001, A002, NULL. dim has A001, A002.</p>
+      <span class="verdict pass" style="display:none;">PASS — NULLs are ignored by relationships test (only checks non-null values)</span>
+    </div>
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario D</h4>
+      <p>Both fact and dim are empty.</p>
+      <span class="verdict pass" style="display:none;">PASS — no orphans because no rows. Trivially true.</span>
+    </div>
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario E</h4>
+      <p>fact has 1M rows including 12 with deleted account_ids. dim filters <code>__is_deleted = false</code>.</p>
+      <span class="verdict fail" style="display:none;">FAIL — soft-delete asymmetry. Classic CDC pattern. Fix: <code>severity: warn</code> or filter the fact too.</span>
+    </div>
+    <div class="scenario" onclick="this.querySelector('.verdict').style.display='inline-block'">
+      <h4>Scenario F</h4>
+      <p>fact and dim have same data, but loaded at different times. CDC for fact lands at 10:00, for dim at 10:05. Build runs at 10:02.</p>
+      <span class="verdict warn" style="display:none;">FAIL TEMPORARILY — 3-min orphan window. Fix: order ingestion in the DAG, or add latency buffer to incremental filter.</span>
+    </div>
+  </div>
+</section>
+
+<!-- =================== STEP 10: SUMMARY =================== -->
+<section>
+  <h2><span class="step-num">10</span> Summary cheat sheet</h2>
+
+  <h3>FK contract layer guide</h3>
+  <div class="diagram">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:var(--bg-card);">
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Situation</th>
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">meta?</th>
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">relationships test?</th>
+      </tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Brand new FK, data quality unknown</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes, <code>severity: warn</code></td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Clean, mature FK on a mart</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes, <code>severity: error</code></td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">FK with known orphan pattern</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes (+ <code>fk_strict: false</code>)</td><td style="padding:10px;border-bottom:1px solid var(--border);">Yes, <code>where: ...</code> + warn</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Internal column, not a true FK</td><td style="padding:10px;border-bottom:1px solid var(--border);">No</td><td style="padding:10px;border-bottom:1px solid var(--border);">No</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Staging passthrough, FK is on the mart</td><td style="padding:10px;border-bottom:1px solid var(--border);">No (declare on mart)</td><td style="padding:10px;border-bottom:1px solid var(--border);">No (test on mart)</td></tr>
+      <tr><td style="padding:10px;">5 facts share same FK</td><td style="padding:10px;">Yes, on each (or via project-level)</td><td style="padding:10px;">Yes — use YAML anchor or generic test macro</td></tr>
+    </table>
+  </div>
+
+  <h3>Test-placement guide (chain depth)</h3>
+  <div class="diagram">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="background:var(--bg-card);">
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Situation</th>
+        <th style="padding:10px;text-align:left;border-bottom:1px solid var(--border);">Where to place</th>
+      </tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Column passes through stg → int → mart unchanged</td><td style="padding:10px;border-bottom:1px solid var(--border);">Mart layer only</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Intermediate joins introduce new FK column</td><td style="padding:10px;border-bottom:1px solid var(--border);">Intermediate <i>and</i> mart layer</td></tr>
+      <tr><td style="padding:10px;border-bottom:1px solid var(--border);">Middle layer filters rows (WHERE active)</td><td style="padding:10px;border-bottom:1px solid var(--border);">Every hop where filter applies</td></tr>
+      <tr><td style="padding:10px;">Soft-delete asymmetry (CDC pattern)</td><td style="padding:10px;"><code>severity: warn</code> + <code>where: __is_deleted = false</code></td></tr>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">If you remember three things</div>
+    <ol style="margin:6px 0 0 18px;padding:0;color:var(--text);font-size:14px;">
+      <li><b>meta = intent, test = reality.</b> Use both; they answer different questions.</li>
+      <li><b>The test is one-hop.</b> Place where orphans matter (mart) + any layer where joins/filters could introduce drift.</li>
+      <li><b>Start with <code>severity: warn</code>.</b> Harden to <code>error</code> as the FK proves itself clean. Never disable — that's the anti-pattern.</li>
+    </ol>
+  </div>
+</section>
+
+</div>
+
+<script>
+function showTab(btn, id) {
+  btn.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function pickerPlace(pos) {
+  ['A','B','C'].forEach(p => {
+    const n = document.getElementById('node-' + p);
+    if (n) { n.setAttribute('stroke', '#2a3563'); n.setAttribute('stroke-width', '1.5'); }
+  });
+  const fb = document.getElementById('picker-feedback');
+  if (!pos) { fb.innerHTML = ''; return; }
+
+  const messages = {
+    A: {
+      title: 'Test on A (stg_jobs.account_id)',
+      verdict: 'Catches orphans at the staging boundary. Good if you want early signal — but you\'ll get the same signal at later layers anyway since the column is passthrough.',
+      drawback: 'Tests source-data quality at the wrong layer. The source is usually outside your control; the fix has to go upstream (DE team) anyway.',
+      class: 'warn'
+    },
+    B: {
+      title: 'Test on B (int_jobs_enriched.account_id)',
+      verdict: 'Critical if B does joins. If B left-joins to another model and that join introduces NULL or orphan account_ids, this is the first place to catch it.',
+      drawback: 'Skip if B is just a 1:1 passthrough — no value over testing A or C.',
+      class: 'success'
+    },
+    C: {
+      title: 'Test on C (fct_jobs.account_id) ← recommended default',
+      verdict: 'This is what stakeholders consume. If C is clean, the dashboard is clean. Failure here is unambiguous: someone reading a dashboard would see wrong numbers.',
+      drawback: 'Diagnosis still requires walking upstream when the test fails. dbt\'s lineage helps.',
+      class: 'success'
+    },
+    all: {
+      title: 'Test on all three (A, B, C)',
+      verdict: 'Maximum safety — first failing layer pinpoints where the orphan was introduced.',
+      drawback: 'Triple the test queries on every dbt build. For a passthrough column, this is mostly wasted work. Only do it if each layer has joins/filters that could introduce new orphans.',
+      class: 'warn'
+    }
+  };
+
+  if (pos === 'all') {
+    ['A','B','C'].forEach(p => {
+      const n = document.getElementById('node-' + p);
+      n.setAttribute('stroke', '#7aa2ff'); n.setAttribute('stroke-width', '2.5');
+    });
+  } else {
+    const n = document.getElementById('node-' + pos);
+    n.setAttribute('stroke', '#7aa2ff'); n.setAttribute('stroke-width', '2.5');
+  }
+
+  const m = messages[pos];
+  fb.innerHTML = `
+    <div class="callout ${m.class}">
+      <div class="callout-title">${m.title}</div>
+      <p style="margin-bottom:8px;"><b>What it catches:</b> ${m.verdict}</p>
+      <p style="margin:0;font-size:13px;color:var(--text-muted);"><b>Trade-off:</b> ${m.drawback}</p>
+    </div>
+  `;
+}
+</script>
+
+<div id="__fb" style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:6px;opacity:.45;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.45">
+  <button onclick="__fbExport()" title="Export progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8595;</button>
+  <button onclick="document.getElementById('__fbFile').click()" title="Import progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8593;</button>
+</div>
+<input type="file" id="__fbFile" accept="application/json" style="display:none" onchange="__fbImport(event)">
+<script>
+function __fbSnap(){var s={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('forge-')===0)s[k]=localStorage.getItem(k);}return s;}
+function __fbExport(){var b=new Blob([JSON.stringify(__fbSnap(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='forge-progress-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();}
+function __fbImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);Object.keys(o).forEach(function(k){if(k.indexOf('forge-')===0)localStorage.setItem(k,o[k]);});location.reload();}catch(x){alert('Invalid backup file');}};r.readAsText(f);}
+</script>
+</body>
+</html>

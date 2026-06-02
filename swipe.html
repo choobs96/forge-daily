@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Swipe · Forge</title>
+<style>
+:root {
+  --bg: #07091a; --bg-elev: #0f1330; --bg-card: #1a1f44; --bg-card-hover: #232a55;
+  --border: #2a3565; --text: #ecefff; --text-dim: #a5acd0; --text-muted: #6a7299;
+  --accent: #7aa2ff; --accent-2: #a78bfa; --accent-3: #f472b6;
+  --green: #4ade80; --red: #f87171; --amber: #fbbf24; --xp: #a78bfa;
+  --code-bg: #050816; --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.65;
+  display: grid; grid-template-columns: 300px 1fr; min-height: 100vh;
+}
+.sidebar {
+  background: var(--bg-elev); border-right: 1px solid var(--border);
+  padding: 20px 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand .logo {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px;
+}
+.brand .name { font-size: 16px; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent-3));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.brand .tag { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.nav-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.nav-tabs a {
+  flex: 1; font-size: 11px; color: var(--text-dim); text-decoration: none;
+  padding: 6px 8px; border-radius: 6px; text-align: center;
+  background: var(--bg-card); border: 1px solid var(--border); font-weight: 600; min-width: 60px;
+}
+.nav-tabs a:hover { color: var(--text); border-color: var(--accent); }
+.nav-tabs a.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; }
+.stats-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.lvl-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.lvl-circle {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800;
+}
+.lvl-info .title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
+.lvl-info .rank { font-size: 13px; font-weight: 700; color: var(--text); }
+.xp-bar-wrap { background: var(--border); height: 6px; border-radius: 3px; overflow: hidden; margin: 4px 0; }
+.xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--xp), var(--accent-3)); width: 0%; transition: width .6s; }
+.xp-label { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 10px; }
+.mini-stats .ms { background: var(--bg-elev); padding: 6px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
+.mini-stats .num { font-size: 14px; font-weight: 800; }
+.mini-stats .lbl { font-size: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.mini-stats .num.gold { color: var(--amber); }
+.mini-stats .num.green { color: var(--green); }
+.mini-stats .num.pink { color: var(--accent-3); }
+.nav-section { margin-top: 8px; }
+.nav-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; padding: 0 6px; }
+.filter-chip {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px; font-size: 12px; color: var(--text-dim); cursor: pointer;
+  border-radius: 6px; margin-bottom: 1px; transition: all .15s; border: 1px solid transparent;
+}
+.filter-chip:hover { background: var(--bg-card-hover); color: var(--text); }
+.filter-chip.active { background: var(--bg-card); color: var(--accent); border-color: var(--border); }
+.filter-chip .cnt { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+
+.main { padding: 24px 48px 60px; max-width: 760px; margin: 0 auto; width: 100%; }
+.main-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+}
+.breadcrumb { font-size: 13px; color: var(--text-muted); }
+.breadcrumb .cur { color: var(--text); font-weight: 600; }
+.tool-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.tool-btn:hover { border-color: var(--accent); }
+
+.day-banner {
+  background: linear-gradient(135deg, rgba(122,162,255,0.08), rgba(167,139,250,0.08));
+  border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 14px 0 8px;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.day-banner .dh { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-2); font-weight: 700; }
+.day-banner .ds { font-size: 14px; color: var(--text-dim); margin-top: 2px; }
+.deck-progress-wrap { background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; width: 140px; }
+.deck-progress { height: 100%; background: linear-gradient(90deg, var(--green), var(--accent)); width: 0%; transition: width .4s; }
+.deck-count { font-size: 12px; color: var(--text-dim); text-align: right; margin-top: 4px; }
+
+/* card stack */
+.stack-area { position: relative; height: 540px; margin: 20px 0 10px; }
+.swipe-card {
+  position: absolute; inset: 0; background: var(--bg-elev);
+  border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow);
+  padding: 26px 28px; display: flex; flex-direction: column;
+  cursor: grab; user-select: none; overflow: hidden;
+  transition: transform .35s cubic-bezier(0.34,1.2,0.64,1), opacity .35s;
+  will-change: transform;
+}
+.swipe-card.dragging { transition: none; cursor: grabbing; }
+.swipe-card .card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
+.cat-chip {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+  padding: 4px 11px; border-radius: 20px; background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.35); color: var(--accent-2);
+}
+.lvl-chip { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.box-dots { display: flex; gap: 3px; }
+.box-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+.box-dots .dot.on { background: var(--green); }
+.swipe-card h2 { font-size: 23px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.25; margin-bottom: 8px; }
+.swipe-card .hook { font-size: 14px; color: var(--accent); font-style: italic; margin-bottom: 14px; }
+.card-body { flex: 1; overflow-y: auto; padding-right: 6px; }
+.card-body p { color: var(--text-dim); font-size: 14.5px; margin-bottom: 10px; }
+.card-body ul, .card-body ol { color: var(--text-dim); padding-left: 20px; margin-bottom: 10px; font-size: 14px; }
+.card-body li { margin-bottom: 4px; }
+code { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 12.5px; background: var(--bg-card); padding: 2px 6px; border-radius: 4px; color: var(--accent); border: 1px solid var(--border); }
+pre { background: var(--code-bg); color: #ecefff; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.55; border: 1px solid var(--border); margin: 10px 0; }
+pre code { background: none; border: none; color: inherit; padding: 0; }
+.kw { color: #f472b6; } .str { color: #a7f3d0; } .cm { color: #6a7299; font-style: italic; }
+.fn { color: #93c5fd; } .num { color: #fbbf24; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12.5px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: var(--bg-card); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+td { color: var(--text-dim); }
+tr:last-child td { border-bottom: none; }
+.card-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.tag { font-size: 9px; padding: 2px 7px; border-radius: 4px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-dim); }
+.card-foot a { font-size: 11px; color: var(--text-muted); text-decoration: none; }
+.card-foot a:hover { color: var(--accent); }
+
+/* swipe affordance overlays */
+.stamp {
+  position: absolute; top: 26px; font-size: 26px; font-weight: 900; letter-spacing: 1px;
+  padding: 6px 16px; border-radius: 10px; border: 3px solid; opacity: 0; transform: rotate(-12deg);
+  text-transform: uppercase; pointer-events: none; transition: opacity .1s;
+}
+.stamp.know { left: 24px; color: var(--green); border-color: var(--green); transform: rotate(-14deg); }
+.stamp.review { right: 24px; color: var(--amber); border-color: var(--amber); transform: rotate(14deg); }
+
+.controls { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 8px; }
+.ctrl-btn {
+  border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow); transition: transform .15s; font-weight: 800;
+}
+.ctrl-btn:hover { transform: scale(1.08); }
+.ctrl-btn:active { transform: scale(0.94); }
+.ctrl-btn.review { width: 60px; height: 60px; font-size: 24px; background: var(--bg-card); border: 2px solid var(--amber); color: var(--amber); }
+.ctrl-btn.know { width: 72px; height: 72px; font-size: 30px; background: linear-gradient(135deg, var(--green), #16a34a); color: white; }
+.ctrl-btn.flip { width: 50px; height: 50px; font-size: 18px; background: var(--bg-card); border: 2px solid var(--border); color: var(--text-dim); }
+.ctrl-hint { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 14px; }
+.ctrl-hint kbd { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 10px; color: var(--text-dim); }
+
+.empty-state { text-align: center; padding: 60px 20px; }
+.empty-state .big { font-size: 54px; margin-bottom: 12px; }
+.empty-state h2 { font-size: 24px; margin-bottom: 8px; }
+.empty-state p { color: var(--text-dim); margin-bottom: 20px; }
+.empty-state button { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.empty-state .summary { display: flex; justify-content: center; gap: 24px; margin: 20px 0; }
+.empty-state .summary .s .n { font-size: 28px; font-weight: 800; }
+.empty-state .summary .s .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+.toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translate(-50%, 60px); z-index: 150;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+  color: white; padding: 12px 22px; border-radius: 30px; font-weight: 700; font-size: 13px;
+  box-shadow: var(--shadow); opacity: 0; transition: all .4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+@media (max-width: 1000px) {
+  body { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .main { padding: 20px; }
+  .stack-area { height: 70vh; }
+}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07091a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">F</div>
+    <div><div class="name">Forge</div><div class="tag">Daily Swipe</div></div>
+  </div>
+  <div class="nav-tabs">
+    <a href="course.html">Hub</a>
+    <a href="learn.html">Learn</a>
+    <a href="practice.html">Arena</a>
+    <a href="swipe.html" class="active">Daily</a>
+  </div>
+  <div class="stats-card">
+    <div class="lvl-row">
+      <div class="lvl-circle" id="lvl-num">1</div>
+      <div class="lvl-info"><div class="title">Level</div><div class="rank" id="rank-title">Curious Analyst</div></div>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar"></div></div>
+    <div class="xp-label"><span><span id="xp-cur">0</span> XP</span><span><span id="xp-next">100</span> to next</span></div>
+    <div class="mini-stats">
+      <div class="ms"><div class="num green" id="m-streak">0</div><div class="lbl">Streak</div></div>
+      <div class="ms"><div class="num gold" id="m-known">0</div><div class="lbl">Known</div></div>
+      <div class="ms"><div class="num pink" id="m-cards">0</div><div class="lbl">Cards</div></div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-title">Focus a topic</div>
+    <div id="filter-list"></div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-header">
+    <div class="breadcrumb">Forge / <span class="cur">Daily Swipe</span></div>
+    <button class="tool-btn" onclick="resetSwipe()">Reset deck</button>
+  </div>
+
+  <div class="day-banner">
+    <div>
+      <div class="dh">Today's Deck</div>
+      <div class="ds" id="deck-sub">Loading your cards…</div>
+    </div>
+    <div>
+      <div class="deck-progress-wrap"><div class="deck-progress" id="deck-progress"></div></div>
+      <div class="deck-count" id="deck-count">0 / 0</div>
+    </div>
+  </div>
+
+  <div id="stage"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- card data: regenerated by the daily/weekly refresh job. file:// safe (script tag, not fetch) -->
+<script src="cards.js"></script>
+<script>
+// ============= LEVELS (shared with the Forge app) =============
+const LEVELS = [
+  {lvl:1,xp:0,title:'Curious Analyst'},{lvl:2,xp:100,title:'Active Learner'},
+  {lvl:3,xp:250,title:'SQL Scribbler'},{lvl:4,xp:450,title:'Pattern Spotter'},
+  {lvl:5,xp:700,title:'Junior Engineer Mindset'},{lvl:6,xp:1000,title:'dbt Initiate'},
+  {lvl:7,xp:1350,title:'Model Builder'},{lvl:8,xp:1750,title:'Lineage Walker'},
+  {lvl:9,xp:2200,title:'AE in Training'},{lvl:10,xp:2700,title:'Analytics Engineer'},
+  {lvl:11,xp:3250,title:'Spark Apprentice'},{lvl:12,xp:3850,title:'Pipeline Practitioner'},
+  {lvl:13,xp:4500,title:'Mid AE'},{lvl:14,xp:5200,title:'System Thinker'},
+  {lvl:15,xp:6000,title:'Senior AE'},{lvl:16,xp:6900,title:'Data Engineer'},
+  {lvl:17,xp:7900,title:'Senior DE'},{lvl:18,xp:9000,title:'Staff Engineer'},
+  {lvl:19,xp:10300,title:'Domain Expert'},{lvl:20,xp:12000,title:'Principal · Forge Master'},
+];
+
+// ============= CONFIG =============
+const DAILY_TARGET = 8;          // fresh cards per day
+const DAILY_CAP = 16;            // hard cap incl. reviews
+const XP_NEW = 15;               // first time you swipe a card "got it"
+const XP_REVIEW = 5;             // clearing a review card again
+const INTERVALS = [1, 1, 2, 4, 7, 14, 30]; // Leitner box -> days until next due
+
+const CARDS = (window.SWIPE_CARDS || []).filter(c => c && c.id);
+
+// ============= DATE HELPERS =============
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+// deterministic seeded shuffle so "today's deck" is stable across reloads but rotates daily
+function seedFromStr(s) { let h = 2166136261; for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function seededShuffle(arr, seed) {
+  const rng = mulberry32(seed); const a = arr.slice();
+  for (let i=a.length-1; i>0; i--){ const j = Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// ============= STATE =============
+// forge-swipe: { byId: { id: {box, due, seen} }, knownCount, swipeXp, deckDate, deckIds:[], doneIds:[] }
+function getSwipe() {
+  const raw = JSON.parse(localStorage.getItem('forge-swipe') || '{}');
+  return {
+    byId: raw.byId || {},
+    swipeXp: raw.swipeXp || 0,
+    deckDate: raw.deckDate || null,
+    deckIds: raw.deckIds || [],
+    doneIds: raw.doneIds || [],
+    sessionNew: raw.sessionNew || 0,
+    sessionReview: raw.sessionReview || 0,
+  };
+}
+function saveSwipe(s) { localStorage.setItem('forge-swipe', JSON.stringify(s)); localStorage.setItem('forge-swipe-xp', s.swipeXp); }
+
+function knownCount(s) { return Object.values(s.byId).filter(c => c.box >= 1).length; }
+
+// shared streak (same keys as learn.html)
+function updateStreak() {
+  const today = new Date().toDateString();
+  const last = localStorage.getItem('forge-last-visit');
+  let streak = parseInt(localStorage.getItem('forge-streak') || '0');
+  if (!last) streak = 1;
+  else { const diff = (new Date(today) - new Date(last)) / 86400000; if (diff === 0) {} else if (diff === 1) streak += 1; else streak = 1; }
+  localStorage.setItem('forge-streak', streak);
+  localStorage.setItem('forge-last-visit', today);
+  return streak;
+}
+
+// total XP = module/problem XP (from the rest of Forge) + swipe XP
+function totalXp(s) {
+  const base = parseInt(localStorage.getItem('forge-xp') || '0');
+  return base + s.swipeXp;
+}
+function calcLevel(xp) {
+  let lvl = LEVELS[0], next = LEVELS[1];
+  for (let i=LEVELS.length-1; i>=0; i--) { if (xp >= LEVELS[i].xp) { lvl = LEVELS[i]; next = LEVELS[i+1] || LEVELS[i]; break; } }
+  return {lvl, next};
+}
+
+// ============= DECK BUILDING =============
+let activeFilter = 'All';
+
+function categories() {
+  const m = {}; CARDS.forEach(c => { m[c.cat] = (m[c.cat]||0)+1; });
+  return m;
+}
+function pool() {
+  return activeFilter === 'All' ? CARDS : CARDS.filter(c => c.cat === activeFilter);
+}
+function buildDeck(s) {
+  const today = todayStr();
+  const P = pool();
+  // due reviews: seen before, due today or earlier
+  const due = P.filter(c => s.byId[c.id] && s.byId[c.id].due && s.byId[c.id].due <= today)
+               .sort((a,b) => (s.byId[a.id].due < s.byId[b.id].due ? -1 : 1));
+  // fresh: never seen
+  const fresh = seededShuffle(P.filter(c => !s.byId[c.id]), seedFromStr(today + '|' + activeFilter));
+  const deck = [];
+  due.forEach(c => { if (deck.length < DAILY_CAP) deck.push(c.id); });
+  fresh.forEach(c => { if (deck.length < Math.min(DAILY_CAP, due.length + DAILY_TARGET)) deck.push(c.id); });
+  return deck;
+}
+function ensureDeck(s) {
+  const today = todayStr();
+  if (s.deckDate !== today || activeFilter !== (s._filter || 'All')) {
+    s.deckDate = today;
+    s._filter = activeFilter;
+    s.deckIds = buildDeck(s);
+    s.doneIds = [];
+    s.sessionNew = 0; s.sessionReview = 0;
+    saveSwipe(s);
+  }
+  return s;
+}
+function remainingIds(s) { return s.deckIds.filter(id => !s.doneIds.includes(id)); }
+
+// ============= RENDER =============
+function renderSidebar(s) {
+  const {lvl, next} = calcLevel(totalXp(s));
+  document.getElementById('lvl-num').textContent = lvl.lvl;
+  document.getElementById('rank-title').textContent = lvl.title;
+  const xp = totalXp(s);
+  const pct = (lvl === next) ? 100 : Math.min(100, ((xp - lvl.xp) / (next.xp - lvl.xp)) * 100);
+  document.getElementById('xp-bar').style.width = pct + '%';
+  document.getElementById('xp-cur').textContent = xp;
+  document.getElementById('xp-next').textContent = (lvl === next) ? '—' : (next.xp - xp);
+  document.getElementById('m-streak').textContent = parseInt(localStorage.getItem('forge-streak')||'0');
+  document.getElementById('m-known').textContent = knownCount(s);
+  document.getElementById('m-cards').textContent = CARDS.length;
+
+  const cats = categories();
+  const total = CARDS.length;
+  let html = `<div class="filter-chip ${activeFilter==='All'?'active':''}" onclick="setFilter('All')"><span>All topics</span><span class="cnt">${total}</span></div>`;
+  Object.keys(cats).sort().forEach(cat => {
+    html += `<div class="filter-chip ${activeFilter===cat?'active':''}" onclick="setFilter('${cat}')"><span>${cat}</span><span class="cnt">${cats[cat]}</span></div>`;
+  });
+  document.getElementById('filter-list').innerHTML = html;
+}
+
+function renderStage() {
+  let s = getSwipe();
+  s = ensureDeck(s);
+  const rem = remainingIds(s);
+  const totalDeck = s.deckIds.length;
+  const done = totalDeck - rem.length;
+
+  // banner
+  document.getElementById('deck-count').textContent = `${done} / ${totalDeck}`;
+  document.getElementById('deck-progress').style.width = totalDeck ? (done/totalDeck*100) + '%' : '0%';
+  const dueToday = s.deckIds.filter(id => { const st = s.byId[id]; return st && st.seen; }).length;
+  document.getElementById('deck-sub').textContent = totalDeck
+    ? `${totalDeck} cards · ${dueToday} review, ${totalDeck-dueToday} new${activeFilter!=='All'?' · '+activeFilter:''}`
+    : 'No cards available';
+
+  const stage = document.getElementById('stage');
+
+  if (!CARDS.length) {
+    stage.innerHTML = `<div class="empty-state"><div class="big">📭</div><h2>No cards loaded</h2>
+      <p>cards.js is empty or missing. Run the refresh job to populate the deck.</p></div>`;
+    renderSidebar(s); return;
+  }
+  if (!rem.length) {
+    stage.innerHTML = `<div class="empty-state">
+      <div class="big">🎉</div>
+      <h2>Deck cleared for today</h2>
+      <p>You'll get a fresh deck tomorrow — reviews are scheduled by spaced repetition.</p>
+      <div class="summary">
+        <div class="s"><div class="n" style="color:var(--green)">${s.sessionNew}</div><div class="l">New learned</div></div>
+        <div class="s"><div class="n" style="color:var(--amber)">${s.sessionReview}</div><div class="l">Reviewed</div></div>
+        <div class="s"><div class="n" style="color:var(--accent-3)">${knownCount(s)}</div><div class="l">Total known</div></div>
+      </div>
+      <button onclick="extraCards()">Keep going — pull 5 more →</button>
+    </div>`;
+    renderSidebar(s); return;
+  }
+
+  // render the top 3 cards of the stack (back to front)
+  const view = rem.slice(0, 3).reverse();
+  stage.innerHTML = `<div class="stack-area" id="stack">
+    ${view.map((id, vi) => {
+      const c = CARDS.find(x => x.id === id);
+      const depth = view.length - 1 - vi; // 0 = top
+      const scale = 1 - depth*0.04, ty = depth*14;
+      const st = s.byId[c.id] || {box:0};
+      const dots = [0,1,2,3,4].map(i => `<span class="dot ${i < (st.box||0) ? 'on':''}"></span>`).join('');
+      return `<div class="swipe-card" data-id="${c.id}" style="transform:scale(${scale}) translateY(${ty}px); z-index:${vi+1};">
+        <div class="stamp know">Got it</div>
+        <div class="stamp review">Review</div>
+        <div class="card-top">
+          <span class="cat-chip">${c.cat}</span>
+          <span class="lvl-chip">${c.level||''}</span>
+          <span class="box-dots" title="spaced-repetition box">${dots}</span>
+        </div>
+        <h2>${c.title}</h2>
+        ${c.hook ? `<div class="hook">${c.hook}</div>` : ''}
+        <div class="card-body">${c.body||''}</div>
+        <div class="card-foot">
+          <div class="tags">${(c.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          ${c.src ? `<a href="${c.src}" target="_blank" rel="noopener">source ↗</a>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn review" onclick="swipe('left')" title="Review again (←)">↺</button>
+    <button class="ctrl-btn know" onclick="swipe('right')" title="Got it (→)">✓</button>
+  </div>
+  <div class="ctrl-hint">Drag the card, tap a button, or use <kbd>←</kbd> review · <kbd>→</kbd> got it</div>`;
+
+  renderSidebar(s);
+  attachDrag();
+}
+
+// ============= SWIPE ACTIONS =============
+function recordSwipe(id, dir) {
+  const s = getSwipe();
+  const today = todayStr();
+  const prev = s.byId[id] || {box:0, seen:false};
+  const wasNew = !prev.seen;
+  if (dir === 'right') {
+    const box = Math.min(INTERVALS.length-1, (prev.box||0) + 1);
+    s.byId[id] = { box, due: addDays(today, INTERVALS[box]), seen: true };
+    s.swipeXp += wasNew ? XP_NEW : XP_REVIEW;
+    if (wasNew) s.sessionNew++; else s.sessionReview++;
+    showToast(wasNew ? `+${XP_NEW} XP · learned` : `+${XP_REVIEW} XP · reviewed`);
+  } else {
+    s.byId[id] = { box: 0, due: addDays(today, 1), seen: true };
+    if (!wasNew) s.sessionReview++;
+    showToast('Re-queued for tomorrow');
+  }
+  if (!s.doneIds.includes(id)) s.doneIds.push(id);
+  saveSwipe(s);
+}
+
+let animating = false;
+function swipe(dir) {
+  if (animating) return;
+  const stack = document.getElementById('stack'); if (!stack) return;
+  const cards = stack.querySelectorAll('.swipe-card');
+  const top = cards[cards.length-1]; if (!top) return;
+  animating = true;
+  const id = top.dataset.id;
+  const x = dir === 'right' ? window.innerWidth : -window.innerWidth;
+  const rot = dir === 'right' ? 18 : -18;
+  top.style.transform = `translate(${x}px, -40px) rotate(${rot}deg)`;
+  top.style.opacity = '0';
+  recordSwipe(id, dir);
+  setTimeout(() => { animating = false; renderStage(); }, 320);
+}
+
+function attachDrag() {
+  const stack = document.getElementById('stack'); if (!stack) return;
+  const cards = stack.querySelectorAll('.swipe-card');
+  const top = cards[cards.length-1]; if (!top) return;
+  let startX=0, startY=0, dx=0, dy=0, down=false;
+  const knowStamp = top.querySelector('.stamp.know');
+  const reviewStamp = top.querySelector('.stamp.review');
+
+  function start(e){ if (animating) return; down=true; top.classList.add('dragging');
+    const p = e.touches ? e.touches[0] : e; startX=p.clientX; startY=p.clientY; }
+  function move(e){ if(!down) return;
+    const p = e.touches ? e.touches[0] : e; dx = p.clientX-startX; dy = p.clientY-startY;
+    top.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx*0.05}deg)`;
+    const r = Math.min(1, Math.abs(dx)/120);
+    knowStamp.style.opacity = dx>0 ? r : 0;
+    reviewStamp.style.opacity = dx<0 ? r : 0;
+    if (e.cancelable && e.touches) e.preventDefault();
+  }
+  function end(){ if(!down) return; down=false; top.classList.remove('dragging');
+    if (Math.abs(dx) > 110) { swipe(dx>0 ? 'right':'left'); }
+    else { top.style.transform=''; knowStamp.style.opacity=0; reviewStamp.style.opacity=0; }
+    dx=0; dy=0;
+  }
+  top.addEventListener('mousedown', start);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  top.addEventListener('touchstart', start, {passive:true});
+  top.addEventListener('touchmove', move, {passive:false});
+  top.addEventListener('touchend', end);
+}
+
+function setFilter(cat) { activeFilter = cat; const s = getSwipe(); s._filter = null; saveSwipe(s); renderStage(); }
+function extraCards() {
+  const s = getSwipe();
+  const P = pool();
+  const extra = seededShuffle(P.filter(c => !s.deckIds.includes(c.id) && !(s.byId[c.id] && s.byId[c.id].due > todayStr())), seedFromStr(todayStr()+s.doneIds.length))
+                .slice(0,5).map(c=>c.id);
+  if (!extra.length) { showToast('No more cards in this topic'); return; }
+  s.deckIds = s.deckIds.concat(extra);
+  saveSwipe(s);
+  renderStage();
+}
+function resetSwipe() {
+  if (confirm('Reset daily swipe progress? (Your module/problem XP is kept.)')) {
+    localStorage.removeItem('forge-swipe'); localStorage.removeItem('forge-swipe-xp');
+    activeFilter = 'All'; renderStage();
+  }
+}
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') swipe('right');
+  else if (e.key === 'ArrowLeft') swipe('left');
+});
+
+updateStreak();
+renderStage();
+</script>
+
+<div id="__fb" style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:6px;opacity:.45;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.45">
+  <button onclick="__fbExport()" title="Export progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8595;</button>
+  <button onclick="document.getElementById('__fbFile').click()" title="Import progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8593;</button>
+</div>
+<input type="file" id="__fbFile" accept="application/json" style="display:none" onchange="__fbImport(event)">
+<script>
+function __fbSnap(){var s={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('forge-')===0)s[k]=localStorage.getItem(k);}return s;}
+function __fbExport(){var b=new Blob([JSON.stringify(__fbSnap(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='forge-progress-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();}
+function __fbImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);Object.keys(o).forEach(function(k){if(k.indexOf('forge-')===0)localStorage.setItem(k,o[k]);});location.reload();}catch(x){alert('Invalid backup file');}};r.readAsText(f);}
+</script>
+</body>
+</html>

@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Arena · Forge</title>
+<style>
+:root {
+  --bg: #07091a;
+  --bg-elev: #0f1330;
+  --bg-card: #1a1f44;
+  --bg-card-hover: #232a55;
+  --border: #2a3565;
+  --text: #ecefff;
+  --text-dim: #a5acd0;
+  --text-muted: #6a7299;
+  --accent: #7aa2ff;
+  --accent-2: #a78bfa;
+  --accent-3: #f472b6;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --code-bg: #050816;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(ellipse at top, rgba(122,162,255,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 32px; }
+
+nav.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(15, 19, 48, 0.6);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+.brand .logo {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800;
+}
+.brand .name {
+  background: linear-gradient(135deg, var(--accent), var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.nav-links { display: flex; gap: 4px; }
+.nav-links a {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.nav-links a:hover { color: var(--text); background: var(--bg-card); }
+.nav-links a.active { color: var(--accent); background: var(--bg-card); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, rgba(122,162,255,0.05), rgba(167,139,250,0.06));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent-2);
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+.hero .tagline { color: var(--text-dim); }
+.score-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.score-cell {
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.score-cell .num { font-size: 22px; font-weight: 800; }
+.score-cell .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.score-cell .num.gold { color: var(--amber); }
+.score-cell .num.green { color: var(--green); }
+.score-cell .num.purple { color: var(--accent-2); }
+.score-cell .num.blue { color: var(--accent); }
+
+/* FILTERS */
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--accent); }
+.filter-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; border: none; }
+.search-row {
+  display: flex; gap: 8px; margin-bottom: 24px;
+}
+.search-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.search-input:focus { outline: none; border-color: var(--accent); }
+
+/* PROBLEM CARD */
+.problem {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  transition: all .2s;
+  overflow: hidden;
+}
+.problem:hover { border-color: var(--accent); }
+.problem.solved { border-color: var(--green); background: linear-gradient(135deg, var(--bg-elev), rgba(74,222,128,0.04)); }
+.problem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  gap: 16px;
+}
+.problem-header:hover { background: var(--bg-card-hover); }
+.problem-title {
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.problem.solved .problem-title::before { content: '✓ '; color: var(--green); }
+.problem-tags { display: flex; gap: 6px; }
+.tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.tag.easy   { color: var(--green);    border-color: var(--green); }
+.tag.medium { color: var(--amber);    border-color: var(--amber); }
+.tag.hard   { color: var(--red);      border-color: var(--red);   }
+.tag.sql    { color: var(--accent);   border-color: var(--accent); }
+.tag.dbt    { color: var(--accent-2); border-color: var(--accent-2); }
+.tag.python { color: var(--green);    border-color: var(--green); }
+.tag.spark  { color: var(--amber);    border-color: var(--amber); }
+.tag.model  { color: var(--accent-3); border-color: var(--accent-3); }
+.tag.design { color: var(--red);      border-color: var(--red);   }
+.problem-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.problem.open .problem-body { display: block; }
+.problem h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+.problem h4:first-child { margin-top: 0; }
+.problem p { color: var(--text-dim); margin-bottom: 8px; font-size: 14px; }
+
+code, pre {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+code {
+  font-size: 12.5px;
+  background: var(--bg-card);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+pre {
+  background: var(--code-bg);
+  color: #ecefff;
+  padding: 14px 18px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 1px solid var(--border);
+  margin: 8px 0;
+}
+pre code { background: none; border: none; padding: 0; color: inherit; }
+.kw { color: #f472b6; }
+.str { color: #a7f3d0; }
+.cm { color: #6a7299; font-style: italic; }
+.fn { color: #93c5fd; }
+.num { color: #fbbf24; }
+
+.hint-box {
+  background: rgba(251,191,36,0.06);
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.hint-box::before { content: '💡 '; }
+
+.btn-reveal {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 8px 4px 0;
+}
+.btn-reveal:hover { transform: translateY(-1px); }
+.btn-reveal.secondary { background: var(--bg-card); border: 1px solid var(--border); }
+.btn-mark {
+  background: rgba(74,222,128,0.15);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0;
+}
+.btn-mark:hover { background: rgba(74,222,128,0.25); }
+.problem.solved .btn-mark { background: rgba(74,222,128,0.25); }
+
+.reveal-content {
+  display: none;
+}
+.reveal-content.show { display: block; animation: fadeIn .3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Sections */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin: 32px 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.section-header h2 { font-size: 22px; }
+.section-header .count { color: var(--text-muted); font-size: 13px; }
+
+.progress-by-cat {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.cat-progress {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.cat-progress .name { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.cat-progress .stat { font-size: 18px; font-weight: 700; margin: 4px 0; }
+.cat-progress .bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.cat-progress .fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .4s; }
+
+@media (max-width: 800px) {
+  .hero { grid-template-columns: 1fr; }
+}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#07091a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">F</div>
+    <span class="name">Forge</span>
+  </div>
+  <div class="nav-links">
+    <a href="course.html">Course</a>
+    <a href="index.html">Modules</a>
+    <a href="practice.html" class="active">Practice</a>
+    <a href="swipe.html">Daily</a>
+    <a href="relationships-explainer.html">Deep Dives</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="hero">
+    <div>
+      <span class="hero-eyebrow">🎯 Practice Arena</span>
+      <h1>Solve. Reveal. Mark. Repeat.</h1>
+      <p class="tagline">42 production-grade problems across SQL, dbt, Python, Spark, modeling, and system design. Work each one in your warehouse / notebook of choice — then reveal the canonical answer and mark it solved. Each solve = <b>+30 XP</b>.</p>
+    </div>
+    <div class="score-card">
+      <div class="score-row">
+        <div class="score-cell">
+          <div class="num green" id="stat-solved">0</div>
+          <div class="lbl">Solved</div>
+        </div>
+        <div class="score-cell">
+          <div class="num blue" id="stat-total">42</div>
+          <div class="lbl">Total</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <div class="score-cell">
+          <div class="num purple" id="stat-xp">0</div>
+          <div class="lbl">XP earned</div>
+        </div>
+        <div class="score-cell">
+          <div class="num gold" id="stat-pct">0%</div>
+          <div class="lbl">Complete</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-by-cat" id="cat-progress"></div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="sql">SQL</button>
+    <button class="filter-btn" data-filter="dbt">dbt</button>
+    <button class="filter-btn" data-filter="python">Python</button>
+    <button class="filter-btn" data-filter="spark">Spark</button>
+    <button class="filter-btn" data-filter="model">Modeling</button>
+    <button class="filter-btn" data-filter="design">System Design</button>
+    <button class="filter-btn" data-filter="easy">Easy</button>
+    <button class="filter-btn" data-filter="medium">Medium</button>
+    <button class="filter-btn" data-filter="hard">Hard</button>
+    <button class="filter-btn" data-filter="unsolved">Unsolved</button>
+  </div>
+
+  <input class="search-input" id="search" placeholder="Search problems by title or keyword..." style="margin-bottom:24px;">
+
+  <div id="problems"></div>
+
+</div>
+
+<script>
+// ====================== PROBLEMS ======================
+const PROBLEMS = [
+  // ============ SQL FUNDAMENTALS ============
+  {
+    id: 'sql-01', title: 'Second-highest salary', diff: 'easy', cats: ['sql'],
+    statement: `Given an <code>employees(id, name, dept, salary)</code> table, return the name and salary of the second-highest paid employee in each department. If a dept has no second-highest (only one employee), exclude it.`,
+    hint: `Window functions. DENSE_RANK vs RANK matters when there are ties.`,
+    solution: `<pre><code><span class="kw">with</span> ranked <span class="kw">as</span> (
+  <span class="kw">select</span> name, dept, salary,
+    <span class="fn">dense_rank</span>() <span class="kw">over</span> (<span class="kw">partition by</span> dept <span class="kw">order by</span> salary <span class="kw">desc</span>) <span class="kw">as</span> rnk
+  <span class="kw">from</span> employees
+)
+<span class="kw">select</span> name, dept, salary
+<span class="kw">from</span> ranked
+<span class="kw">where</span> rnk = <span class="num">2</span>;</code></pre>`,
+    explain: `<code>DENSE_RANK</code> (not <code>RANK</code>) so two top earners in a dept still have a second-highest. Filter to rnk=2 to return the answer; departments without a rnk=2 row naturally drop out.`,
+  },
+  {
+    id: 'sql-02', title: 'Dedupe by latest update', diff: 'easy', cats: ['sql'],
+    statement: `From a CDC stream <code>events(account_id, status, updated_at)</code>, return the most recent row per <code>account_id</code>.`,
+    hint: `ROW_NUMBER + filter to 1. SELECT DISTINCT won't work — it dedupes by all columns.`,
+    solution: `<pre><code><span class="kw">with</span> ranked <span class="kw">as</span> (
+  <span class="kw">select</span> *,
+    <span class="fn">row_number</span>() <span class="kw">over</span> (
+      <span class="kw">partition by</span> account_id
+      <span class="kw">order by</span> updated_at <span class="kw">desc</span>
+    ) <span class="kw">as</span> rn
+  <span class="kw">from</span> events
+)
+<span class="kw">select</span> * <span class="kw">from</span> ranked <span class="kw">where</span> rn = <span class="num">1</span>;</code></pre>`,
+    explain: `The canonical CDC dedupe pattern. <code>ROW_NUMBER</code> picks exactly one row per key; ordering DESC by <code>updated_at</code> selects the most recent. Preserves all columns of the chosen row, unlike GROUP BY MAX.`,
+  },
+  {
+    id: 'sql-03', title: 'Running total per customer', diff: 'easy', cats: ['sql'],
+    statement: `From <code>orders(customer_id, order_date, value)</code>, compute the running total of <code>value</code> per customer ordered by date.`,
+    hint: `Frame the window: <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.`,
+    solution: `<pre><code><span class="kw">select</span> customer_id, order_date, value,
+  <span class="fn">sum</span>(value) <span class="kw">over</span> (
+    <span class="kw">partition by</span> customer_id
+    <span class="kw">order by</span> order_date
+    <span class="kw">rows between unbounded preceding and current row</span>
+  ) <span class="kw">as</span> running_total
+<span class="kw">from</span> orders;</code></pre>`,
+    explain: `The explicit <code>ROWS BETWEEN</code> frame is best practice. Without it, some engines default to RANGE which behaves unexpectedly on duplicate order_dates.`,
+  },
+  {
+    id: 'sql-04', title: 'Top N per group', diff: 'medium', cats: ['sql'],
+    statement: `From <code>sales(rep_id, customer_id, revenue, sale_date)</code>, return the top 3 customers by total revenue for each rep.`,
+    hint: `Two steps: aggregate per (rep, customer) first; then ROW_NUMBER over reps to take top 3.`,
+    solution: `<pre><code><span class="kw">with</span> totals <span class="kw">as</span> (
+  <span class="kw">select</span> rep_id, customer_id, <span class="fn">sum</span>(revenue) <span class="kw">as</span> total_rev
+  <span class="kw">from</span> sales
+  <span class="kw">group by</span> rep_id, customer_id
+),
+ranked <span class="kw">as</span> (
+  <span class="kw">select</span> *,
+    <span class="fn">row_number</span>() <span class="kw">over</span> (<span class="kw">partition by</span> rep_id <span class="kw">order by</span> total_rev <span class="kw">desc</span>) <span class="kw">as</span> rn
+  <span class="kw">from</span> totals
+)
+<span class="kw">select</span> rep_id, customer_id, total_rev
+<span class="kw">from</span> ranked
+<span class="kw">where</span> rn &lt;= <span class="num">3</span>;</code></pre>`,
+    explain: `The classic top-N-per-group pattern. Aggregate first to define the ranking metric, then rank, then filter. Putting all three in one SELECT will silently fail or be unreadable.`,
+  },
+  {
+    id: 'sql-05', title: 'Sessionization', diff: 'hard', cats: ['sql'],
+    statement: `From <code>events(user_id, event_ts)</code>, group events into sessions where consecutive events within 30 minutes belong to the same session. Output: <code>user_id, session_id, started_at, ended_at, event_count</code>.`,
+    hint: `Two windows: (1) lag to compare current event to previous, (2) sum to assign cumulative session IDs.`,
+    solution: `<pre><code><span class="kw">with</span> gaps <span class="kw">as</span> (
+  <span class="kw">select</span> user_id, event_ts,
+    <span class="fn">lag</span>(event_ts) <span class="kw">over</span> (<span class="kw">partition by</span> user_id <span class="kw">order by</span> event_ts) <span class="kw">as</span> prev_ts
+  <span class="kw">from</span> events
+),
+sessions_marked <span class="kw">as</span> (
+  <span class="kw">select</span> user_id, event_ts,
+    <span class="fn">sum</span>(<span class="kw">case when</span> prev_ts <span class="kw">is null</span>
+              <span class="kw">or</span> <span class="fn">datediff</span>(<span class="str">'minute'</span>, prev_ts, event_ts) &gt; <span class="num">30</span>
+              <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>)
+      <span class="kw">over</span> (<span class="kw">partition by</span> user_id <span class="kw">order by</span> event_ts
+             <span class="kw">rows between unbounded preceding and current row</span>) <span class="kw">as</span> session_num
+  <span class="kw">from</span> gaps
+)
+<span class="kw">select</span> user_id, session_num <span class="kw">as</span> session_id,
+  <span class="fn">min</span>(event_ts) <span class="kw">as</span> started_at,
+  <span class="fn">max</span>(event_ts) <span class="kw">as</span> ended_at,
+  <span class="fn">count</span>(*) <span class="kw">as</span> event_count
+<span class="kw">from</span> sessions_marked
+<span class="kw">group by</span> user_id, session_num;</code></pre>`,
+    explain: `Sessionization is a rite of passage. The key trick: a "new session" marker (1 or 0) summed cumulatively gives each session a unique increasing ID.`,
+  },
+  {
+    id: 'sql-06', title: 'Detect fan-out', diff: 'medium', cats: ['sql', 'model'],
+    statement: `You joined <code>orders</code> (1M rows) to <code>order_items</code> (5M rows) and now your <code>SUM(orders.value)</code> is 5× too large. Write a query that quantifies the fan-out factor per order.`,
+    hint: `COUNT(*) GROUP BY order_id after the join. Compare to 1.`,
+    solution: `<pre><code><span class="kw">with</span> joined <span class="kw">as</span> (
+  <span class="kw">select</span> o.order_id, o.value, i.item_id
+  <span class="kw">from</span> orders o
+  <span class="kw">left join</span> order_items i <span class="kw">on</span> i.order_id = o.order_id
+),
+fanout <span class="kw">as</span> (
+  <span class="kw">select</span> order_id, <span class="fn">count</span>(*) <span class="kw">as</span> rows_per_order
+  <span class="kw">from</span> joined
+  <span class="kw">group by</span> order_id
+)
+<span class="kw">select</span>
+  <span class="fn">count</span>(*) <span class="kw">as</span> n_orders,
+  <span class="fn">sum</span>(<span class="kw">case when</span> rows_per_order &gt; <span class="num">1</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> n_with_fanout,
+  <span class="fn">avg</span>(rows_per_order) <span class="kw">as</span> avg_fanout,
+  <span class="fn">max</span>(rows_per_order) <span class="kw">as</span> max_fanout
+<span class="kw">from</span> fanout;</code></pre>`,
+    explain: `The diagnostic query you run BEFORE writing the aggregate. If <code>avg_fanout > 1</code>, your SUM is inflated; you must aggregate one side first.`,
+  },
+  {
+    id: 'sql-07', title: 'Gaps and islands', diff: 'hard', cats: ['sql'],
+    statement: `From <code>availability(user_id, day)</code> — one row per day a user was active — return consecutive date ranges per user: <code>user_id, range_start, range_end, days</code>.`,
+    hint: `Classic gaps-and-islands. ROW_NUMBER + date subtraction creates a constant-per-island grouping key.`,
+    solution: `<pre><code><span class="kw">with</span> with_grp <span class="kw">as</span> (
+  <span class="kw">select</span> user_id, day,
+    <span class="fn">date_sub</span>(day,
+      <span class="fn">row_number</span>() <span class="kw">over</span> (<span class="kw">partition by</span> user_id <span class="kw">order by</span> day)) <span class="kw">as</span> grp
+  <span class="kw">from</span> availability
+)
+<span class="kw">select</span> user_id,
+  <span class="fn">min</span>(day) <span class="kw">as</span> range_start,
+  <span class="fn">max</span>(day) <span class="kw">as</span> range_end,
+  <span class="fn">count</span>(*) <span class="kw">as</span> days
+<span class="kw">from</span> with_grp
+<span class="kw">group by</span> user_id, grp
+<span class="kw">order by</span> user_id, range_start;</code></pre>`,
+    explain: `If days are consecutive, <code>day - row_number()</code> stays constant. Grouping by that constant gives you the islands. Stares at it long enough and it makes sense.`,
+  },
+  {
+    id: 'sql-08', title: 'Pivot status counts', diff: 'easy', cats: ['sql'],
+    statement: `From <code>deals(account_id, status)</code>, return one row per account with three counts: <code>open_count</code>, <code>won_count</code>, <code>lost_count</code>.`,
+    hint: `Conditional aggregation. SUM(CASE WHEN ... THEN 1 ELSE 0 END).`,
+    solution: `<pre><code><span class="kw">select</span> account_id,
+  <span class="fn">sum</span>(<span class="kw">case when</span> status = <span class="str">'open'</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> open_count,
+  <span class="fn">sum</span>(<span class="kw">case when</span> status = <span class="str">'won'</span>  <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> won_count,
+  <span class="fn">sum</span>(<span class="kw">case when</span> status = <span class="str">'lost'</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> lost_count
+<span class="kw">from</span> deals
+<span class="kw">group by</span> account_id;</code></pre>`,
+    explain: `Portable pivot pattern that works in every SQL dialect. Beats <code>PIVOT</code> syntax for review-clarity.`,
+  },
+  {
+    id: 'sql-09', title: 'Anti-join (find missing)', diff: 'easy', cats: ['sql'],
+    statement: `Find <code>accounts</code> that have <b>no</b> rows in <code>jobs</code> table. Use the NULL-safe approach.`,
+    hint: `<code>NOT IN</code> is NULL-trapped. Use <code>NOT EXISTS</code> or <code>LEFT JOIN ... WHERE x IS NULL</code>.`,
+    solution: `<pre><code><span class="cm">-- preferred: NOT EXISTS (NULL-safe)</span>
+<span class="kw">select</span> a.*
+<span class="kw">from</span> accounts a
+<span class="kw">where not exists</span> (
+  <span class="kw">select</span> <span class="num">1</span> <span class="kw">from</span> jobs j
+  <span class="kw">where</span> j.account_id = a.account_id
+);
+
+<span class="cm">-- equivalent: LEFT JOIN ... WHERE NULL</span>
+<span class="kw">select</span> a.*
+<span class="kw">from</span> accounts a
+<span class="kw">left join</span> jobs j <span class="kw">on</span> j.account_id = a.account_id
+<span class="kw">where</span> j.account_id <span class="kw">is null</span>;</code></pre>`,
+    explain: `Never use <code>NOT IN (subquery)</code> — if the subquery has any NULL, you get zero rows. Both alternatives are safe and correct.`,
+  },
+  {
+    id: 'sql-10', title: 'Cohort retention table', diff: 'hard', cats: ['sql', 'model'],
+    statement: `Given <code>users(user_id, signup_date)</code> and <code>activity(user_id, active_date)</code>, build a cohort retention matrix: rows = signup month, columns = months since signup (0,1,2,...), values = % retained.`,
+    hint: `Compute months_since_signup per active row. Aggregate per (cohort_month, months_since_signup) and divide by cohort size.`,
+    solution: `<pre><code><span class="kw">with</span> cohorts <span class="kw">as</span> (
+  <span class="kw">select</span> user_id, <span class="fn">date_trunc</span>(<span class="str">'month'</span>, signup_date) <span class="kw">as</span> cohort_month
+  <span class="kw">from</span> users
+),
+cohort_sizes <span class="kw">as</span> (
+  <span class="kw">select</span> cohort_month, <span class="fn">count</span>(*) <span class="kw">as</span> cohort_size
+  <span class="kw">from</span> cohorts <span class="kw">group by</span> cohort_month
+),
+activity_months <span class="kw">as</span> (
+  <span class="kw">select</span>
+    c.cohort_month,
+    <span class="fn">datediff</span>(<span class="str">'month'</span>, c.cohort_month, <span class="fn">date_trunc</span>(<span class="str">'month'</span>, a.active_date)) <span class="kw">as</span> months_since,
+    <span class="fn">count</span>(<span class="kw">distinct</span> c.user_id) <span class="kw">as</span> active_users
+  <span class="kw">from</span> cohorts c
+  <span class="kw">join</span> activity a <span class="kw">on</span> a.user_id = c.user_id
+  <span class="kw">group by</span> c.cohort_month, months_since
+)
+<span class="kw">select</span>
+  am.cohort_month,
+  am.months_since,
+  am.active_users,
+  cs.cohort_size,
+  am.active_users * <span class="num">100.0</span> / cs.cohort_size <span class="kw">as</span> retention_pct
+<span class="kw">from</span> activity_months am
+<span class="kw">join</span> cohort_sizes cs <span class="kw">on</span> cs.cohort_month = am.cohort_month
+<span class="kw">order by</span> am.cohort_month, am.months_since;</code></pre>`,
+    explain: `Two-table reconciliation pattern. Cohort size is the denominator; active users at each month-since is the numerator. The "wide format" version comes from pivoting <code>months_since</code> in BI layer or another CASE-WHEN pivot.`,
+  },
+
+  // ============ dbt ============
+  {
+    id: 'dbt-01', title: 'Incremental with merge', diff: 'medium', cats: ['dbt'],
+    statement: `Write an incremental model <code>fct_events</code> from <code>stg_events</code>. Use merge strategy with <code>event_id</code> as unique_key. Filter only new rows on subsequent runs based on <code>updated_at</code> with a 1-hour safety buffer.`,
+    hint: `<code>is_incremental()</code> guards the filter. Subtract 1 hour from max watermark for late-arriving rows.`,
+    solution: `<pre><code><span class="fn">{{ config(</span>
+    materialized=<span class="str">'incremental'</span>,
+    unique_key=<span class="str">'event_id'</span>,
+    incremental_strategy=<span class="str">'merge'</span>,
+    on_schema_change=<span class="str">'sync_all_columns'</span>
+<span class="fn">) }}</span>
+
+<span class="kw">with</span> source <span class="kw">as</span> (
+  <span class="kw">select</span> *
+  <span class="kw">from</span> <span class="fn">{{ ref('stg_events') }}</span>
+  <span class="fn">{% if is_incremental() %}</span>
+    <span class="kw">where</span> updated_at &gt; (
+      <span class="kw">select</span> <span class="fn">date_sub</span>(<span class="fn">max</span>(updated_at), <span class="kw">interval</span> <span class="num">1</span> <span class="kw">hour</span>)
+      <span class="kw">from</span> <span class="fn">{{ this }}</span>
+    )
+  <span class="fn">{% endif %}</span>
+)
+
+<span class="kw">select</span> *, <span class="fn">{{ audit_columns() }}</span>
+<span class="kw">from</span> source;</code></pre>`,
+    explain: `<code>merge</code> + <code>unique_key</code> upserts cleanly. The 1-hour buffer catches late-arriving rows. <code>on_schema_change</code> auto-adds new columns instead of erroring.`,
+  },
+  {
+    id: 'dbt-02', title: 'Snapshot with check strategy', diff: 'medium', cats: ['dbt'],
+    statement: `Build a snapshot for <code>dim_account_status</code> that tracks changes to <code>status</code> and <code>plan_tier</code> over time. The source has no reliable <code>updated_at</code>.`,
+    hint: `Use <code>strategy: check</code> with <code>check_cols</code>. dbt hashes the listed cols and writes a new version when they change.`,
+    solution: `<pre><code><span class="fn">{% snapshot account_status_snapshot %}</span>
+<span class="fn">{{ config(</span>
+    target_schema=<span class="str">'snapshots'</span>,
+    unique_key=<span class="str">'account_id'</span>,
+    strategy=<span class="str">'check'</span>,
+    check_cols=[<span class="str">'status'</span>, <span class="str">'plan_tier'</span>]
+<span class="fn">) }}</span>
+
+<span class="kw">select</span> account_id, status, plan_tier, region
+<span class="kw">from</span> <span class="fn">{{ source('raw', 'accounts') }}</span>
+<span class="kw">where</span> __is_deleted = <span class="kw">false</span>
+<span class="fn">{% endsnapshot %}</span></code></pre>`,
+    explain: `<code>check</code> strategy is for sources without timestamps — dbt computes a hash of <code>check_cols</code> per run and creates a new SCD2 version when it changes. <code>dbt_valid_from</code> / <code>dbt_valid_to</code> are added automatically.`,
+  },
+  {
+    id: 'dbt-03', title: 'Custom generic test', diff: 'medium', cats: ['dbt'],
+    statement: `Write a custom generic test <code>positive_value</code> that fails if any row has the tested column &le; 0. Apply it to <code>fct_orders.value</code>.`,
+    hint: `Generic tests live in <code>tests/generic/</code> and take <code>model</code> + <code>column_name</code>. Failure = returning rows.`,
+    solution: `<pre><code><span class="cm">-- tests/generic/positive_value.sql</span>
+<span class="fn">{% test positive_value(model, column_name) %}</span>
+<span class="kw">select</span> *
+<span class="kw">from</span> <span class="fn">{{ model }}</span>
+<span class="kw">where</span> <span class="fn">{{ column_name }}</span> &lt;= <span class="num">0</span>
+   <span class="kw">or</span> <span class="fn">{{ column_name }}</span> <span class="kw">is null</span>
+<span class="fn">{% endtest %}</span>
+
+<span class="cm"># models/marts/_models.yml</span>
+<span class="kw">columns</span>:
+  - <span class="kw">name</span>: value
+    <span class="kw">tests</span>:
+      - positive_value</code></pre>`,
+    explain: `Generic tests are reusable assertions. Any column on any model can now use <code>positive_value</code>. Singular tests (one-off SQL files) are simpler but not reusable.`,
+  },
+  {
+    id: 'dbt-04', title: 'Macro to dedupe by latest', diff: 'medium', cats: ['dbt'],
+    statement: `Write a Jinja macro <code>dedupe_latest(model, partition_by, order_by)</code> that returns deduplicated rows keeping the latest per partition. Compose with <code>ref()</code>.`,
+    hint: `Just templates the standard ROW_NUMBER pattern. Macro returns SQL, doesn't run it.`,
+    solution: `<pre><code><span class="cm">-- macros/dedupe_latest.sql</span>
+<span class="fn">{% macro dedupe_latest(model, partition_by, order_by) %}</span>
+  <span class="kw">with</span> _ranked <span class="kw">as</span> (
+    <span class="kw">select</span> *,
+      <span class="fn">row_number</span>() <span class="kw">over</span> (
+        <span class="kw">partition by</span> <span class="fn">{{ partition_by }}</span>
+        <span class="kw">order by</span> <span class="fn">{{ order_by }}</span> <span class="kw">desc</span>
+      ) <span class="kw">as</span> _rn
+    <span class="kw">from</span> <span class="fn">{{ model }}</span>
+  )
+  <span class="kw">select</span> * <span class="kw">except</span> (_rn)
+  <span class="kw">from</span> _ranked
+  <span class="kw">where</span> _rn = <span class="num">1</span>
+<span class="fn">{% endmacro %}</span>
+
+<span class="cm">-- in any model:</span>
+<span class="fn">{{ dedupe_latest(ref('stg_events'), 'event_id', 'updated_at') }}</span></code></pre>`,
+    explain: `Macros DRY up repeated patterns. The dedupe-by-latest pattern shows up in every CDC pipeline — write it once, use it 50 times.`,
+  },
+  {
+    id: 'dbt-05', title: 'Slim CI selector', diff: 'easy', cats: ['dbt'],
+    statement: `In CI, your team wants to only build models that changed since <code>main</code>, plus everything downstream. Write the <code>dbt build</code> command.`,
+    hint: `<code>state:</code> + <code>+</code> selector.`,
+    solution: `<pre><code><span class="cm"># With deferred state and selectors</span>
+dbt build -s state:modified+ --defer --state target/
+
+<span class="cm"># Breakdown:</span>
+<span class="cm">#   state:modified  → models that changed since main</span>
+<span class="cm">#   +               → also include downstream models</span>
+<span class="cm">#   --defer         → use prod for unchanged refs (so you don't rebuild upstream)</span>
+<span class="cm">#   --state         → location of the prod manifest.json for comparison</span></code></pre>`,
+    explain: `Slim CI cuts PR build time 5–20×. The combination of <code>state:modified+</code> + <code>--defer</code> is the magic — only build what you touched, but reference prod for everything else.`,
+  },
+  {
+    id: 'dbt-06', title: 'Source freshness', diff: 'easy', cats: ['dbt'],
+    statement: `Declare freshness checks on a SF Account source so dbt warns if it's not updated in 12 hours and errors after 24.`,
+    hint: `<code>config.freshness.warn_after</code> + <code>error_after</code> + <code>loaded_at_field</code>.`,
+    solution: `<pre><code><span class="cm"># sources/src__salesforce/_salesforce__sources.yml</span>
+<span class="kw">sources</span>:
+  - <span class="kw">name</span>: salesforce
+    <span class="kw">tables</span>:
+      - <span class="kw">name</span>: account
+        <span class="kw">config</span>:
+          <span class="kw">loaded_at_field</span>: _fivetran_synced
+          <span class="kw">freshness</span>:
+            <span class="kw">warn_after</span>: { count: <span class="num">12</span>, period: hour }
+            <span class="kw">error_after</span>: { count: <span class="num">24</span>, period: hour }
+
+<span class="cm"># Run: dbt source freshness --select source:salesforce.account</span></code></pre>`,
+    explain: `Freshness checks are how you catch upstream pipelines failing before they cascade. Add them at every source boundary.`,
+  },
+  {
+    id: 'dbt-07', title: 'Exposures + meta', diff: 'medium', cats: ['dbt'],
+    statement: `Declare an exposure for a Tableau dashboard "Sales Pipeline" that depends on <code>fct_opportunities</code> + <code>dim_contractor_account</code>. Owner: sales-analytics team.`,
+    hint: `Exposures live in <code>_exposures.yml</code>. Type: dashboard.`,
+    solution: `<pre><code><span class="cm"># models/marts/_exposures.yml</span>
+<span class="kw">version</span>: <span class="num">2</span>
+<span class="kw">exposures</span>:
+  - <span class="kw">name</span>: sales_pipeline_dashboard
+    <span class="kw">type</span>: dashboard
+    <span class="kw">label</span>: <span class="str">"Sales Pipeline (Tableau)"</span>
+    <span class="kw">url</span>: <span class="str">"https://tableau.example.com/views/sales-pipeline"</span>
+    <span class="kw">owner</span>:
+      name: Sales Analytics
+      email: sales-analytics@example.com
+    <span class="kw">depends_on</span>:
+      - ref(<span class="str">'fct_opportunities'</span>)
+      - ref(<span class="str">'dim_contractor_account'</span>)
+    <span class="kw">meta</span>:
+      audience: <span class="str">"sales-leadership"</span>
+      refresh_cadence: <span class="str">"hourly"</span></code></pre>`,
+    explain: `Exposures make BI/external consumers visible in dbt's lineage graph. Critical for impact analysis ("if I change this model, what dashboards break?").`,
+  },
+  {
+    id: 'dbt-08', title: 'Project-level meta defaults', diff: 'medium', cats: ['dbt'],
+    statement: `Add a project-level configuration so every model in <code>domains/contractor_account/marts/</code> inherits <code>meta.owner: contractor-team</code> and <code>meta.layer: gold</code>.`,
+    hint: `<code>dbt_project.yml</code> supports <code>+meta</code> at directory level.`,
+    solution: `<pre><code><span class="cm"># dbt_project.yml</span>
+<span class="kw">models</span>:
+  analytics:
+    domains:
+      contractor_account:
+        marts:
+          <span class="kw">+meta</span>:
+            owner: contractor-team
+            layer: gold
+            contains_salesforce_data: <span class="kw">true</span>
+          <span class="kw">+materialized</span>: table
+          <span class="kw">+tags</span>: [<span class="str">'schedule__daily__morning'</span>]</code></pre>`,
+    explain: `Cascading config saves you from setting the same values on every model. Note: this is MODEL-level meta only — column-level meta has no inheritance.`,
+  },
+
+  // ============ PYTHON ============
+  {
+    id: 'py-01', title: 'API with retries', diff: 'medium', cats: ['python'],
+    statement: `Write a Python function <code>fetch_page(url, params)</code> that GETs the URL, retries up to 5 times on 429/5xx with exponential backoff, and raises on other errors.`,
+    hint: `<code>tenacity</code> + <code>requests</code>. Define a retry predicate.`,
+    solution: `<pre><code><span class="kw">import</span> requests
+<span class="kw">from</span> tenacity <span class="kw">import</span> retry, wait_exponential, stop_after_attempt, retry_if_exception_type
+
+<span class="kw">class</span> RetryableHTTPError(<span class="fn">Exception</span>): <span class="kw">pass</span>
+
+<span class="cm">@retry(</span>
+    <span class="cm">wait=wait_exponential(multiplier=1, max=30),</span>
+    <span class="cm">stop=stop_after_attempt(5),</span>
+    <span class="cm">retry=retry_if_exception_type(RetryableHTTPError)</span>
+<span class="cm">)</span>
+<span class="kw">def</span> <span class="fn">fetch_page</span>(url: <span class="fn">str</span>, params: <span class="fn">dict</span>) -&gt; <span class="fn">dict</span>:
+    r = requests.get(url, params=params, timeout=<span class="num">30</span>)
+    <span class="kw">if</span> r.status_code == <span class="num">429</span> <span class="kw">or</span> r.status_code &gt;= <span class="num">500</span>:
+        <span class="kw">raise</span> RetryableHTTPError(<span class="fn">f</span><span class="str">"HTTP {r.status_code}"</span>)
+    r.raise_for_status()
+    <span class="kw">return</span> r.json()</code></pre>`,
+    explain: `Retry on transient (429, 5xx) but NOT on permanent errors (404, 401) — those will never recover and you'd waste 5 attempts. Exponential backoff prevents hammering recovering services.`,
+  },
+  {
+    id: 'py-02', title: 'Pandas → PySpark conversion', diff: 'medium', cats: ['python', 'spark'],
+    statement: `Convert this pandas snippet to PySpark: <pre><code>df = pd.read_csv('events.csv')
+df = df[df['status']=='active']
+top_users = df.groupby('user_id')['value'].sum().nlargest(10)</code></pre>`,
+    hint: `Spark is lazy; transformations build a plan. <code>F.col</code> for column refs.`,
+    solution: `<pre><code><span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+
+df = spark.read.csv(<span class="str">"events.csv"</span>, header=<span class="kw">True</span>, inferSchema=<span class="kw">True</span>)
+top_users = (
+    df.filter(F.col(<span class="str">"status"</span>) == <span class="str">"active"</span>)
+      .groupBy(<span class="str">"user_id"</span>)
+      .agg(F.sum(<span class="str">"value"</span>).alias(<span class="str">"total"</span>))
+      .orderBy(F.col(<span class="str">"total"</span>).desc())
+      .limit(<span class="num">10</span>)
+)
+top_users.show()   <span class="cm"># action triggers execution</span></code></pre>`,
+    explain: `Pandas executes eagerly; Spark builds a logical plan you execute with an action. <code>filter → groupBy → agg → orderBy → limit</code> all chain without running until <code>.show()</code>.`,
+  },
+  {
+    id: 'py-03', title: 'Idempotent CLI script', diff: 'medium', cats: ['python'],
+    statement: `Write a Python CLI that takes <code>--run-date</code> and <code>--full-refresh</code> flags. Logs structured progress. Uses a date default of today.`,
+    hint: `<code>click</code> for CLI, <code>logging</code> not print, <code>date</code> default via callable.`,
+    solution: `<pre><code><span class="kw">import</span> click, logging
+<span class="kw">from</span> datetime <span class="kw">import</span> date
+
+logging.basicConfig(level=logging.INFO,
+    format=<span class="str">"%(asctime)s [%(levelname)s] %(message)s"</span>)
+logger = logging.getLogger(__name__)
+
+<span class="cm">@click.command()</span>
+<span class="cm">@click.option('--run-date', default=lambda: str(date.today()), help='YYYY-MM-DD')</span>
+<span class="cm">@click.option('--full-refresh', is_flag=True, help='Rebuild from scratch')</span>
+<span class="kw">def</span> <span class="fn">main</span>(run_date, full_refresh):
+    logger.info(<span class="fn">f</span><span class="str">"Starting ETL for {run_date} (full_refresh={full_refresh})"</span>)
+    rows = extract(run_date)
+    logger.info(<span class="fn">f</span><span class="str">"Extracted {len(rows)} rows"</span>)
+    rows = transform(rows)
+    load(rows, run_date, full_refresh=full_refresh)
+    logger.info(<span class="str">"Done."</span>)
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    main()</code></pre>`,
+    explain: `<code>lambda: str(date.today())</code> as default = "today" is computed at call time, not module import. Logger over print so output is timestamped and can be filtered by level.`,
+  },
+  {
+    id: 'py-04', title: 'Walk the dbt manifest', diff: 'hard', cats: ['python', 'dbt'],
+    statement: `Write a Python script that loads <code>target/manifest.json</code> and prints every FK-shaped column (ending in <code>_id</code>, <code>_key</code>) that doesn't have <code>meta.join_to</code> declared.`,
+    hint: `<code>manifest.json.nodes[].columns</code>. Walk every model.`,
+    solution: `<pre><code><span class="kw">import</span> json, re
+
+fk_pattern = re.compile(<span class="str">r"_(id|key|uuid|sk)$"</span>)
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"target/manifest.json"</span>) <span class="kw">as</span> f:
+    manifest = json.load(f)
+
+missing = []
+<span class="kw">for</span> node_id, node <span class="kw">in</span> manifest[<span class="str">"nodes"</span>].items():
+    <span class="kw">if</span> node.get(<span class="str">"resource_type"</span>) != <span class="str">"model"</span>: <span class="kw">continue</span>
+    <span class="kw">for</span> col_name, col_meta <span class="kw">in</span> node.get(<span class="str">"columns"</span>, {}).items():
+        <span class="kw">if</span> fk_pattern.search(col_name):
+            <span class="kw">if</span> <span class="kw">not</span> col_meta.get(<span class="str">"meta"</span>, {}).get(<span class="str">"join_to"</span>):
+                missing.append((node[<span class="str">"name"</span>], col_name))
+
+<span class="kw">print</span>(<span class="fn">f</span><span class="str">"{len(missing)} FK columns missing meta.join_to:"</span>)
+<span class="kw">for</span> model, col <span class="kw">in</span> <span class="fn">sorted</span>(missing)[:<span class="num">50</span>]:
+    <span class="kw">print</span>(<span class="fn">f</span><span class="str">"  {model:50s} {col}"</span>)</code></pre>`,
+    explain: `<code>manifest.json</code> is your project as data. Once you can read it, you can write CI checks, custom catalogs, and audit scripts.`,
+  },
+  {
+    id: 'py-05', title: 'Detect schema drift', diff: 'hard', cats: ['python'],
+    statement: `Given a Pandas DataFrame and an expected schema dict <code>{col: dtype}</code>, return a list of mismatches (missing cols, extra cols, type mismatches).`,
+    hint: `Sets for missing/extra; dict-diff for type mismatches.`,
+    solution: `<pre><code><span class="kw">def</span> <span class="fn">schema_diff</span>(df, expected):
+    actual = {col: <span class="fn">str</span>(df[col].dtype) <span class="kw">for</span> col <span class="kw">in</span> df.columns}
+    expected_cols = <span class="fn">set</span>(expected)
+    actual_cols = <span class="fn">set</span>(actual)
+    issues = []
+    <span class="kw">for</span> c <span class="kw">in</span> expected_cols - actual_cols:
+        issues.append((<span class="str">"missing"</span>, c, expected[c], <span class="kw">None</span>))
+    <span class="kw">for</span> c <span class="kw">in</span> actual_cols - expected_cols:
+        issues.append((<span class="str">"extra"</span>, c, <span class="kw">None</span>, actual[c]))
+    <span class="kw">for</span> c <span class="kw">in</span> expected_cols &amp; actual_cols:
+        <span class="kw">if</span> expected[c] != actual[c]:
+            issues.append((<span class="str">"type_mismatch"</span>, c, expected[c], actual[c]))
+    <span class="kw">return</span> issues</code></pre>`,
+    explain: `Three failure modes are distinct. Returning structured tuples (not strings) lets downstream code decide how to handle each — fail vs warn vs ignore.`,
+  },
+
+  // ============ SPARK ============
+  {
+    id: 'sp-01', title: 'Diagnose skew', diff: 'medium', cats: ['spark'],
+    statement: `Your Spark job has 200 tasks. 199 finish in 30s; 1 takes 25 minutes. What's the diagnosis and what are your options?`,
+    hint: `One outlier task = one partition with disproportionate data. Skew.`,
+    solution: `<pre><code><span class="cm"># Diagnosis: data skew. One key has ~50× more rows than others.</span>
+<span class="cm"># Where it bites: groupBy or join key has a "heavy hitter" value.</span>
+
+<span class="cm"># Option 1: Adaptive Query Execution (AQE) skew handling — auto split</span>
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"true"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.skewJoin.enabled"</span>, <span class="str">"true"</span>)
+
+<span class="cm"># Option 2: Salt the skewed key</span>
+<span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+skewed = skewed.withColumn(<span class="str">"salt"</span>,
+    (F.rand() * <span class="num">10</span>).cast(<span class="str">"int"</span>))
+big = big.crossJoin(spark.range(<span class="num">10</span>).withColumnRenamed(<span class="str">"id"</span>, <span class="str">"salt"</span>))
+joined = skewed.join(big, [<span class="str">"key"</span>, <span class="str">"salt"</span>])
+
+<span class="cm"># Option 3: If the other side is small, broadcast it</span>
+F.broadcast(small_table)</code></pre>`,
+    explain: `Skew is the #1 cause of "Spark job hung." First check AQE (free). If still skewed, salt the heavy key into N buckets. Last resort: hand-optimise with broadcast hints.`,
+  },
+  {
+    id: 'sp-02', title: 'Broadcast hint', diff: 'easy', cats: ['spark'],
+    statement: `Your join is using <code>SortMergeJoin</code> when the dim table is only 8 MB. Force a broadcast hash join.`,
+    hint: `<code>F.broadcast(df)</code> or SQL hint <code>/*+ BROADCAST(t) */</code>.`,
+    solution: `<pre><code><span class="cm"># PySpark</span>
+<span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+big_fact = spark.table(<span class="str">"main.gold.fct_jobs"</span>)
+small_dim = spark.table(<span class="str">"main.gold.dim_account"</span>)
+
+joined = big_fact.join(F.broadcast(small_dim), <span class="str">"account_id"</span>, <span class="str">"left"</span>)
+
+<span class="cm"># SQL equivalent</span>
+spark.sql(<span class="str">"""</span>
+<span class="str">  SELECT /*+ BROADCAST(dim) */</span>
+<span class="str">    f.*, dim.region</span>
+<span class="str">  FROM main.gold.fct_jobs f</span>
+<span class="str">  LEFT JOIN main.gold.dim_account dim USING(account_id)</span>
+<span class="str">"""</span>)
+
+<span class="cm"># Verify with EXPLAIN — should show BroadcastHashJoin</span></code></pre>`,
+    explain: `Spark's auto-broadcast threshold defaults to 10MB. If your dim is bigger but you know it fits in memory, hint it. The hint forces the planner; without it, missing stats cause a slow sort-merge.`,
+  },
+  {
+    id: 'sp-03', title: 'Delta MERGE for upsert', diff: 'medium', cats: ['spark'],
+    statement: `Write a PySpark snippet that upserts new <code>jobs</code> data into a Delta table <code>main.gold.fct_jobs</code> using <code>job_id</code> as the merge key.`,
+    hint: `<code>DeltaTable.forName(...).merge(...)</code>.`,
+    solution: `<pre><code><span class="kw">from</span> delta.tables <span class="kw">import</span> DeltaTable
+<span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+
+new_jobs = spark.read.format(<span class="str">"delta"</span>).table(<span class="str">"main.silver.stg_jobs"</span>) \
+    .filter(F.col(<span class="str">"__is_deleted"</span>) == <span class="kw">False</span>)
+
+tgt = DeltaTable.forName(spark, <span class="str">"main.gold.fct_jobs"</span>)
+tgt.alias(<span class="str">"t"</span>).merge(
+    new_jobs.alias(<span class="str">"s"</span>),
+    <span class="str">"t.job_id = s.job_id"</span>
+) \
+.whenMatchedUpdateAll() \
+.whenNotMatchedInsertAll() \
+.execute()</code></pre>`,
+    explain: `MERGE is the idempotent operation. Run it twice with the same input, the result is identical. No INSERT bugs that double rows on retry.`,
+  },
+  {
+    id: 'sp-04', title: 'Read query plan', diff: 'hard', cats: ['spark'],
+    statement: `Given <code>EXPLAIN FORMATTED</code> output showing a <code>SortMergeJoin</code> + <code>Exchange (shuffle)</code> on a join you expected to broadcast, list 3 root-cause checks.`,
+    hint: `Stats, size, hint syntax. Plan reading bottom-up.`,
+    solution: `<pre><code><span class="cm">Check 1: Are table stats current?</span>
+<span class="cm">  ANALYZE TABLE main.gold.dim_account COMPUTE STATISTICS;</span>
+<span class="cm">  Stale stats = Spark doesn't know the table is small.</span>
+
+<span class="cm">Check 2: Is autoBroadcastJoinThreshold high enough?</span>
+<span class="cm">  spark.conf.get("spark.sql.autoBroadcastJoinThreshold")</span>
+<span class="cm">  Default = 10MB. If your dim is 11MB, no auto-broadcast.</span>
+<span class="cm">  Bump it: spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "100MB")</span>
+
+<span class="cm">Check 3: Is the broadcast hint reaching the planner?</span>
+<span class="cm">  EXPLAIN should show BroadcastExchange — if not, the hint was lost</span>
+<span class="cm">  (often happens when you chain .join via a View or temp table).</span>
+<span class="cm">  Move the broadcast as close to the join as possible.</span></code></pre>`,
+    explain: `Reading Spark plans is a senior-AE skill. The 3 most common reasons "why no broadcast" are: stale stats, threshold too low, hint stripped by an intermediate node.`,
+  },
+  {
+    id: 'sp-05', title: 'OPTIMIZE + ZORDER', diff: 'medium', cats: ['spark'],
+    statement: `Your <code>fct_events</code> Delta table is 500GB, partitioned by <code>event_date</code>. Most queries filter by both <code>event_date</code> and <code>user_id</code>. Write the maintenance command + explain when to run it.`,
+    hint: `OPTIMIZE compacts; ZORDER co-locates for high-cardinality cols.`,
+    solution: `<pre><code><span class="cm">-- co-locate user_id within each event_date partition</span>
+<span class="kw">optimize</span> main.gold.fct_events
+<span class="kw">where</span> event_date &gt;= current_date() - <span class="kw">interval</span> <span class="num">7</span> <span class="kw">days</span>
+<span class="kw">zorder by</span> (user_id);
+
+<span class="cm">-- Why partial optimize: re-clustering 500GB nightly is wasteful.</span>
+<span class="cm">--   Recent partitions are queried most. Old partitions don't change.</span>
+<span class="cm">--   Run nightly on last 7 days; full optimize quarterly.</span>
+
+<span class="cm">-- Newer alternative: Liquid Clustering (Databricks 13.3+)</span>
+<span class="kw">alter table</span> main.gold.fct_events <span class="kw">cluster by</span> (user_id);
+<span class="cm">-- Databricks handles incremental re-clustering automatically</span></code></pre>`,
+    explain: `OPTIMIZE = file compaction (small files → bigger). ZORDER = data sorting (faster filters). Run incrementally on hot data. Liquid Clustering removes the manual scheduling burden — newer projects should default to it.`,
+  },
+  {
+    id: 'sp-06', title: 'Time travel for incident', diff: 'easy', cats: ['spark'],
+    statement: `Yesterday at 3pm, someone ran a bad backfill on <code>fct_revenue</code>. Restore the table to its state at 2:50pm.`,
+    hint: `Delta versions or timestamps.`,
+    solution: `<pre><code><span class="cm">-- See available versions</span>
+<span class="kw">describe history</span> main.gold.fct_revenue;
+
+<span class="cm">-- Read the pre-incident state</span>
+<span class="kw">select</span> * <span class="kw">from</span> main.gold.fct_revenue
+<span class="kw">timestamp as of</span> <span class="str">'2026-05-19 14:50:00'</span>;
+
+<span class="cm">-- Restore — CAUTION: writes a new version</span>
+<span class="kw">restore table</span> main.gold.fct_revenue
+<span class="kw">to timestamp as of</span> <span class="str">'2026-05-19 14:50:00'</span>;
+
+<span class="cm">-- VACUUM hasn't run? Then time travel still works.</span>
+<span class="cm">-- VACUUM with 0 hours = unrecoverable. Don't.</span></code></pre>`,
+    explain: `Delta's time travel is your audit + rollback. Files older than retention (default 7 days) are eligible for VACUUM — past that, can't recover. Always check <code>DESCRIBE HISTORY</code> before restoring.`,
+  },
+
+  // ============ MODELING ============
+  {
+    id: 'mod-01', title: 'Star schema for events', diff: 'medium', cats: ['model'],
+    statement: `Design a star schema for tracking job events in production. Source: a denormalized event log with columns (event_id, account_id, contractor_id, job_id, category_id, event_type, event_ts, value). What facts and dims would you build?`,
+    hint: `Identify entities (dims) and events (facts). Be explicit about grain.`,
+    solution: `<pre><code><span class="cm">FACT TABLES (grain stated explicitly)</span>
+
+fct_job_events
+  grain: one row per event_id
+  cols: event_id (pk), event_type, event_ts,
+        account_dim_key, contractor_dim_key, job_dim_key, category_dim_key,
+        event_date_dim_key, value
+
+fct_jobs_daily          # rollup for fast dashboards
+  grain: one row per (job_id, date)
+  cols: job_id, date, event_count, total_value, ...
+
+<span class="cm">DIMENSION TABLES</span>
+
+dim_account     (one row per account; SCD2 on plan_tier, status)
+dim_contractor  (one row per contractor)
+dim_job         (one row per job; SCD2 on status if status matters historically)
+dim_category    (one row per category — small, slow-changing)
+dim_date        (one row per calendar day; pre-built spine)
+
+<span class="cm">KEY DECISIONS</span>
+- Surrogate keys (dim_key) generated via md5 of (natural_key + valid_from)
+- Foreign keys on facts point to surrogate dim keys (handles SCD2 versions)
+- fct_job_events is event-level; fct_jobs_daily is the rollup</code></pre>`,
+    explain: `The first decision in modeling is grain. Once that's locked, dims and facts fall out naturally. Pre-aggregating into a rollup fact (fct_jobs_daily) trades storage for query speed on common dashboards.`,
+  },
+  {
+    id: 'mod-02', title: 'SCD Type 2 design', diff: 'medium', cats: ['model'],
+    statement: `dim_account holds contractor account info. Plan tier (Bronze/Silver/Gold) changes over time, and you need to attribute historical revenue to the tier the account was on at the time. Design the SCD2 columns and explain how facts join.`,
+    hint: `valid_from / valid_to / is_current. Facts join on natural key + event date BETWEEN valid_from AND valid_to.`,
+    solution: `<pre><code><span class="cm">dim_account schema (Type 2 on plan_tier)</span>
+account_dim_key       <span class="cm">-- surrogate, unique per (account_id, version)</span>
+account_id            <span class="cm">-- natural key, NOT unique (multiple versions)</span>
+plan_tier             <span class="cm">-- the value being tracked</span>
+status                <span class="cm">-- also tracked</span>
+valid_from            <span class="cm">-- when this version became active</span>
+valid_to              <span class="cm">-- when superseded (NULL = current)</span>
+is_current            <span class="cm">-- boolean shortcut, derived from valid_to</span>
+
+<span class="cm">fct_revenue joining to dim_account at the historical tier:</span>
+<span class="kw">select</span> f.*, d.plan_tier
+<span class="kw">from</span> fct_revenue f
+<span class="kw">left join</span> dim_account d
+  <span class="kw">on</span> d.account_id = f.account_id
+  <span class="kw">and</span> f.event_date &gt;= d.valid_from
+  <span class="kw">and</span> (f.event_date &lt; d.valid_to <span class="kw">or</span> d.valid_to <span class="kw">is null</span>)</code></pre>`,
+    explain: `SCD2 = keep history with valid_from/valid_to. The fact joins by BETWEEN to grab the correct version-at-time-of-fact. Surrogate key avoids ambiguity when an account_id has multiple dim rows.`,
+  },
+  {
+    id: 'mod-03', title: 'Avoid one-big-table', diff: 'easy', cats: ['model'],
+    statement: `A stakeholder asks for "one table with everything about an account." Make the case for and against the OBT pattern, then propose your decision.`,
+    hint: `Convenience vs maintainability. Real warehouses have both, used differently.`,
+    solution: `<pre><code><span class="cm">PROS of OBT (one big table)</span>
++ Stakeholders/BI tools love it — no JOINs needed
++ Performance can be great with columnar storage (only reads needed cols)
++ Self-documenting if columns are well-named
+
+<span class="cm">CONS of OBT</span>
+- Maintenance nightmare: every upstream change ripples to one place
+- Permission/PII control is all-or-nothing on the table
+- Grain ambiguity: "what's a row" depends on which join produced it
+- Hard to evolve schema without breaking consumers
+
+<span class="cm">RECOMMENDED PATTERN</span>
+- Keep fact + dim as the canonical models (lineage clear, single grain)
+- Build a "reporting" model alongside that JOINs them into a wide OBT
+  for specific BI use cases (e.g., dashboard_account_overview)
+- Mark the OBT clearly as a reporting layer artifact (not source of truth)
+
+<span class="cm">Example:</span>
+fct_revenue + dim_account + dim_contractor + dim_category
+  ↓ (dashboard layer)
+rpt_account_overview (OBT for stakeholder dashboard)</code></pre>`,
+    explain: `OBT isn't evil — it's a reporting pattern. Use it as the LAST step, not the modeling philosophy. Keep facts + dims as the source of truth; wide tables for BI convenience.`,
+  },
+  {
+    id: 'mod-04', title: 'Bridge table for many-to-many', diff: 'hard', cats: ['model'],
+    statement: `Contractors can be in multiple categories. Categories can have multiple contractors. Design the dimensional model so a fact (fct_leads) can attribute leads to one or many categories per contractor.`,
+    hint: `Bridge table between dim_contractor and dim_category. Decide on weighting.`,
+    solution: `<pre><code><span class="cm">SCHEMA</span>
+
+dim_contractor     (one row per contractor)
+dim_category       (one row per category)
+
+bridge_contractor_category   <span class="cm">-- many-to-many resolution</span>
+  contractor_dim_key
+  category_dim_key
+  weight              <span class="cm">-- e.g., 1/N for equal split, or business-defined</span>
+  is_primary          <span class="cm">-- one True per contractor if you want a "main" category</span>
+
+fct_leads
+  lead_id
+  contractor_dim_key   <span class="cm">-- only contractor FK; category resolved via bridge</span>
+  ...
+
+<span class="cm">QUERY: leads attributed to each category (weighted)</span>
+<span class="kw">select</span>
+  c.category_name,
+  <span class="fn">sum</span>(f.value * b.weight) <span class="kw">as</span> attributed_revenue
+<span class="kw">from</span> fct_leads f
+<span class="kw">join</span> bridge_contractor_category b <span class="kw">on</span> b.contractor_dim_key = f.contractor_dim_key
+<span class="kw">join</span> dim_category c <span class="kw">on</span> c.category_dim_key = b.category_dim_key
+<span class="kw">group by</span> c.category_name;</code></pre>`,
+    explain: `Many-to-many always needs a bridge. The <code>weight</code> column makes attribution explicit (split equally? proportional to lead volume? primary only?). Without weights, you risk multi-counting revenue.`,
+  },
+  {
+    id: 'mod-05', title: 'Slowly changing... but mid-row', diff: 'hard', cats: ['model'],
+    statement: `A contractor account has 50 attributes. Only 3 of them are historically important (plan, manager, status). The other 47 should always be "current value." How do you design this?`,
+    hint: `Type 6 hybrid. Or: split into Type 2 + Type 1 sub-dims.`,
+    solution: `<pre><code><span class="cm">OPTION A: Split into two dims</span>
+dim_contractor_current  (Type 1 — all 47 "live" attributes)
+  account_id
+  email, phone, billing_state, ..., 47 cols
+
+dim_contractor_history  (Type 2 — only the 3 historical cols)
+  account_dim_key (surrogate)
+  account_id
+  plan_tier, manager_id, status
+  valid_from, valid_to, is_current
+
+<span class="cm">FACTS JOIN BOTH</span>
+fct_revenue
+  ↓
+  ─ joins dim_contractor_current via account_id  (gets latest email etc.)
+  ─ joins dim_contractor_history via account_id + date BETWEEN ranges
+                                              (gets historical plan/manager)
+
+<span class="cm">OPTION B: Type 6 (hybrid in one dim)</span>
+dim_contractor
+  account_dim_key, account_id, ...           <span class="cm">-- Type 2 cols</span>
+  current_email, current_phone, ...          <span class="cm">-- Type 1: overwritten</span>
+  current_plan_tier, ...                     <span class="cm">-- Type 3: prior value tracked</span>
+
+<span class="cm">RECOMMENDATION</span>
+Option A is cleaner — separation of concerns, easier consumer SQL.
+Option B is denser — fewer joins but harder to evolve.</code></pre>`,
+    explain: `Real dims rarely fit neatly into a single SCD type. Splitting Type 1 (current) from Type 2 (historical) is a clean compromise that keeps each dim purpose-focused.`,
+  },
+
+  // ============ SYSTEM DESIGN ============
+  {
+    id: 'sd-01', title: 'Real-time contractor dashboard', diff: 'hard', cats: ['design'],
+    statement: `Brief: "Show contractors their median lead-response-time vs peers, refreshed within 5 minutes." Sources: existing Kafka topics for lead-issued + contractor-response events. Design the end-to-end.`,
+    hint: `Latency SLO is 5 min — that allows micro-batch, not full streaming. Use Spark Structured Streaming.`,
+    solution: `<pre><code><span class="cm">SOURCES</span>
+- Kafka topic: lead_issued (existing)
+- Kafka topic: contractor_response (existing)
+
+<span class="cm">INGESTION</span>
+- Spark Structured Streaming reads both topics
+- 5-minute trigger interval
+- Exactly-once via Delta + idempotent Kafka offset tracking
+- Write to bronze.lead_response_events (Delta)
+
+<span class="cm">SILVER (cleaned + joined)</span>
+- silver.lead_response_paired
+  - Join lead + response by lead_id; stream-stream join with watermark
+  - Add contractor + category dims (broadcast small dims)
+  - Compute response_seconds = response_ts - lead_ts
+
+<span class="cm">GOLD (aggregated)</span>
+- gold.contractor_response_rolling30d
+  - 30-day rolling median per (contractor_id, category_id)
+  - dbt incremental every 5 min via Workflows
+
+<span class="cm">SERVING</span>
+- DBSQL Serverless warehouse
+- AI/BI dashboard auto-refresh
+- Or reverse-ETL to Postgres for in-product widget
+
+<span class="cm">DATA QUALITY</span>
+- unique on (contractor_id, lead_id, event_ts)
+- not_null on contractor_id
+- row count delta vs 1h ago must be within 30% (anomaly test)
+
+<span class="cm">TRADE-OFFS</span>
+- 5-min latency satisfies "real-time enough"
+- Full streaming (Flink) would be ~3-5× more expensive for marginal latency gain
+- Cost: ~$500/mo serverless DBSQL + ~$200/mo cluster for streaming job</code></pre>`,
+    explain: `Match latency to actual SLO. "Real-time" almost never means sub-second; 5 minutes is usually fine and costs 1/3 as much as streaming. Structured Streaming is the sweet spot.`,
+  },
+  {
+    id: 'sd-02', title: 'CDC pipeline architecture', diff: 'hard', cats: ['design'],
+    statement: `Design a CDC pipeline from MySQL prod (jobs, accounts) to Delta Lake. Handle inserts, updates, deletes correctly. Include schema evolution and DQ.`,
+    hint: `Debezium → Kafka → Spark Streaming → Bronze → MERGE → Silver.`,
+    solution: `<pre><code><span class="cm">STACK</span>
+MySQL prod (jobs, accounts)
+  ↓ binlog
+Debezium connector
+  ↓
+Kafka (one topic per table, partitioned by PK)
+  ↓
+Schema Registry (Avro schemas, evolution rules)
+  ↓
+Spark Structured Streaming
+  ↓ raw landing
+Bronze Delta (append-only, all changes preserved)
+  ↓ MERGE
+Silver Delta (deduplicated, latest non-deleted row per PK)
+  ↓
+dbt models (Gold)
+
+<span class="cm">BRONZE WRITE</span>
+- One row per CDC event
+- Cols: op (c/u/d/r), ts_ms, before, after, source.{db, table}
+- Partitioned by event_date
+- Used for replay + audit
+
+<span class="cm">SILVER MERGE LOGIC</span>
+WHEN MATCHED AND op='d' THEN UPDATE SET __is_deleted = true
+WHEN MATCHED AND op IN ('c','u') THEN UPDATE all cols
+WHEN NOT MATCHED AND op='c' THEN INSERT
+
+<span class="cm">SCHEMA EVOLUTION</span>
+- Schema Registry validates producer
+- Delta MERGE WITH SCHEMA EVOLUTION auto-adds new cols in silver
+
+<span class="cm">DQ + MONITORING</span>
+- Source freshness: bronze updated &lt; 5 min ago
+- Row count: silver count = bronze (latest per PK, excl deleted)
+- Schema drift: alert if new field appears in bronze that silver doesn't have</code></pre>`,
+    explain: `CDC is the most common DE workload at modern companies. Bronze = full event log (replayable), Silver = current-state (what consumers want). The MERGE logic is where most bugs live — test it heavily.`,
+  },
+  {
+    id: 'sd-03', title: 'Cost reduction', diff: 'hard', cats: ['design'],
+    statement: `Your Databricks bill is $80K/month. CFO wants 30% reduction without breaking SLAs. What's your investigation + reduction plan?`,
+    hint: `Audit first, optimize second. Cluster sizing, scheduling, dead jobs, partitioning.`,
+    solution: `<pre><code><span class="cm">INVESTIGATION (week 1)</span>
+1. Query system tables: system.compute.warehouses_costs, system.access.audit
+2. Top 20 most expensive queries — are they running daily, hourly, monthly?
+3. Cluster utilization: avg CPU/memory across jobs (any over-sized?)
+4. Auto-stop misconfig: any clusters running 24/7 unused?
+5. dbt slim CI: are PR builds running --full-refresh?
+
+<span class="cm">QUICK WINS (week 2 — usually 15-20%)</span>
+- Enable auto-stop on all interactive clusters (10 min idle)
+- Switch dev/test to serverless (pay-per-query, not per-hour)
+- Reduce non-prod environments' uptime
+- Drop unused dashboards/scheduled queries (audit before delete)
+- Stop running dbt --full-refresh in CI; use state:modified+
+
+<span class="cm">MEDIUM (week 3-6 — another 10-15%)</span>
+- Right-size warehouses by p95 query latency (often 2x oversized)
+- Add OPTIMIZE + Liquid Clustering to hot tables → query speedup
+- Convert daily batch jobs running 24/7 to scheduled jobs
+
+<span class="cm">STRUCTURAL (week 6+)</span>
+- Move ML feature pipelines off prod cluster to dedicated cheaper one
+- Negotiate enterprise discount with Databricks for committed spend
+
+<span class="cm">EXPECTED</span>
+30% reduction is achievable in 4-6 weeks with above; main resistance is
+"don't touch X, it's important" — counter with: "we'll roll back if SLA breaches"</code></pre>`,
+    explain: `Cost reduction is investigation-first. Audit usage data, find the 20% of compute driving 80% of spend, target those. Avoid blanket "shrink all clusters" — it breaks SLAs.`,
+  },
+  {
+    id: 'sd-04', title: 'Multi-tenant data isolation', diff: 'hard', cats: ['design'],
+    statement: `Your warehouse holds data for 3 distinct stakeholder groups (Sales, Partnership, Contractors). Sales must not see Partnership's data. How do you enforce this in Unity Catalog?`,
+    hint: `Catalog/schema level grants, dynamic views, row-level security.`,
+    solution: `<pre><code><span class="cm">LAYER 1: Catalog / Schema-level isolation</span>
+- main.sales.* — granted to sales-analysts group
+- main.partnership.* — granted to partnership group
+- main.shared.* — read-only common dims (dim_date, dim_geo)
+
+GRANT USE CATALOG, USE SCHEMA, SELECT
+  ON SCHEMA main.sales
+  TO `sales-analysts`;
+
+<span class="cm">LAYER 2: Row-level security (dynamic views)</span>
+<span class="kw">create view</span> main.shared.contractor_view <span class="kw">as</span>
+<span class="kw">select</span> * <span class="kw">from</span> main.shared.contractor_master
+<span class="kw">where case</span>
+  <span class="kw">when</span> is_account_group_member(<span class="str">'sales-leads'</span>) <span class="kw">then</span> true
+  <span class="kw">when</span> is_account_group_member(<span class="str">'partnership'</span>) <span class="kw">then</span> partner_managed = <span class="kw">true</span>
+  <span class="kw">else</span> false
+<span class="kw">end</span>;
+
+<span class="cm">LAYER 3: Column masking for PII</span>
+<span class="kw">alter table</span> main.shared.contractor_master
+<span class="kw">alter column</span> email <span class="kw">set</span> mask analytics.mask_email
+  (using columns access_level);
+
+<span class="cm">LAYER 4: Audit + monitoring</span>
+- system.access.audit table: every query logged with user + tables touched
+- Alert on group membership changes
+- Monthly access review
+
+<span class="cm">ENFORCEMENT</span>
+- No raw SELECT from prod_data.* — only via curated catalogs
+- meta.contains_pii flags fail builds if exposed to wrong catalog</code></pre>`,
+    explain: `Unity Catalog's 3-layer model (catalog → schema → table) is the foundation. Layer dynamic views and column masking on top for fine-grained access. Audit is non-negotiable for SOC2/ISO27001.`,
+  },
+  {
+    id: 'sd-05', title: 'Migration plan: DWH → Lakehouse', diff: 'hard', cats: ['design'],
+    statement: `Legacy DWH (Oracle, 8TB, 500 tables, 12 years old) needs to migrate to Databricks Lakehouse. Stakeholders rely on 60 dashboards. Plan a 6-month migration.`,
+    hint: `Dual-run, prioritize by usage, contract-first migration.`,
+    solution: `<pre><code><span class="cm">MONTH 1: Foundations</span>
+- Set up Databricks workspace, Unity Catalog
+- Establish CI/CD for dbt
+- Land all 500 tables raw in bronze (Fivetran or scripts)
+- No transformation yet — just shadow the source
+
+<span class="cm">MONTH 2: Prioritize</span>
+- Query log analysis: which 30% of tables drive 80% of consumer queries?
+- Rank top 60 dashboards by usage; pick top 20 for migration sprint 1
+- Map dashboards → upstream tables → required staging models
+
+<span class="cm">MONTH 3-4: Migrate Tier 1 (20 dashboards)</span>
+- Build dbt staging + intermediate + marts for these 20 dashboards' deps
+- Dual-run: query both legacy DWH and new lakehouse from BI
+- Reconcile row counts daily; investigate diffs
+- Add data contracts on critical models
+
+<span class="cm">MONTH 5: Migrate Tier 2 (next 20 dashboards) + Switch BI to lakehouse</span>
+- Tier 1 stakeholders confirm lakehouse matches; cut over BI sources
+- Build Tier 2
+
+<span class="cm">MONTH 6: Tier 3 + Decommission</span>
+- Final 20 dashboards
+- Identify unused tables (no queries in 90 days) — don't migrate
+- Read-only legacy DWH; sunset 60 days later
+
+<span class="cm">RISK MITIGATIONS</span>
+- Dual-run reduces "wrong number" surprises
+- Tier-based migration ships value early
+- Skip unused tables — saves 30-40% of work
+- Stakeholder sign-off per tier prevents rollback</code></pre>`,
+    explain: `Migrations are about prioritization and dual-running, not technology. Most legacy DWHs have 50% dead tables — migrating them is waste. Tier by usage, dual-run for reconciliation, sign off per tier.`,
+  },
+
+  // ============ DBT BONUS ============
+  {
+    id: 'dbt-09', title: 'Test soft-delete asymmetry', diff: 'hard', cats: ['dbt', 'model'],
+    statement: `dim_account filters <code>WHERE __is_deleted = false</code>. fct_jobs keeps history of all jobs. Write a relationships test that catches orphan account_ids in fct_jobs WITHOUT failing on the known soft-delete asymmetry.`,
+    hint: `<code>relationships</code> + <code>where</code> clause + severity warn.`,
+    solution: `<pre><code><span class="kw">columns</span>:
+  - <span class="kw">name</span>: account_id
+    <span class="kw">tests</span>:
+      - <span class="kw">relationships</span>:
+          to: ref(<span class="str">'dim_account'</span>)
+          field: account_id
+          <span class="kw">config</span>:
+            <span class="kw">severity</span>: warn
+            <span class="kw">where</span>: <span class="str">"event_date &gt;= current_date - interval 90 days"</span>
+            <span class="kw">error_if</span>: <span class="str">"&gt;1000"</span>
+            <span class="kw">warn_if</span>: <span class="str">"&gt;0"</span></code></pre>`,
+    explain: `Soft-delete asymmetry is unavoidable in some CDC patterns. The workaround: scope the test to recent data (last 90 days where the dim should still have the row), warn on any drift, escalate to error only if it explodes past a threshold.`,
+  },
+
+  // ============ MORE SQL ============
+  {
+    id: 'sql-11', title: 'Median per group', diff: 'medium', cats: ['sql'],
+    statement: `Compute the median order value per customer without using <code>MEDIAN()</code> (some warehouses lack it).`,
+    hint: `PERCENTILE_CONT or split via row_number + count.`,
+    solution: `<pre><code><span class="cm">-- Preferred: percentile_cont (Spark, Postgres, Snowflake)</span>
+<span class="kw">select</span>
+  customer_id,
+  <span class="fn">percentile_cont</span>(<span class="num">0.5</span>) <span class="kw">within group</span> (<span class="kw">order by</span> value) <span class="kw">as</span> median_value
+<span class="kw">from</span> orders
+<span class="kw">group by</span> customer_id;
+
+<span class="cm">-- Without percentile_cont:</span>
+<span class="kw">with</span> ranked <span class="kw">as</span> (
+  <span class="kw">select</span> customer_id, value,
+    <span class="fn">row_number</span>() <span class="kw">over</span> (<span class="kw">partition by</span> customer_id <span class="kw">order by</span> value) <span class="kw">as</span> rn,
+    <span class="fn">count</span>(*) <span class="kw">over</span> (<span class="kw">partition by</span> customer_id) <span class="kw">as</span> cnt
+  <span class="kw">from</span> orders
+)
+<span class="kw">select</span> customer_id, <span class="fn">avg</span>(value) <span class="kw">as</span> median_value
+<span class="kw">from</span> ranked
+<span class="kw">where</span> rn <span class="kw">in</span> ((cnt + <span class="num">1</span>) / <span class="num">2</span>, (cnt + <span class="num">2</span>) / <span class="num">2</span>)
+<span class="kw">group by</span> customer_id;</code></pre>`,
+    explain: `Median = middle row(s). For even counts, average the two middle. The integer division <code>(cnt+1)/2</code> and <code>(cnt+2)/2</code> gives the right pair regardless of parity.`,
+  },
+  {
+    id: 'sql-12', title: 'Funnel conversion', diff: 'hard', cats: ['sql'],
+    statement: `From <code>events(user_id, event_name, event_ts)</code>, compute the conversion funnel: visited → signed_up → activated → paid. Each step must happen AFTER the previous, per user.`,
+    hint: `Self-joins via min(ts) per (user, step). Filter on ordering.`,
+    solution: `<pre><code><span class="kw">with</span> first_step <span class="kw">as</span> (
+  <span class="kw">select</span> user_id, event_name, <span class="fn">min</span>(event_ts) <span class="kw">as</span> first_ts
+  <span class="kw">from</span> events
+  <span class="kw">where</span> event_name <span class="kw">in</span> (<span class="str">'visited'</span>, <span class="str">'signed_up'</span>, <span class="str">'activated'</span>, <span class="str">'paid'</span>)
+  <span class="kw">group by</span> user_id, event_name
+),
+pivoted <span class="kw">as</span> (
+  <span class="kw">select</span>
+    user_id,
+    <span class="fn">max</span>(<span class="kw">case when</span> event_name = <span class="str">'visited'</span>    <span class="kw">then</span> first_ts <span class="kw">end</span>) <span class="kw">as</span> ts_visited,
+    <span class="fn">max</span>(<span class="kw">case when</span> event_name = <span class="str">'signed_up'</span>  <span class="kw">then</span> first_ts <span class="kw">end</span>) <span class="kw">as</span> ts_signed,
+    <span class="fn">max</span>(<span class="kw">case when</span> event_name = <span class="str">'activated'</span>  <span class="kw">then</span> first_ts <span class="kw">end</span>) <span class="kw">as</span> ts_activated,
+    <span class="fn">max</span>(<span class="kw">case when</span> event_name = <span class="str">'paid'</span>       <span class="kw">then</span> first_ts <span class="kw">end</span>) <span class="kw">as</span> ts_paid
+  <span class="kw">from</span> first_step
+  <span class="kw">group by</span> user_id
+)
+<span class="kw">select</span>
+  <span class="fn">count</span>(*) <span class="kw">as</span> step_visited,
+  <span class="fn">sum</span>(<span class="kw">case when</span> ts_signed    &gt; ts_visited                          <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> step_signed,
+  <span class="fn">sum</span>(<span class="kw">case when</span> ts_activated &gt; ts_signed <span class="kw">and</span> ts_signed <span class="kw">is not null</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> step_activated,
+  <span class="fn">sum</span>(<span class="kw">case when</span> ts_paid      &gt; ts_activated <span class="kw">and</span> ts_activated <span class="kw">is not null</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> step_paid
+<span class="kw">from</span> pivoted
+<span class="kw">where</span> ts_visited <span class="kw">is not null</span>;</code></pre>`,
+    explain: `Funnels need ordering: signed_up at 10am, then visited at 11am, doesn't count as conversion. Take min(ts) per (user, step), then conditionally count where each step is strictly later than the previous.`,
+  },
+
+  // ============ ORCH / INGESTION ============
+  {
+    id: 'sd-06', title: 'Idempotency test', diff: 'medium', cats: ['design'],
+    statement: `Your daily DAG re-runs after partial failure. The output table has duplicates. Walk through the diagnosis + fix.`,
+    hint: `Check INSERT vs MERGE. Check unique constraints. Check whether the re-run is truly re-running the same partition.`,
+    solution: `<pre><code><span class="cm">DIAGNOSIS</span>
+1. Is the load operation INSERT or MERGE?
+   - INSERT: appends every run → duplicates expected
+   - MERGE on unique_key: should overwrite → no dupes
+
+2. Is the input data deterministic for the same run_date?
+   - If source changed between runs (CDC stream), MERGE will resolve via latest
+
+3. Is the DAG passing run_date as a parameter, or "today"?
+   - "today" causes the re-run to land in wrong partition
+
+<span class="cm">FIX</span>
+- Switch INSERT to MERGE (Delta) or DELETE-then-INSERT for the partition
+- Make sure ALL params are passed in, none derived from current time
+- Add a unique constraint or test to catch dupes in CI
+
+<span class="cm">VERIFICATION</span>
+Run the job twice locally with the same --run-date.
+Compare row counts before and after second run. Should be IDENTICAL.</code></pre>`,
+    explain: `Idempotency = same input → same output, every retry. Bare INSERT breaks it; MERGE preserves it. The test: rerun and diff. If counts differ, you have a problem.`,
+  },
+];
+
+// ====================== RENDER ======================
+let state = {
+  solved: new Set(JSON.parse(localStorage.getItem('forge-solved-ids') || '[]')),
+  filter: 'all',
+  search: '',
+};
+
+function saveState() {
+  localStorage.setItem('forge-solved-ids', JSON.stringify([...state.solved]));
+  localStorage.setItem('forge-solved', state.solved.size);
+}
+
+function diffOrder(d) { return {easy:0, medium:1, hard:2}[d] || 99; }
+
+function render() {
+  const container = document.getElementById('problems');
+  container.innerHTML = '';
+
+  const visible = PROBLEMS.filter(p => {
+    if (state.filter === 'all') {}
+    else if (state.filter === 'unsolved' && state.solved.has(p.id)) return false;
+    else if (['easy','medium','hard'].includes(state.filter) && p.diff !== state.filter) return false;
+    else if (['sql','dbt','python','spark','model','design'].includes(state.filter) && !p.cats.includes(state.filter)) return false;
+    if (state.search && !(p.title + ' ' + p.statement).toLowerCase().includes(state.search.toLowerCase())) return false;
+    return true;
+  });
+
+  if (visible.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:48px;">No problems match your filter.</div>`;
+    return;
+  }
+
+  visible.forEach(p => {
+    const solved = state.solved.has(p.id);
+    const div = document.createElement('div');
+    div.className = `problem ${solved ? 'solved' : ''}`;
+    div.innerHTML = `
+      <div class="problem-header" onclick="toggleProblem(this)">
+        <div class="problem-title">${p.title}</div>
+        <div class="problem-tags">
+          <span class="tag ${p.diff}">${p.diff}</span>
+          ${p.cats.map(c => `<span class="tag ${c}">${c}</span>`).join('')}
+        </div>
+      </div>
+      <div class="problem-body">
+        <h4>Problem</h4>
+        <p>${p.statement}</p>
+
+        <button class="btn-reveal secondary" onclick="reveal(this, 'hint-${p.id}')">💡 Show hint</button>
+        <button class="btn-reveal" onclick="reveal(this, 'sol-${p.id}')">🔓 Reveal solution</button>
+        <button class="btn-mark" onclick="markSolved('${p.id}', this)">${solved ? '✓ Solved' : 'Mark solved (+30 XP)'}</button>
+
+        <div class="reveal-content" id="hint-${p.id}">
+          <div class="hint-box">${p.hint}</div>
+        </div>
+        <div class="reveal-content" id="sol-${p.id}">
+          <h4>Solution</h4>
+          ${p.solution}
+          <h4>Why this works</h4>
+          <p>${p.explain}</p>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Update stats
+  document.getElementById('stat-solved').textContent = state.solved.size;
+  document.getElementById('stat-total').textContent = PROBLEMS.length;
+  document.getElementById('stat-xp').textContent = state.solved.size * 30;
+  document.getElementById('stat-pct').textContent = Math.round(state.solved.size / PROBLEMS.length * 100) + '%';
+
+  // Category progress
+  const catNames = {sql:'SQL', dbt:'dbt', python:'Python', spark:'Spark', model:'Modeling', design:'System Design'};
+  const cats = Object.keys(catNames);
+  const catEl = document.getElementById('cat-progress');
+  catEl.innerHTML = cats.map(c => {
+    const total = PROBLEMS.filter(p => p.cats.includes(c)).length;
+    const solved = PROBLEMS.filter(p => p.cats.includes(c) && state.solved.has(p.id)).length;
+    const pct = total ? Math.round(solved/total*100) : 0;
+    return `
+      <div class="cat-progress">
+        <div class="name">${catNames[c]}</div>
+        <div class="stat">${solved}/${total}</div>
+        <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleProblem(headerEl) {
+  headerEl.parentElement.classList.toggle('open');
+}
+
+function reveal(btn, id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+  btn.textContent = el.classList.contains('show')
+    ? (id.startsWith('hint') ? '🔒 Hide hint' : '🔒 Hide solution')
+    : (id.startsWith('hint') ? '💡 Show hint' : '🔓 Reveal solution');
+}
+
+function markSolved(id, btn) {
+  if (state.solved.has(id)) {
+    state.solved.delete(id);
+    btn.textContent = 'Mark solved (+30 XP)';
+    btn.parentElement.parentElement.classList.remove('solved');
+  } else {
+    state.solved.add(id);
+    btn.textContent = '✓ Solved';
+    btn.parentElement.parentElement.classList.add('solved');
+  }
+  saveState();
+  render();
+}
+
+// Filters
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.filter = b.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  state.search = e.target.value;
+  render();
+});
+
+render();
+</script>
+
+<div id="__fb" style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:6px;opacity:.45;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.45">
+  <button onclick="__fbExport()" title="Export progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8595;</button>
+  <button onclick="document.getElementById('__fbFile').click()" title="Import progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8593;</button>
+</div>
+<input type="file" id="__fbFile" accept="application/json" style="display:none" onchange="__fbImport(event)">
+<script>
+function __fbSnap(){var s={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('forge-')===0)s[k]=localStorage.getItem(k);}return s;}
+function __fbExport(){var b=new Blob([JSON.stringify(__fbSnap(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='forge-progress-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();}
+function __fbImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);Object.keys(o).forEach(function(k){if(k.indexOf('forge-')===0)localStorage.setItem(k,o[k]);});location.reload();}catch(x){alert('Invalid backup file');}};r.readAsText(f);}
+</script>
+</body>
+</html>

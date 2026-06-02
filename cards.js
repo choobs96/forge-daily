@@ -958,5 +958,64 @@ window.SWIPE_CARDS = [
       "interop"
     ],
     "src": "https://www.snowflake.com/en/blog/open-semantic-interchange-ai-standard/"
+  },
+  {
+    "id": "auto-20260603-1",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Spark 4.0 turns silent nulls into errors",
+    "hook": "The cast that quietly returned null now stops your job dead.",
+    "body": "<p>Spark 4.0 flips <code>spark.sql.ansi.enabled</code> to true by default. Operations that used to return null on failure &mdash; invalid casts, divide-by-zero, arithmetic overflow, out-of-range array access &mdash; now raise runtime errors. Better integrity, but pipelines that leaned on null-on-failure break loudly on upgrade. When you actually want a null instead of a crash, switch to the explicit safe variants:</p><pre><code>select try_cast(qty as int),\n       try_divide(revenue, orders)\nfrom sales;</code></pre>",
+    "tags": [
+      "spark",
+      "ansi",
+      "null-handling",
+      "migration"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-apache-spark-40"
+  },
+  {
+    "id": "auto-20260603-2",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Pipe syntax reads top-to-bottom",
+    "hook": "Stop nesting subqueries inside-out; chain each step with an arrow.",
+    "body": "<p>The pipe operator passes one relation into the next step, so a query reads in execution order instead of select-then-from-then-where. Start with a table, then append operators:</p><pre><code>from orders\n|&gt; where status = 'paid'\n|&gt; aggregate sum(amount) as revenue group by region\n|&gt; order by revenue desc;</code></pre><p>Any prefix of the chain is itself a valid query, so you debug by deleting the tail. It is in Spark 4.0, BigQuery, Databricks and Snowflake.</p>",
+    "tags": [
+      "sql",
+      "pipe-syntax",
+      "readability"
+    ],
+    "src": "https://www.databricks.com/blog/sql-gets-easier-announcing-new-pipe-syntax"
+  },
+  {
+    "id": "auto-20260603-3",
+    "cat": "Platform",
+    "level": "Senior",
+    "title": "Iceberg V3 row lineage makes CDC cheap",
+    "hook": "Every row gets a permanent serial number, so engines diff snapshots instead of full scans.",
+    "body": "<p>Iceberg V3 (ratified 2025) stamps each row with a <code>_row_id</code> and a <code>_last_updated_sequence_number</code>. Engines find exactly which rows changed between two snapshots by matching IDs across commits &mdash; no full-table compare, no hand-built CDC table. If an ID disappears and a new one arrives on the same key, that is an update. Snowflake Dynamic Tables and Streams already run on this metadata, turning incremental processing on open tables into a near-free range scan.</p>",
+    "tags": [
+      "iceberg",
+      "row-lineage",
+      "cdc",
+      "incremental"
+    ],
+    "src": "https://www.databricks.com/blog/apache-icebergtm-v3-moving-ecosystem-towards-unification"
+  },
+  {
+    "id": "auto-20260603-4",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "MCP keeps data agents governed",
+    "hook": "The agent that builds your pipeline needs a tool belt that is authenticated and audited.",
+    "body": "<p>Agentic tools like Databricks Genie Code now build pipelines, debug failures and ship dashboards, the way coding agents reshaped software. The risk is an agent wielding a copied token against production. Model Context Protocol is the fix: managed MCP servers expose Genie spaces, Databricks SQL, Vector Search and Unity Catalog functions as discoverable tools. Every call the agent makes is authenticated and auditable in the workspace &mdash; governance is the feature, not the autonomy.</p>",
+    "tags": [
+      "mcp",
+      "agents",
+      "governance",
+      "genie"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-genie-code"
   }
 ];

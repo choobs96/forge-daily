@@ -1017,5 +1017,89 @@ window.SWIPE_CARDS = [
       "genie"
     ],
     "src": "https://www.databricks.com/blog/introducing-genie-code"
+  },
+  {
+    "id": "auto-20260604-1",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Run an LLM from a SQL select",
+    "hook": "ai_query turns a 50M-row enrichment job into one line of SQL.",
+    "body": "<p>AI Functions call a model straight from Databricks SQL &mdash; no Python serving code. Task-specific ones (<code>ai_classify</code>, <code>ai_extract</code>, <code>ai_parse_document</code>) are tuned for classification, entity extraction and sentiment; <code>ai_query</code> gives full control of model and prompt. They auto-manage parallelism, retries and scaling, so batch LLM inference over millions of rows runs like any other query. Use DBR 15.4 ML LTS+ for batch performance.</p><pre><code>select ai_classify(review_text,\n  array('praise', 'complaint')) as label\nfrom reviews;</code></pre>",
+    "tags": [
+      "ai-functions",
+      "ai-query",
+      "batch-inference"
+    ],
+    "src": "https://docs.databricks.com/aws/en/large-language-models/ai-functions"
+  },
+  {
+    "id": "auto-20260604-2",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "Delta IDENTITY keys disable concurrent writes",
+    "hook": "Auto-incrementing surrogate keys come with three sharp catches.",
+    "body": "<p><code>generated always as identity</code> auto-assigns a unique bigint per insert &mdash; handy for surrogate keys. But three catches bite: (1) declaring it <strong>disables concurrent transactions</strong> on the table, so parallel writers serialise or fail; (2) values are unique and monotonic but <strong>not contiguous</strong> &mdash; gaps are normal, never read them as a count; (3) you <strong>cannot add one to an existing table</strong>, you rebuild. For dimensions with concurrent loads, a hash surrogate key is often safer.</p><pre><code>create table dim_account (\n  account_key bigint generated always as identity,\n  account_id string);</code></pre>",
+    "tags": [
+      "identity-column",
+      "surrogate-key",
+      "delta"
+    ],
+    "src": "https://www.databricks.com/blog/2022/08/08/identity-columns-to-generate-surrogate-keys-are-now-available-in-a-lakehouse-near-you.html"
+  },
+  {
+    "id": "auto-20260604-3",
+    "cat": "Platform",
+    "level": "Senior",
+    "title": "ABAC: one policy masks a thousand tables",
+    "hook": "Tag a column 'pii' once; the mask follows it everywhere.",
+    "body": "<p>Unity Catalog attribute-based access control (GA 2026) attaches row filters and column masks to <strong>governed tags</strong> at the catalog or schema level, so a single policy applies automatically to every matching table &mdash; no per-table UDF wiring. Tag a column <code>pii</code> and the masking policy hides it from non-privileged roles across the whole catalog, including tables created later. Higher-level admins own the policy, so table owners can't override it, and it evaluates faster than table-specific filter UDFs.</p>",
+    "tags": [
+      "abac",
+      "unity-catalog",
+      "governance"
+    ],
+    "src": "https://www.databricks.com/blog/abac-row-filtering-and-column-masking-policies-governed-tags-and-data-classification-are-now"
+  },
+  {
+    "id": "auto-20260604-4",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "Auto Loader: incremental file ingestion done right",
+    "hook": "Don't re-list a bucket of millions of files on every run.",
+    "body": "<p>Auto Loader (<code>cloudFiles</code>) incrementally ingests new files from object storage with exactly-once guarantees. Directory-listing mode re-scans the whole path &mdash; fine until the folder holds millions of files. File-notification / managed-file-events mode subscribes to a cloud queue and reads new files from an event cache, scaling to millions of files an hour without the listing tax. You can switch modes anytime and keep exactly-once. Run the stream at least weekly so the incremental cache stays warm.</p><pre><code>spark.readStream.format('cloudFiles')\n  .option('cloudFiles.format', 'json')\n  .option('cloudFiles.useManagedFileEvents', 'true')\n  .load(path)</code></pre>",
+    "tags": [
+      "auto-loader",
+      "cloudfiles",
+      "ingestion"
+    ],
+    "src": "https://docs.databricks.com/aws/en/ingestion/cloud-object-storage/auto-loader/file-events-explained"
+  },
+  {
+    "id": "auto-20260604-5",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakeflow Connect ingests without CDC config",
+    "hook": "Pull from Oracle or Postgres with a cursor column, no Debezium.",
+    "body": "<p>Lakeflow Connect is Databricks-native managed ingestion &mdash; GA connectors for Salesforce, Workday and SQL Server, governed by Unity Catalog and powered by serverless Spark Declarative Pipelines. New in 2026: <strong>query-based connectors</strong> (public preview) read a source by polling a cursor column (an <code>updated_at</code> or incrementing id), so you ingest Oracle, Teradata, MySQL and Postgres incrementally with no CDC setup and no ingestion gateway. Simpler than log-based CDC when you don't need sub-second freshness.</p>",
+    "tags": [
+      "lakeflow-connect",
+      "ingestion",
+      "cdc"
+    ],
+    "src": "https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/"
+  },
+  {
+    "id": "auto-20260604-6",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "Grade text-to-SQL on execution, not string match",
+    "hook": "Two different queries can both be right - compare the result sets.",
+    "body": "<p>Before trusting a Genie or text-to-SQL assistant, build an eval harness. The metric that matters is <strong>execution accuracy</strong>: run the generated SQL and the gold SQL, then compare result sets &mdash; not string similarity, since many correct queries look nothing alike. Benchmarks like BIRD top out near ~80% even for frontier models on multi-table questions, so measure on <em>your</em> schema. Tools like Promptfoo and Tiger Data's suite automate test cases and schema validation. This eval is the AE skill that makes natural-language BI shippable.</p>",
+    "tags": [
+      "text-to-sql",
+      "evaluation",
+      "genie"
+    ],
+    "src": "https://research.aimultiple.com/text-to-sql/"
   }
 ];

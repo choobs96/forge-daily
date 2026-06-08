@@ -1101,5 +1101,75 @@ window.SWIPE_CARDS = [
       "genie"
     ],
     "src": "https://research.aimultiple.com/text-to-sql/"
+  },
+  {
+    "id": "auto-20260609-1",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakehouse Federation queries data in place",
+    "hook": "Read Postgres, MySQL or Redshift from Databricks without copying a single row.",
+    "body": "<p>Federation registers an external SQL database as a Unity Catalog <strong>connection</strong> plus a foreign catalog; queries are pushed down to the source over JDBC and governed by UC like any managed table &mdash; no ETL, no object-storage copy. Reach for it for on-demand reporting, POCs, exploratory analysis and incremental migration. The trade-off versus ingestion (Lakeflow Connect, Fivetran): every query hits the <em>live</em> source, adding load there and missing the speed and durability of a materialized Delta copy. Federate for ad-hoc; ingest for production.</p>",
+    "tags": [
+      "lakehouse-federation",
+      "query-pushdown",
+      "unity-catalog"
+    ],
+    "src": "https://docs.databricks.com/aws/en/query-federation/"
+  },
+  {
+    "id": "auto-20260609-2",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Spark Connect decouples client from driver",
+    "hook": "Spark 4.0's default client protocol: a 1.5MB PySpark client with no local JVM.",
+    "body": "<p>Spark Connect is a gRPC client-server protocol &mdash; the default client protocol in Spark 4.0 &mdash; that replaces the old Py4J bridge. The client sends unresolved logical plans (the DataFrame API) to a remote driver. Three wins: PySpark runs from any IDE, notebook or app server with no local JVM; a client crash no longer takes down the driver; and you upgrade server-side dependencies without touching the client. Classic in-process mode still exists; Connect is just the new default.</p><pre><code>spark = SparkSession.builder \\\n  .remote('sc://host:15002').getOrCreate()</code></pre>",
+    "tags": [
+      "spark-connect",
+      "grpc",
+      "spark-4"
+    ],
+    "src": "https://spark.apache.org/docs/latest/spark-connect-overview.html"
+  },
+  {
+    "id": "auto-20260609-3",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "MERGE WITH SCHEMA EVOLUTION auto-adds columns",
+    "hook": "A new upstream column flows into the target table without a manual alter.",
+    "body": "<p>In DBR 15.4 LTS+ you can put schema evolution directly in the merge. Columns present in the source query but missing from the target are added inside the same write transaction, so an added upstream field lands automatically instead of failing on <code>update set *</code>. It is an <em>additive</em> feature &mdash; it does not rename or drop, and a narrowing type change still errors (safe widening like int to bigint is handled by Delta's separate type-widening setting, not this clause).</p><pre><code>merge with schema evolution into dim_account t\nusing staging s on t.id = s.id\nwhen matched then update set *\nwhen not matched then insert *;</code></pre>",
+    "tags": [
+      "merge",
+      "schema-evolution",
+      "delta"
+    ],
+    "src": "https://docs.databricks.com/aws/en/sql/language-manual/delta-merge-into"
+  },
+  {
+    "id": "auto-20260609-4",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "Semantic Layer exports materialize a metric",
+    "hook": "Hand a non-SL-aware tool the governed metric as a plain table.",
+    "body": "<p>A saved query bundles related metrics, dimensions and filters; an <strong>export</strong> runs it and writes the result to a physical table or view via a <code>create table</code> on the dbt job schedule. That is the integration path for consumers that cannot call the Semantic Layer API &mdash; point a Tableau extract or a Genie space at the exported table and they read the exact same governed definition without re-implementing it. It is the inverse of headless-BI's query-the-API model, and it needs the hosted MetricFlow server (dbt platform, 1.7+).</p>",
+    "tags": [
+      "semantic-layer",
+      "exports",
+      "saved-queries"
+    ],
+    "src": "https://docs.getdbt.com/docs/use-dbt-semantic-layer/exports"
+  },
+  {
+    "id": "auto-20260609-5",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "system.billing.usage attributes every DBU",
+    "hook": "FinOps stops being a guess when cost is a SQL table you can join and group.",
+    "body": "<p>Databricks system tables put cost telemetry inside Unity Catalog as queryable tables. <code>system.billing.usage</code> holds one row per usage record with <code>custom_tags</code>, <code>billing_origin_product</code> and identity columns, so you attribute DBU spend to a team, job or pipeline with plain SQL &mdash; serverless included, via tag policies. Join it to <code>system.query.history</code> to pin down the expensive queries. This is the concrete mechanic behind cost-as-an-engineering-metric: tag your workloads, then group by tag.</p>",
+    "tags": [
+      "system-tables",
+      "finops",
+      "cost-attribution"
+    ],
+    "src": "https://docs.databricks.com/aws/en/admin/system-tables/billing"
   }
 ];

@@ -1171,5 +1171,61 @@ window.SWIPE_CARDS = [
       "cost-attribution"
     ],
     "src": "https://docs.databricks.com/aws/en/admin/system-tables/billing"
+  },
+  {
+    "id": "auto-20260609-6",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Collations: case-insensitive without lower()",
+    "hook": "Stop wrapping every join key in lower() &mdash; declare the column case-insensitive once.",
+    "body": "<p>Spark 4.0 adds <strong>collations</strong>: per-column comparison rules baked into the type. Type a column <code>collate utf8_lcase</code> and equality, joins, <code>group by</code> and <code>order by</code> all compare case-insensitively with no <code>lower()</code> in sight &mdash; and <code>startswith</code>/<code>endswith</code> run up to 10x faster than the wrapped version because the optimizer keeps the raw column. ICU named collations add true language-aware ordering. Gotcha: collation is part of the type, so comparing two differently-collated columns throws <code>COLLATION_MISMATCH</code> &mdash; cast one side.</p><pre><code>create table t (name string collate utf8_lcase);\n<span class=\"cm\">-- 'Jian' = 'jian' is now true; no lower() needed</span>\n<span class=\"kw\">select</span> * <span class=\"kw\">from</span> t <span class=\"kw\">where</span> name = <span class=\"str\">'jian'</span>;</code></pre>",
+    "tags": [
+      "collation",
+      "spark-4",
+      "case-insensitive"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-collations-databricks"
+  },
+  {
+    "id": "auto-20260609-7",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Predictive Optimization runs maintenance for you",
+    "hook": "Delete your scheduled OPTIMIZE and VACUUM jobs &mdash; the platform decides when to run them.",
+    "body": "<p>Predictive Optimization watches Unity Catalog managed tables and automatically fires <code>optimize</code> (compact files), <code>vacuum</code> (purge tombstoned data) and <code>analyze</code> (refresh stats) only when its model judges the payback beats the cost. As of 2025 it is <strong>on by default</strong> for new UC managed tables and accounts. This is not write-time auto-compaction &mdash; that fires inside each write. PO is a managed background service scheduling maintenance across the whole catalog, so you stop hand-tuning cron jobs and chasing small-file debt.</p>",
+    "tags": [
+      "predictive-optimization",
+      "unity-catalog",
+      "maintenance"
+    ],
+    "src": "https://docs.databricks.com/aws/en/optimizations/predictive-optimization"
+  },
+  {
+    "id": "auto-20260609-8",
+    "cat": "AI",
+    "level": "Core",
+    "title": "Tableau Pulse watches metrics; Agent writes the calc",
+    "hook": "Your BI tool now monitors metrics for you and authors the calculation when you describe it.",
+    "body": "<p>Two AI features now ship inside Tableau, not bolted on. <strong>Tableau Pulse</strong> continuously scans your published metrics, runs anomaly detection, and pushes a natural-language newsfeed explaining the <em>what</em> and <em>why</em> of each move &mdash; monitoring instead of a dashboard you must remember to open. <strong>Tableau Agent</strong> (formerly Einstein Copilot) authors calculations from a plain-English description and summarises dashboards inline. The catch for an analytics engineer: both lean on well-defined metrics upstream &mdash; sloppy semantics produce confident, wrong narratives.</p>",
+    "tags": [
+      "tableau",
+      "pulse",
+      "anomaly-detection"
+    ],
+    "src": "https://www.tableau.com/products/tableau-agent"
+  },
+  {
+    "id": "auto-20260609-9",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "Real-Time Mode: sub-300ms without a second engine",
+    "hook": "A trigger config flag drops Structured Streaming from seconds to single-digit-ms p99.",
+    "body": "<p>Classic Structured Streaming is micro-batch: it waits to form a batch, so latency floors at hundreds of ms to seconds. <strong>Real-Time Mode</strong> (GA in Spark 4.1, Dec 2025) instead schedules the query's stages concurrently as a long-lived job and processes events as they arrive &mdash; single-digit-millisecond p99 on stateless queries, under 300ms on many stateful ones. You switch it on with a trigger config change; the same DataFrame and SQL code runs, so you reach Flink-class latency without standing up a second engine.</p>",
+    "tags": [
+      "real-time-mode",
+      "structured-streaming",
+      "spark-4"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-general-availability-real-time-mode-apache-spark-structured-streaming-databricks"
   }
 ];

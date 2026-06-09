@@ -1227,5 +1227,75 @@ window.SWIPE_CARDS = [
       "spark-4"
     ],
     "src": "https://www.databricks.com/blog/announcing-general-availability-real-time-mode-apache-spark-structured-streaming-databricks"
+  },
+  {
+    "id": "auto-20260610-1",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Managed Iceberg: Databricks writes Iceberg natively now",
+    "hook": "UniForm only let Iceberg engines read your Delta. Now Unity Catalog creates and writes native Iceberg.",
+    "body": "<p>UniForm exposed Delta tables <em>read-only</em> to Iceberg clients. Managed Iceberg (GA 2026) goes further: Unity Catalog creates, writes and optimizes native Iceberg tables that any engine reaches through the Iceberg REST Catalog. You get Predictive Optimization and Liquid Clustering on Iceberg, plus v3 features &mdash; deletion vectors, row tracking, the <code>variant</code> type. The format question stops being Delta-or-Iceberg; it becomes one governed table, written by whichever engine your team already runs.</p>",
+    "tags": [
+      "iceberg",
+      "unity-catalog",
+      "managed-iceberg"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-full-apache-iceberg-support-databricks"
+  },
+  {
+    "id": "auto-20260610-2",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakeflow Designer: no-code ETL that emits real code",
+    "hook": "A drag-and-drop ETL canvas an analyst can use &mdash; that still ships reviewable Python.",
+    "body": "<p>Lakeflow Designer (public preview) is a visual, no-code builder for Lakeflow Declarative Pipelines, with a natural-language assistant grounded in your catalog. The detail that makes it safe: every drag-drop transformation compiles to production Python you can review, version in Git and fold into a larger workflow. It is not a black-box GUI &mdash; it is the same declarative engine with a front door for analysts, so no-code output and code-first pipelines converge instead of splitting into shadow ETL.</p>",
+    "tags": [
+      "lakeflow",
+      "no-code",
+      "etl"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-lakeflow-designer-no-code-etl"
+  },
+  {
+    "id": "auto-20260610-3",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Data diff catches what assertion tests miss",
+    "hook": "Tests are green, the row count matches &mdash; and a shifted join silently changed 4% of values.",
+    "body": "<p>Assertion tests check ranges, nulls and accepted values; reconciliation checks row counts. Neither catches a value that quietly changed because a join shifted or a <code>case</code> branch flipped. Data diffing compares your model's dev output against prod row-by-row &mdash; a git diff for tables &mdash; and posts the value-level deltas onto the pull request. Run it in CI with open-source data-diff or dbt's <code>audit_helper</code>, and a reviewer sees exactly which rows a refactor moved before merge.</p>",
+    "tags": [
+      "data-diff",
+      "ci",
+      "regression"
+    ],
+    "src": "https://www.datafold.com/data-diff"
+  },
+  {
+    "id": "auto-20260610-4",
+    "cat": "AI",
+    "level": "Core",
+    "title": "An enterprise agent inherits your data model",
+    "hook": "An agent is only as reliable as the modeled data it stands on &mdash; which is your job.",
+    "body": "<p>Agent Bricks (Supervisor GA, April 2026) builds domain agents as governed Unity Catalog objects: they reach data through UC-secured tools, keep memory and state in Lakebase, and a supervisor orchestrates several into one workflow. The durable lesson for an analytics engineer is the Genie lesson again &mdash; the agent inherits your semantics. Clean grain, clear metric definitions and curated tables make it answer correctly; sloppy modeling makes it confidently wrong, at scale.</p>",
+    "tags": [
+      "agent-bricks",
+      "unity-catalog",
+      "governance"
+    ],
+    "src": "https://www.databricks.com/blog/agent-bricks-supervisor-agent-now-ga-orchestrate-enterprise-agents"
+  },
+  {
+    "id": "auto-20260610-5",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "SQL UDFs: reuse a rule without the Python tax",
+    "hook": "Stop pasting the same case expression into thirty models &mdash; define it once as a function.",
+    "body": "<p>Spark 4 and Databricks register pure-SQL functions with no Python sandbox: write the logic once, govern it in Unity Catalog, reuse it everywhere. Scalar functions return one value per row; table functions return a whole table in the <code>from</code> clause. Because the body is SQL, the optimizer inlines it &mdash; no serialization tax like a Python UDF. Centralising a business rule here means one definition to fix, not thirty drifting copies.</p><pre><code>create or replace function main.dim.fmt_phone(p string)\n  returns string\n  return regexp_replace(p, <span class=\"str\">'[^0-9]'</span>, <span class=\"str\">''</span>);</code></pre>",
+    "tags": [
+      "sql-udf",
+      "unity-catalog",
+      "reuse"
+    ],
+    "src": "https://spark.apache.org/docs/latest/sql-ref-functions-udf-scalar.html"
   }
 ];

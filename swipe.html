@@ -185,6 +185,19 @@ tr:last-child td { border-bottom: none; }
   .main { padding: 20px; }
   .stack-area { height: 70vh; }
 }
+/* --- active recall: hide the answer until the learner has tried to recall it --- */
+.swipe-card.unrevealed .card-body,
+.swipe-card.unrevealed .card-foot { display: none; }
+.reveal-btn {
+  margin-top: auto; align-self: stretch; padding: 16px;
+  border: 2px dashed var(--border); border-radius: 14px; background: transparent;
+  color: var(--text-dim); font-weight: 800; font-size: 15px; cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.reveal-btn:hover { border-color: var(--accent); color: var(--accent); }
+.recall-cue { margin-top: 12px; font-size: 13px; color: var(--text-muted); font-style: italic; }
+.swipe-card:not(.unrevealed) .reveal-btn,
+.swipe-card:not(.unrevealed) .recall-cue { display: none; }
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -442,7 +455,7 @@ function renderStage() {
       const scale = 1 - depth*0.04, ty = depth*14;
       const st = s.byId[c.id] || {box:0};
       const dots = [0,1,2,3,4].map(i => `<span class="dot ${i < (st.box||0) ? 'on':''}"></span>`).join('');
-      return `<div class="swipe-card" data-id="${c.id}" style="transform:scale(${scale}) translateY(${ty}px); z-index:${vi+1};">
+      return `<div class="swipe-card${depth===0 ? ' unrevealed':''}" data-id="${c.id}" style="transform:scale(${scale}) translateY(${ty}px); z-index:${vi+1};">
         <div class="stamp know">Got it</div>
         <div class="stamp review">Review</div>
         <div class="card-top">
@@ -452,6 +465,8 @@ function renderStage() {
         </div>
         <h2>${c.title}</h2>
         ${c.hook ? `<div class="hook">${c.hook}</div>` : ''}
+        <button class="reveal-btn" onclick="reveal(event)">Tap to reveal the answer ↓</button>
+        <div class="recall-cue">Try to recall it from memory first — then grade yourself.</div>
         <div class="card-body">${c.body||''}</div>
         <div class="card-foot">
           <div class="tags">${(c.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
@@ -464,7 +479,7 @@ function renderStage() {
     <button class="ctrl-btn review" onclick="swipe('left')" title="Review again (←)">↺</button>
     <button class="ctrl-btn know" onclick="swipe('right')" title="Got it (→)">✓</button>
   </div>
-  <div class="ctrl-hint">Drag the card, tap a button, or use <kbd>←</kbd> review · <kbd>→</kbd> got it</div>`;
+  <div class="ctrl-hint">Recall it, then reveal · <kbd>←</kbd> missed · <kbd>→</kbd> got it</div>`;
 
   renderSidebar(s);
   attachDrag();
@@ -491,12 +506,31 @@ function recordSwipe(id, dir) {
   saveSwipe(s);
 }
 
+// Reveal the top card's answer. Active recall: the learner must attempt recall
+// before the answer (and the grade buttons) become available.
+function reveal(e) {
+  if (e) e.stopPropagation();
+  const card = document.querySelector('.swipe-card.unrevealed');
+  if (card) card.classList.remove('unrevealed');
+  const hint = document.querySelector('.ctrl-hint');
+  if (hint) hint.innerHTML = 'Did you recall it? <kbd>←</kbd> missed · <kbd>→</kbd> got it';
+}
+
 let animating = false;
 function swipe(dir) {
   if (animating) return;
   const stack = document.getElementById('stack'); if (!stack) return;
   const cards = stack.querySelectorAll('.swipe-card');
   const top = cards[cards.length-1]; if (!top) return;
+  // Recall gate: a grade attempt before reveal just reveals the answer (and snaps
+  // the card back if it was mid-drag). Covers buttons, drag-release and keyboard.
+  if (top.classList.contains('unrevealed')) {
+    top.style.transform = '';
+    const k = top.querySelector('.stamp.know'), r = top.querySelector('.stamp.review');
+    if (k) k.style.opacity = 0; if (r) r.style.opacity = 0;
+    reveal();
+    return;
+  }
   animating = true;
   const id = top.dataset.id;
   const x = dir === 'right' ? window.innerWidth : -window.innerWidth;

@@ -1441,5 +1441,80 @@ window.SWIPE_CARDS = [
       "tableau-next"
     ],
     "src": "https://www.tableau.com/blog/what-is-tableau-semantics"
+  },
+  {
+    "id": "auto-20260612-6",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Gaps and islands: number the runs, not the rows",
+    "hook": "The same stage entered five times in a row is one journey step, not five.",
+    "body": "<p>Real pattern from opportunity stage-history analysis: an opp can re-enter the same stage repeatedly, and the question is the true entry date of each consecutive <em>run</em>. Flag changes with <code>lag()</code>, then a running sum turns flags into group ids:</p><pre><code><span class=\"cm\">-- cte 1: flag run starts</span>\ncase when stage = lag(stage) over (partition by opp_id order by ts)\n  then 0 else 1 end as is_new_run\n<span class=\"cm\">-- cte 2: number the runs</span>\nsum(is_new_run) over (partition by opp_id order by ts) as run_id</code></pre><p>Group by <code>run_id</code> for first-entry dates. Same trick solves sessions, streaks, and downtime windows.</p>",
+    "tags": [
+      "from-my-work",
+      "gaps-and-islands",
+      "window-functions",
+      "sessionization"
+    ],
+    "src": "memory/patterns.md 2026-03-03 - opp stage-group dedup (LAG + cumulative SUM)"
+  },
+  {
+    "id": "auto-20260612-7",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "A UTC timestamp can hide local midnight",
+    "hook": "Casting to date silently moved every billing cycle boundary to the previous day.",
+    "body": "<p>Hard-won reconciling Kafka billing-cycle events against the admin UI: cycle dates arrived as UTC strings ending <code>T14:00:00.000Z</code> &mdash; which <em>is</em> midnight AEST. A naive <code>cast(cycle_end as date)</code> truncates in UTC and lands every boundary on the previous day, so cycles drift into the wrong month. Convert first &mdash; <code>from_utc_timestamp(cycle_end, 'Australia/Sydney')</code> &mdash; then truncate. Any event timestamp ending in a constant offset like 14:00Z is a hidden local midnight; treat it as a tell.</p>",
+    "tags": [
+      "from-my-work",
+      "timezones",
+      "utc",
+      "date-truncation"
+    ],
+    "src": "memory/feedback_kafka_aest_utc - Kafka cycle dates are UTC, admin is AEST"
+  },
+  {
+    "id": "auto-20260612-8",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Salesforce zero-copy: CRM data without the pipeline",
+    "hook": "The era of syncing CRM tables into the warehouse is starting to close.",
+    "body": "<p>Salesforce Data Cloud and Databricks now share data <em>bi-directionally with zero copy</em>: Data Cloud publishes unified profiles, segments and engagement data into Databricks via Delta Sharing and Iceberg, and federates queries against lakehouse tables in the other direction &mdash; no ETL job, no replica to keep fresh. If your CRM data currently lands through a replication connector (Fivetran-style sync into a raw schema), this is the pattern positioned to replace it: governed live access instead of synced copies.</p>",
+    "tags": [
+      "zero-copy",
+      "delta-sharing",
+      "salesforce",
+      "data-cloud"
+    ],
+    "src": "https://www.salesforce.com/blog/salesforce-crm-data-databricks-zero-copy-sharing/"
+  },
+  {
+    "id": "auto-20260612-9",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Streaming tables ingest; materialized views refine",
+    "hook": "Same pipeline, two table types, opposite update semantics.",
+    "body": "<p>Both are Databricks-managed tables, but the semantics differ. A <strong>streaming table</strong> processes each input row exactly once and appends &mdash; built for bronze ingestion from Kafka or cloud files; if a source row is later updated, the change is not reprocessed. A <strong>materialized view</strong> recomputes its defining query (incrementally where possible), so upstream updates and deletes flow through &mdash; right for silver/gold joins and aggregates. Rule of thumb: ingest with streaming tables, refine with materialized views, and let dashboards read the precomputed MV instead of rescanning.</p>",
+    "tags": [
+      "streaming-tables",
+      "materialized-views",
+      "lakeflow",
+      "medallion"
+    ],
+    "src": "https://docs.databricks.com/aws/en/data-engineering/tables-views"
+  },
+  {
+    "id": "auto-20260612-10",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "Zerobus: when the best bus is no bus",
+    "hook": "Five-second latency into Delta with no Kafka cluster to babysit.",
+    "body": "<p>Zerobus Ingest (GA, part of Lakeflow Connect) is a push API that writes events <em>directly</em> into a Unity Catalog Delta table &mdash; gRPC or REST, SDKs for Python/Java/Go/Rust/TypeScript, latency as low as ~5 seconds, up to 100 MB/sec per connection, serverless scaling by just opening more connections. The architectural shift: when the lakehouse is the stream's <em>only</em> consumer, the Kafka cluster in the middle is pure overhead &mdash; brokers, partitions and offsets you manage for nothing. Keep a real bus only when multiple systems consume the stream.</p>",
+    "tags": [
+      "zerobus",
+      "ingestion",
+      "lakeflow-connect",
+      "kafka"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-general-availability-zerobus-ingest-part-lakeflow-connect"
   }
 ];

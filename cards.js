@@ -1297,5 +1297,77 @@ window.SWIPE_CARDS = [
       "reuse"
     ],
     "src": "https://spark.apache.org/docs/latest/sql-ref-functions-udf-scalar.html"
+  },
+  {
+    "id": "auto-20260611-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "Same column name, different unit of measure",
+    "hook": "The migration matched schemas and row counts perfectly &mdash; and inflated the metric 100x.",
+    "body": "<p>Real lesson from migrating the PAM flat table from Silver staging to Kafka domain events: Silver <code>value</code> columns were in <strong>dollars</strong>; Kafka <code>balance_total_credits</code> (and every <code>*_credits</code> column) was in <strong>credits</strong>, 100 credits = $1. Schemas lined up, joins worked, totals were 100x wrong. When switching a model to a new source, reconcile an <em>aggregate in business units</em> against the old source &mdash; row counts and schema checks pass while units silently lie.</p>",
+    "tags": [
+      "from-my-work",
+      "units",
+      "reconciliation",
+      "migration"
+    ],
+    "src": "memory/patterns.md 2026-05-07 - PAM flat table Silver-to-Kafka migration"
+  },
+  {
+    "id": "auto-20260611-2",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "AVG of rates is not the rate",
+    "hook": "Averaging per-row CTRs gives a 2-impression row the same vote as a 200k-impression row.",
+    "body": "<p>A rate metric must be the ratio of sums, never the average of per-row ratios &mdash; <code>avg(ctr)</code> weights every row equally, so low-volume rows drag the number away from the true rate:</p><pre><code>sum(clicks) / sum(impressions)  <span class=\"cm\">-- correct</span>\navg(clicks / impressions)       <span class=\"cm\">-- wrong</span></code></pre><p>Hit this in a Databricks AI/BI dashboard: widget expressions forbid division, which tempts the AVG shortcut. Compute the rate as a dataset-level custom calculation with <code>measure()</code>, or pre-aggregate in SQL.</p>",
+    "tags": [
+      "from-my-work",
+      "rates",
+      "weighted-average",
+      "dashboards"
+    ],
+    "src": "memory/patterns.md 2026-05-11 - dashboard rate-metric rule"
+  },
+  {
+    "id": "auto-20260611-3",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "DQX: quarantine bad rows, do not just flag them",
+    "hook": "dbt tests judge a table after it is built; DQX filters rows while the pipeline runs.",
+    "body": "<p>DQX (Databricks Labs, v1 May 2026) applies row- and column-level quality rules to PySpark DataFrames in flight, batch or streaming. Each failing row can be dropped, marked with a reason column, or <strong>quarantined</strong> to a side table for repair &mdash; so the good 99% ships on time instead of the whole load failing one assertion. It also profiles input data and auto-generates candidate rules. Complements dbt tests, which only validate after materialization.</p>",
+    "tags": [
+      "dqx",
+      "quarantine",
+      "data-quality"
+    ],
+    "src": "https://databrickslabs.github.io/dqx/"
+  },
+  {
+    "id": "auto-20260611-4",
+    "cat": "Spark",
+    "level": "Senior",
+    "title": "Row-level concurrency: two MERGEs, one file, no conflict",
+    "hook": "Deletion vectors quietly bought you concurrent writers.",
+    "body": "<p>Concurrent MERGE/UPDATE/DELETE jobs used to abort with <code>ConcurrentAppendException</code> when they touched the same data file. On DBR 14.3+ with deletion vectors enabled, Delta reconciles at the <em>row</em> level: two transactions modifying different rows in the same file have their deletion vectors merged instead of one failing. Catches: partitioned tables do not get it (one more reason to prefer Liquid Clustering), and writes to the <em>same</em> rows still conflict &mdash; serialise those.</p>",
+    "tags": [
+      "row-level-concurrency",
+      "deletion-vectors",
+      "merge"
+    ],
+    "src": "https://docs.databricks.com/aws/en/optimizations/isolation/row-level-concurrency"
+  },
+  {
+    "id": "auto-20260611-5",
+    "cat": "dbt",
+    "level": "Core",
+    "title": "dbt Core v2: one Rust runtime, strict spec",
+    "hook": "The Python engine is gone &mdash; and your silently ignored YAML typos now fail loudly.",
+    "body": "<p>dbt Core v2.0 (alpha June 2026, still Apache 2.0) runs on the same open-sourced Rust runtime as Fusion, so OSS users stop waiting for features to be ported from the paid engine. Day-to-day changes: a tightly defined <strong>language spec</strong> turns misspelled configs from silent no-ops into errors; artifacts ship as <strong>Parquet</strong> you can query with DuckDB instead of a giant manifest.json; built-in <code>dbt lint</code> is SQLFluff-compatible at roughly 50x the speed.</p>",
+    "tags": [
+      "dbt-core-v2",
+      "fusion",
+      "rust"
+    ],
+    "src": "https://docs.getdbt.com/blog/dbt-core-v2-is-here"
   }
 ];

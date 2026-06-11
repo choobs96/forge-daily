@@ -1369,5 +1369,77 @@ window.SWIPE_CARDS = [
       "rust"
     ],
     "src": "https://docs.getdbt.com/blog/dbt-core-v2-is-here"
+  },
+  {
+    "id": "auto-20260612-1",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Incremental models hoard rows the source hard-deleted",
+    "hook": "Counts dropped after a full refresh? The pipeline may finally be telling the truth.",
+    "body": "<p>Real lesson from Salesforce-sourced models (<code>stg_tradie_account__salesforce_account</code> and children): an incremental run only inserts and updates &mdash; it never removes a row the source <em>hard-deleted</em>. Purged records (stale test accounts) linger in the model for months, then a <code>--full-refresh</code> drops them all at once and the count dive looks like a pipeline bug. Before blaming the transformation, diff the missing IDs against the raw source table &mdash; if they are gone there too, the refresh was a correction, not a regression.</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "hard-deletes",
+      "full-refresh"
+    ],
+    "src": "memory/patterns.md 2026-06-12 - SF full-refresh count-drop investigation"
+  },
+  {
+    "id": "auto-20260612-2",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "Date ranges overlap; equality checks miss them",
+    "hook": "The dedup only caught cycles starting the same day - shifted-but-overlapping cycles leaked straight through.",
+    "body": "<p>Real bug in a billing-cycle dedup: old-subscription cycles were excluded only when their <code>cycle_start</code> <em>equalled</em> a current-sub cycle's start. Cycles that began earlier but covered the same period slipped into the metrics. The correct test for any two date ranges is interval intersection:</p><pre><code>where old.cycle_start &lt;= cur.cycle_end\n  and cur.cycle_start &lt;= old.cycle_end</code></pre><p>Apply it anywhere validity windows collide &mdash; SCD2 versions, subscriptions, billing periods. Test overlap, never boundary equality.</p>",
+    "tags": [
+      "from-my-work",
+      "date-ranges",
+      "overlap",
+      "dedup"
+    ],
+    "src": "memory/patterns.md 2026-05-07 - account_cycles overlap dedup"
+  },
+  {
+    "id": "auto-20260612-3",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Stored procedures land in Unity Catalog",
+    "hook": "begin...end, loops and execute immediate - warehouse SQL finally went procedural.",
+    "body": "<p>Spark 4.0 added ANSI SQL/PSM scripting &mdash; <code>begin...end</code> blocks with declared variables, <code>if</code>/<code>case</code>, loops, exception handlers, and dynamic SQL via <code>identifier()</code> and <code>execute immediate</code>. Databricks then made <code>create procedure</code> GA (Feb 2026): the script persists in Unity Catalog with governed permissions, takes <code>in</code>/<code>out</code>/<code>inout</code> parameters, and runs via <code>call</code>. Reach for it for parameterised maintenance and admin loops &mdash; but keep core transformations in dbt models, where lineage and tests live.</p>",
+    "tags": [
+      "stored-procedures",
+      "sql-scripting",
+      "unity-catalog"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-sql-stored-procedures-databricks"
+  },
+  {
+    "id": "auto-20260612-4",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Type widening: int to bigint without a rewrite",
+    "hook": "The column outgrew its type - and you no longer rebuild the table to fix it.",
+    "body": "<p>Set <code>delta.enableTypeWidening = true</code> and <code>alter table t alter column c type bigint</code> becomes a metadata-only change &mdash; no data files rewritten. Supported widenings: byte/short/int to bigint, decimal or double; float to double; date to timestamp_ntz; decimal precision growth. With <code>mergeSchema</code>, a wider source type auto-widens the target during MERGE and Auto Loader writes. Two catches: the protocol upgrade locks out readers below DBR 15.4, and several widenings break Iceberg/UniForm compatibility until metadata is regenerated.</p>",
+    "tags": [
+      "type-widening",
+      "delta",
+      "schema-evolution"
+    ],
+    "src": "https://docs.databricks.com/aws/en/delta/type-widening"
+  },
+  {
+    "id": "auto-20260612-5",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Tableau is building its own semantic layer",
+    "hook": "Every vendor now wants to own where revenue is defined - including your BI tool.",
+    "body": "<p>Tableau Semantics (inside Tableau Next and Salesforce Data Cloud) defines semantic models &mdash; entities, metrics, relationships &mdash; that ground Tableau Agent's answers, and 2026.1 even auto-generates them from workspaces. The architectural question for an analytics engineer: where do definitions live? Warehouse-side layers (Databricks Metric Views, dbt Semantic Layer) serve every tool from one definition; BI-side semantics risk re-fragmenting metrics per tool &mdash; the very problem semantic layers were meant to kill. OSI interchange is the proposed bridge. Choose deliberately.</p>",
+    "tags": [
+      "tableau-semantics",
+      "semantic-layer",
+      "tableau-next"
+    ],
+    "src": "https://www.tableau.com/blog/what-is-tableau-semantics"
   }
 ];

@@ -1516,5 +1516,80 @@ window.SWIPE_CARDS = [
       "kafka"
     ],
     "src": "https://www.databricks.com/blog/announcing-general-availability-zerobus-ingest-part-lakeflow-connect"
+  },
+  {
+    "id": "auto-20260616-1",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "approx_count_distinct for sanity checks, exact for metrics",
+    "hook": "Counting distinct shuffles everything; for a sanity check you do not need the precise number.",
+    "body": "<p><code>count(distinct col)</code> forces a full shuffle to deduplicate &mdash; on billions of rows that shuffle <em>is</em> the slow part of exploration. <code>approx_count_distinct(col)</code> uses HyperLogLog: 10&ndash;100x faster, ~2% error. Reach for it on grain checks, null-rate profiling and &ldquo;how big is this&rdquo; questions where 2% never changes the decision. Switch back to exact <code>count(distinct)</code> only for the production metric you actually report.</p>",
+    "tags": [
+      "from-my-work",
+      "performance",
+      "exploration",
+      "hyperloglog"
+    ],
+    "src": "patterns.md 2026-04-22 - exploration sanity-check rule"
+  },
+  {
+    "id": "auto-20260616-2",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "A 'table' upstream stamps every row on each rebuild",
+    "hook": "Your incremental model re-scans an upstream's entire history every day, and nothing changed.",
+    "body": "<p>A model materialized as <code>table</code> (not <code>incremental</code>) sets <code>__model_updated_ts = current_timestamp()</code> on <em>all</em> rows each rebuild. A downstream checkpoint-incremental model that watermarks on that column then sees every upstream row as new and re-scans the whole table daily. Harmless when the upstream is tiny (&lt;1% of total); expensive when it is large. Fix: checkpoint against a real event timestamp, or make the upstream incremental too.</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "checkpoint",
+      "materialization"
+    ],
+    "src": "datadex int_lead_claimed_unified / patterns.md 2026-03-10"
+  },
+  {
+    "id": "auto-20260616-3",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "AUTO CDC INTO derives SCD2 so you skip the MERGE",
+    "hook": "150 lines of MERGE to maintain a slowly-changing dimension, replaced by about seven.",
+    "body": "<p>In Lakeflow Spark Declarative Pipelines, <code>auto cdc into</code> (and <code>auto cdc from snapshot</code>) take a CDC feed or raw snapshots and compute SCD type 1 or type 2 for you &mdash; ordering by a sequence column, handling out-of-order events and deletes. You declare the keys, the sequence column and the SCD type; the engine maintains the history. It replaces the older APPLY CHANGES APIs (same syntax, still supported) and the hand-rolled MERGE that used to encode all of that logic.</p>",
+    "tags": [
+      "cdc",
+      "scd",
+      "lakeflow",
+      "merge"
+    ],
+    "src": "https://community.databricks.com/t5/technical-blog/from-150-lines-of-merge-into-to-7-lines-of-sql-auto-cdc-comes-to/ba-p/155355"
+  },
+  {
+    "id": "auto-20260616-4",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Variant shredding stores hot fields as typed columns",
+    "hook": "A VARIANT column is one binary blob, until shredding pulls the fields you query into Parquet.",
+    "body": "<p><code>variant</code> stores semi-structured data as a single binary value &mdash; flexible, but every field read touches the whole blob. Shredding (Spark 4.1) automatically extracts the frequently-queried fields and writes them as separate, typed Parquet columns. The engine then reads just those columns and prunes the rest, so column pruning and predicate pushdown work again and I/O drops sharply, while rare fields stay in the blob. You get JSON flexibility with near-columnar scan speed.</p>",
+    "tags": [
+      "variant",
+      "shredding",
+      "parquet",
+      "spark-4"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-apache-sparkr-41"
+  },
+  {
+    "id": "auto-20260616-5",
+    "cat": "AI",
+    "level": "Core",
+    "title": "Your next data consumer is an agent, not a person",
+    "hook": "Dashboards assume a human reads them; agents need the meaning written down.",
+    "body": "<p>A growing share of queries now come from autonomous agents that must discover and use data with no human to interpret a cryptic column name. Gartner projects 60% of agentic-analytics efforts relying on MCP alone will fail by 2028 for lack of a consistent semantic layer. The emerging skill &mdash; context engineering &mdash; is embedding machine-readable meaning (metrics, grain, constraints, lineage) alongside the data, so an agent uses it correctly instead of guessing.</p>",
+    "tags": [
+      "agents",
+      "context-engineering",
+      "semantic-layer",
+      "career"
+    ],
+    "src": "https://atlan.com/know/context-layer-for-ai-agents/"
   }
 ];

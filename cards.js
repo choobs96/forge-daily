@@ -1591,5 +1591,79 @@ window.SWIPE_CARDS = [
       "career"
     ],
     "src": "https://atlan.com/know/context-layer-for-ai-agents/"
+  },
+  {
+    "id": "auto-20260617-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "Organic rows hide behind a blank string, not a null",
+    "hook": "A 'valid' flag and a blank-string filter - miss either and partner job counts quietly inflate.",
+    "body": "<p>Real gotcha querying <code>marketplace__jobs_claims_category_geo_account</code>: about 4.6% of partner rows are invalid or test jobs, so always filter <code>valid_indicator = 'valid'</code>. And <code>partnership_type</code> stores a <strong>blank string</strong> (not null) for organic jobs &mdash; isolate true partner rows with <code>partnership_type &lt;&gt; ''</code>, never <code>is not null</code>, which lets every organic row leak through. Two filters, both easy to forget, both silently over-count.</p>",
+    "tags": [
+      "from-my-work",
+      "soft-filter",
+      "blank-string",
+      "correctness"
+    ],
+    "src": "patterns.md 2026-04-16 - marketplace jobs_claims valid_indicator + partnership_type"
+  },
+  {
+    "id": "auto-20260617-2",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "Fivetran renames every Salesforce __c field",
+    "hook": "The custom field __c you know from SOQL does not exist in Databricks under that name.",
+    "body": "<p>Salesforce data replicated into Databricks by Fivetran has every custom field's trailing <code>__c</code> stripped to a single <code>_c</code>, and names lowercased. So <code>Tradie_Engagement_Summary__c</code> in Salesforce is <code>tradie_engagement_summary_c</code> in <code>lakehouse_production.hipages_salesforce</code>, and a query written with the SOQL name errors on an unknown column. Always DESCRIBE the raw replicated table first &mdash; the warehouse column names are not the SOQL field names.</p>",
+    "tags": [
+      "from-my-work",
+      "salesforce",
+      "fivetran",
+      "column-naming"
+    ],
+    "src": "patterns.md 2026-04-02 - Fivetran strips __c to _c on SF custom fields"
+  },
+  {
+    "id": "auto-20260617-3",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Photon does not crash on unsupported ops - it falls back",
+    "hook": "Hit an operation Photon cannot run and it quietly hands that part back to Spark.",
+    "body": "<p>Photon is Databricks' vectorized C++ engine: Catalyst still plans the query, but Photon executes supported operators in columnar batches instead of the JVM's row-by-row path. The catch &mdash; an unsupported operation does not error, it transparently falls back to Spark for that part. Correct results, but you silently lose the speedup. Check the query profile for the percentage of task time spent in Photon, and the plan DAG colours Photon operators distinctly from the Spark ones.</p>",
+    "tags": [
+      "photon",
+      "vectorized",
+      "query-plan"
+    ],
+    "src": "https://docs.databricks.com/aws/en/compute/photon"
+  },
+  {
+    "id": "auto-20260617-4",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "The default window frame is RANGE, and it bites running sums",
+    "hook": "Add an order by to your running total and tied rows suddenly share one inflated number.",
+    "body": "<p>A running total written as <code>sum(x) over (order by dt)</code> with no explicit frame defaults to <code>range between unbounded preceding and current row</code>. range groups <em>peer</em> rows sharing the same ordered value, so two rows on the same date both get the cumulative total <em>through</em> that date &mdash; not a true row-by-row sum. Always state the frame; rows also skips the slower range spool.</p><pre><code>sum(x) over (order by dt\n  rows between unbounded preceding and current row)</code></pre>",
+    "tags": [
+      "window-functions",
+      "frame",
+      "rows-vs-range",
+      "running-total"
+    ],
+    "src": "https://sqlpad.io/tutorial/sql-window-frames-explained-rows-vs-range-running-totals-and-the-default-that-changes-your-results/"
+  },
+  {
+    "id": "auto-20260617-5",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Shallow clone: a prod-sized test table for almost nothing",
+    "hook": "Copy the metadata, not the files - then mind the VACUUM.",
+    "body": "<p>A shallow clone duplicates only a table's metadata, not its data files &mdash; near-instant and near-free, ideal for testing a migration or refactor against prod-scale data. dbt's <code>dbt clone</code> command uses it to stand up a CI environment without re-running models. The catch: the clone points at the source's files, so a <code>vacuum</code> on the source deletes files the clone still needs and breaks it. Treat shallow clones as short-lived.</p><pre><code>create table dev.dim_account\n  shallow clone prod.dim_account;</code></pre>",
+    "tags": [
+      "shallow-clone",
+      "zero-copy",
+      "dbt-clone",
+      "delta"
+    ],
+    "src": "https://docs.databricks.com/aws/en/delta/clone"
   }
 ];

@@ -1740,5 +1740,95 @@ window.SWIPE_CARDS = [
       "databricks"
     ],
     "src": "https://docs.databricks.com/aws/en/genie/agent-mode"
+  },
+  {
+    "id": "auto-20260619-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "A 404 from the source API can be a real state",
+    "hook": "The endpoint returned 404 for hundreds of accounts - and that was the answer, not an error.",
+    "body": "<p>Reconciling Databricks credit-expiry against the shed admin API, the per-account usage endpoint returned <code>404 ActiveSubscriptionNotFound</code> for many tradies. That is not a failure to retry &mdash; it is the API encoding a legitimate state: the account has no active subscription (cancelled or expired). The rows still exist, and Kafka (<code>stg_accounts_balance_updated__events</code>) still holds their data. Lesson: before treating a source error as missing data, check whether it means a real state, and reconcile against the canonical full-population source, not the API that hides inactive rows.</p>",
+    "tags": [
+      "from-my-work",
+      "reconciliation",
+      "source-of-truth",
+      "api"
+    ],
+    "src": "patterns.md 2026-05-14 - shed usage API 404 = cancelled account; use Kafka for full population"
+  },
+  {
+    "id": "auto-20260619-2",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "A column can die; profile nulls by time, not overall",
+    "hook": "A field fully populated for years went 100% null after a system change - and one null check would never catch it.",
+    "body": "<p>Profiling Salesforce lead features, <code>Telephone_Status__c</code> looked usable in aggregate but was 100% null for every 2024-and-later lead &mdash; a field the business simply stopped writing. A single null-rate check across all history hides this, because old populated rows dilute the recent gap. Profile key columns segmented by month or load date, not once over everything. A column that died on a date is invisible to one count of nulls, and feeding it into a model or feature set silently poisons exactly the recent rows you care about.</p>",
+    "tags": [
+      "from-my-work",
+      "profiling",
+      "null-rate",
+      "salesforce"
+    ],
+    "src": "patterns.md 2026-03-09 - SF Telephone_Status__c 100% null for 2024+ leads"
+  },
+  {
+    "id": "auto-20260619-3",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Reverse ETL: the warehouse drives the SaaS tools",
+    "hook": "The same dbt model that feeds a dashboard can now write straight into Salesforce.",
+    "body": "<p>Reverse ETL syncs modeled warehouse tables back out to operational SaaS &mdash; CRM, ad networks, marketing, customer success &mdash; so a governed mart populates a Salesforce field, not just a chart. Hightouch and Census lead in 2026; Census coined &ldquo;operational analytics&rdquo; for the pattern, and Gartner reports warehouse-native activation jumped from a priority for 38% of teams to 72%. The analytics-engineer angle: your model gains a higher-stakes consumer &mdash; a wrong value lands directly in a rep's CRM, so grain and dedup correctness matter even more than on a dashboard.</p>",
+    "tags": [
+      "reverse-etl",
+      "operational-analytics",
+      "hightouch",
+      "census"
+    ],
+    "src": "https://hightouch.com/blog/reverse-etl"
+  },
+  {
+    "id": "auto-20260619-4",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Iceberg partition evolution changes layout, no rewrite",
+    "hook": "Repartition a billion-row table by editing metadata, not rewriting a single old file.",
+    "body": "<p>Iceberg <strong>hidden partitioning</strong> stores the partition transform (say <code>day(ts)</code>) in metadata, so queries filter on the raw column and the engine derives the partition &mdash; no exposed partition column to get wrong, no <code>where dt = ...</code> boilerplate. <strong>Partition evolution</strong> then changes the scheme as a metadata-only operation: new data uses the new layout, old files keep theirs, and the engine reconciles both at read time. Contrast Delta Liquid Clustering, which replaces partitioning with adaptive background re-clustering (ongoing compute) rather than evolving a declared scheme.</p>",
+    "tags": [
+      "iceberg",
+      "partition-evolution",
+      "hidden-partitioning",
+      "liquid-clustering"
+    ],
+    "src": "https://www.dremio.com/blog/future-proof-partitioning-and-fewer-table-rewrites-with-apache-iceberg/"
+  },
+  {
+    "id": "auto-20260619-5",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "dlt: code-first Python ingestion that self-maintains",
+    "hook": "Write a Python function that yields rows; schema evolution and incremental load come free.",
+    "body": "<p>dlt (data load tool, by dltHub) is an open-source Python library for ingestion: you write an ordinary function that yields records and dlt handles schema inference, schema evolution, incremental loading, normalization, merges and retries implicitly. It runs anywhere Python runs &mdash; Airflow, a serverless function, a notebook &mdash; with no backend service, unlike managed Fivetran or Airbyte, which is why it fits custom and long-tail sources those connectors do not cover. By early 2026 the community passed 81k pipelines, and roughly 91% of new ones are now authored by AI agents driving the library.</p>",
+    "tags": [
+      "dlt",
+      "ingestion",
+      "python",
+      "schema-evolution"
+    ],
+    "src": "https://dlthub.com/docs/intro"
+  },
+  {
+    "id": "auto-20260619-6",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "OpenLineage turns 'what breaks?' into a query",
+    "hook": "Know which dashboard a column rename will break before you ship the rename.",
+    "body": "<p>OpenLineage is an open standard that instruments jobs (Spark, dbt, Airflow) to emit run / job / dataset lineage as they run &mdash; including <strong>column-level</strong> lineage via a facet recording each output column's input columns and the transform type (direct derivation vs indirect influence, plus masking). The payoff is self-service impact analysis: a governance platform reading the lineage can auto-notify every downstream owner when an upstream schema changes. &ldquo;Who depends on this column?&rdquo; stops being a code-grep-and-ask-around and becomes a catalog query you run before the change.</p>",
+    "tags": [
+      "openlineage",
+      "column-lineage",
+      "impact-analysis",
+      "lineage"
+    ],
+    "src": "https://openlineage.io/docs/spec/facets/dataset-facets/column_lineage_facet/"
   }
 ];

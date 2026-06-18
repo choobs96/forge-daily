@@ -1665,5 +1665,80 @@ window.SWIPE_CARDS = [
       "delta"
     ],
     "src": "https://docs.databricks.com/aws/en/delta/clone"
+  },
+  {
+    "id": "auto-20260618-1",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "Latest-row snapshots erase past trends",
+    "hook": "Filtering to the current state per entity makes closed records vanish from every prior month.",
+    "body": "<p>Real bug from PRO opportunity touch-point analysis. A &ldquo;current state per opp&rdquo; view keeps only the latest row per opportunity and filters to in-progress &mdash; perfect for a <em>today</em> snapshot, fatal for a monthly trend, because an opp that closed in March no longer appears in March's count. For a time series, query <em>all</em> stage transitions, roll up compliance per entity <em>within</em> each period, then group by month. Snapshot logic answers &ldquo;now&rdquo;; trend logic must reconstruct each period's population.</p>",
+    "tags": [
+      "from-my-work",
+      "snapshot",
+      "trends",
+      "point-in-time"
+    ],
+    "src": "patterns.md 2026-03-03 - PRO opp touch-point snapshot vs trend"
+  },
+  {
+    "id": "auto-20260618-2",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "A picklist field can be a free-text dump",
+    "hook": "The column is named like a category, but only a fifth of rows hold a valid value.",
+    "body": "<p>Real gotcha: Salesforce <code>Business_Structure__c</code> looks like a structured picklist, but reps treated it as a notes field &mdash; suburbs, job descriptions, random text. Only ~87K of 467K rows (about 19%) held one of the five valid values. Before using any categorical field as a dimension or filter, profile it: <code>count(distinct)</code>, top values by frequency, and the share matching the expected set. A low validity rate means clean or exclude it &mdash; never group by it raw.</p>",
+    "tags": [
+      "from-my-work",
+      "profiling",
+      "categorical",
+      "salesforce"
+    ],
+    "src": "patterns.md 2026-03-09 - SF Business_Structure__c free-text notes dump"
+  },
+  {
+    "id": "auto-20260618-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Delta catalog-managed tables",
+    "hook": "The catalog, not the _delta_log files, is now the authority on who can commit.",
+    "body": "<p>Delta 4.x <strong>catalog-managed tables</strong> (preview) move commit authority from the filesystem to the catalog (e.g. Unity Catalog). Clients reference tables by name, not path; the catalog resolves storage and brokers concurrency. Writers stop doing filesystem put-if-absent atomic writes &mdash; they stage commits under <code>_delta_log/_staged_commits</code> and ask the catalog to ratify them. This closes the governance gap where path-based writes bypassed controls, and unlocks multi-engine and multi-table transactions. The practical cost: hardcoded path-based writes break.</p>",
+    "tags": [
+      "delta",
+      "catalog-managed",
+      "unity-catalog",
+      "governance"
+    ],
+    "src": "https://delta.io/blog/2026-02-02-delta-catalog-managed-tables/"
+  },
+  {
+    "id": "auto-20260618-4",
+    "cat": "dbt",
+    "level": "Core",
+    "title": "lag_tolerance skips fresh-enough models",
+    "hook": "Stop rebuilding the whole DAG on every schedule - let dbt skip models whose data has not changed.",
+    "body": "<p>dbt's state-aware orchestration (Fusion) skips a model when neither its SQL (ignoring whitespace/comments) nor any upstream source data has changed, reusing builds across jobs via shared model-level state. The newer <code>lag_tolerance</code> config improves on <code>build_after</code>: it compares against the <em>freshness of the underlying data</em>, not the model's last run. Example: skip rebuilding <code>dim_wizards</code> if it was refreshed within the last 4 hours, even when the job fires more often. Direct warehouse-cost and runtime savings versus full-DAG reruns.</p>",
+    "tags": [
+      "state-aware",
+      "lag-tolerance",
+      "fusion",
+      "orchestration"
+    ],
+    "src": "https://docs.getdbt.com/docs/deploy/state-aware-about"
+  },
+  {
+    "id": "auto-20260618-5",
+    "cat": "AI",
+    "level": "Core",
+    "title": "Genie Agent mode runs a research loop",
+    "hook": "Genie can now plan, run many queries, and iterate - not just translate one question to one SQL.",
+    "body": "<p>Databricks Genie <strong>Agent mode</strong> (Research Agent) adds multi-step reasoning on top of single-shot text-to-SQL. For a &ldquo;why did revenue spike?&rdquo; question it drafts a research plan with hypotheses, runs multiple queries against Unity Catalog, learns from each result, and iterates until confident &mdash; returning a report with citations, charts and supporting tables (exportable to PDF). Standard mode stays faster for simple lookups. Constraint: Agent mode is UI-only, no API. Note: from 6 July 2026 Genie moves to pay-as-you-go pricing beyond a free monthly allowance.</p>",
+    "tags": [
+      "genie",
+      "agent-mode",
+      "research-agent",
+      "databricks"
+    ],
+    "src": "https://docs.databricks.com/aws/en/genie/agent-mode"
   }
 ];

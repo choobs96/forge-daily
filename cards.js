@@ -1830,5 +1830,80 @@ window.SWIPE_CARDS = [
       "lineage"
     ],
     "src": "https://openlineage.io/docs/spec/facets/dataset-facets/column_lineage_facet/"
+  },
+  {
+    "id": "auto-20260622-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "Soft-delete is not the only validity flag",
+    "hook": "You filtered __is_deleted - and 4.6% test and junk jobs still padded the count.",
+    "body": "<p>Real gotcha from the marketplace jobs model: <code>marketplace__jobs_claims_category_geo_account</code> carries a <code>valid_indicator</code> column, and about 4.6% of partner rows are flagged <code>'invalid'</code> &mdash; test and junk jobs that <code>__is_deleted</code> never touches. Soft-delete and business-validity are <em>different dimensions</em>. Before aggregating any domain fact, ask what validity flags exist beyond the soft-delete one &mdash; <code>valid_indicator</code>, <code>status</code>, <code>is_test</code> &mdash; and filter them:</p><pre><code><span class=\"kw\">where</span> valid_indicator = <span class=\"st\">'valid'</span></code></pre>",
+    "tags": [
+      "from-my-work",
+      "validity-flag",
+      "filters",
+      "soft-delete"
+    ],
+    "src": "memory/patterns.md 2026-04-16 - marketplace jobs valid_indicator filter"
+  },
+  {
+    "id": "auto-20260622-2",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "Self-healing incremental: retry the rows that were not ready",
+    "hook": "A claim arrived before its job assignment, so the join key was null - and the next run heals it.",
+    "body": "<p>Real pattern from <code>int_lead_claimed_unified</code>: ~58 claims land from domain events <em>before</em> the matching <code>job_assignment_id</code> exists, so the LEFT JOIN leaves the key null. Instead of dropping or erroring, the incremental design re-selects those still-unresolved rows on every run; once the assignment arrives, the key fills in. The rule for any incremental that joins two async streams: keep first-miss rows in the next batch's candidate set so late arrivals self-heal &mdash; never treat the first null as final.</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "late-arriving",
+      "dbt"
+    ],
+    "src": "memory/patterns.md 2026-03-10 - int_lead_claimed_unified self-healing null job_assignment_id"
+  },
+  {
+    "id": "auto-20260622-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "DuckLake puts the catalog in a SQL database",
+    "hook": "Iceberg scatters metadata across JSON and Avro files; DuckLake keeps it in one SQL table.",
+    "body": "<p>DuckLake (1.0, April 2026) keeps the data as Parquet in object storage but stores <em>all</em> table metadata &mdash; snapshots, schema, statistics, deletion vectors &mdash; in a SQL database instead of a tree of manifest files. A new snapshot is just a transactional insert, so thousands of tiny changes do not spawn the metadata-file storms that plague Iceberg and Delta. <strong>Data inlining</strong> writes small inserts straight into the catalog DB and flushes to Parquet later. Clients exist for Spark, Trino and DataFusion.</p>",
+    "tags": [
+      "ducklake",
+      "lakehouse",
+      "catalog",
+      "metadata"
+    ],
+    "src": "https://ducklake.select/2026/04/13/ducklake-10/"
+  },
+  {
+    "id": "auto-20260622-4",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Declarative pipelines are now in open-source Spark",
+    "hook": "Databricks donated DLT's core to Apache Spark - declare the datasets, not the execution order.",
+    "body": "<p>Spark Declarative Pipelines (Apache Spark 4.1, via the <code>pyspark.pipelines</code> module) brings the Delta-Live-Tables model into vendor-neutral open source &mdash; Databricks donated the DLT core at the 2025 Data+AI Summit. You declare datasets (streaming tables, materialized views) and their queries; the engine infers the dependency graph, runs them in order, and handles incremental refresh and retries with no hand-wired task DAG. Databricks' Lakeflow Spark Declarative Pipelines is the managed superset. The win: pipeline logic stops being locked to one vendor's runtime.</p>",
+    "tags": [
+      "spark",
+      "declarative-pipelines",
+      "lakeflow",
+      "open-source"
+    ],
+    "src": "https://www.waitingforcode.com/apache-spark-structured-streaming/spark-declarative-pipelines-101/read"
+  },
+  {
+    "id": "auto-20260622-5",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakebase: OLTP Postgres inside the lakehouse",
+    "hook": "The app database and the warehouse stop being two systems with a pipeline between them.",
+    "body": "<p>Lakebase (GA February 2026) is managed serverless Postgres fused into Databricks and governed by Unity Catalog. Its <strong>LTAP</strong> architecture (Lake Transactional/Analytical Processing) aims to run transactional and analytical workloads on one copy of data &mdash; no reverse-ETL or read replica to keep the app and the warehouse in sync &mdash; and adds instant database branching and point-in-time recovery. For an analytics engineer it means the operational source and the lakehouse converge, shrinking the ingestion gap reverse ETL was invented to bridge.</p>",
+    "tags": [
+      "lakebase",
+      "ltap",
+      "oltp",
+      "unity-catalog"
+    ],
+    "src": "https://www.databricks.com/product/lakebase"
   }
 ];

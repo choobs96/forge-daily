@@ -1905,5 +1905,80 @@ window.SWIPE_CARDS = [
       "unity-catalog"
     ],
     "src": "https://www.databricks.com/product/lakebase"
+  },
+  {
+    "id": "auto-20260623-1",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "A null column silently collides surrogate keys",
+    "hook": "Two different rows, both null in one input, hash to the exact same key.",
+    "body": "<p><code>dbt_utils.generate_surrogate_key</code> coalesces every null input to the literal string 'null' before hashing. So if you build a key from a <strong>nullable</strong> attribute, two distinct rows that are both null there produce an identical key &mdash; collapsing grain or creating phantom duplicates that no schema check catches. Rule: build keys from columns that are always unique per row, never optional ones. Verify after every build:</p><pre><code>select count(*), count(distinct sk) from {{ this }}; <span class=\"cm\">-- must match</span></code></pre>",
+    "tags": [
+      "from-my-work",
+      "surrogate-key",
+      "null",
+      "grain"
+    ],
+    "src": "memory/platform-constraints.md - generate_surrogate_key nullable-column collision"
+  },
+  {
+    "id": "auto-20260623-2",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "lead()'s third argument closes the open interval",
+    "hook": "The newest row of every entity ends in null - decide what 'still current' means.",
+    "body": "<p>Building validity windows (scd2, billing cycles) with <code>lead(start_dt) over (partition by id order by start_dt)</code> leaves the latest row's end date <strong>null</strong> &mdash; the open interval. An implicit null silently shrinks 'as of today' durations and drops current rows from <code>between</code> filters and overlap joins. Pass a default so 'open' is explicit:</p><pre><code>lead(start_dt, 1, current_timestamp())\n  over (partition by id order by start_dt) as end_dt</code></pre>",
+    "tags": [
+      "from-my-work",
+      "window",
+      "lead",
+      "scd2"
+    ],
+    "src": "memory/patterns.md 2026-03-03 - lead default current_timestamp implicit as-of-today"
+  },
+  {
+    "id": "auto-20260623-3",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakehouse//RT: millisecond serving, no second database",
+    "hook": "The speed layer agents need, without copying data into a separate store.",
+    "body": "<p>Lakehouse//RT (Databricks, June 2026), powered by the new <strong>Reyden</strong> engine, serves high-concurrency, low-latency queries directly on governed Delta and Iceberg tables &mdash; benchmarked at sub-100ms over 12,000 queries/sec, as low as 10ms on small datasets. Unlike streaming ingestion latency, this is the <em>query-serving</em> layer: no separate real-time database, no CDC pipeline, no second copy to govern. It closes the gap that forced teams to bolt a dedicated serving store onto the lakehouse for dashboards and agent lookups.</p>",
+    "tags": [
+      "lakehouse-rt",
+      "reyden",
+      "real-time",
+      "serving"
+    ],
+    "src": "https://www.databricks.com/company/newsroom/press-releases/databricks-launches-lakehousert-bring-real-time-analytics-directly"
+  },
+  {
+    "id": "auto-20260623-4",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "The new dbt semantic layer lives inside model YAML",
+    "hook": "No more standalone semantic_models files drifting from the models they describe.",
+    "body": "<p>dbt's 2026 semantic-layer spec embeds the semantic model <strong>alongside each model's YAML entry</strong> instead of in separate files, promotes frequently-used options to top-level keys, and collapses 'measures' into plain metrics. Definitions sit next to the columns they describe, so they stop drifting out of sync. Paired with the dbt MCP server (now OAuth, so Claude or ChatGPT query governed metrics with your dbt login &mdash; no token hand-off), one metric definition serves BI, SQL, and AI agents alike.</p>",
+    "tags": [
+      "semantic-layer",
+      "metricflow",
+      "mcp",
+      "yaml"
+    ],
+    "src": "https://www.getdbt.com/blog/what-s-shipped-in-dbt-may-2026"
+  },
+  {
+    "id": "auto-20260623-5",
+    "cat": "Role",
+    "level": "Senior",
+    "title": "Your new deliverable: machine-readable context",
+    "hook": "The metric defs and lineage you write are now the agent's reasoning substrate.",
+    "body": "<p>dbt Labs' 2026 framing of the analytics engineer: the durable work is being the <strong>AI context provider</strong>. Agents reason reliably only from what you structure for them &mdash; metric definitions, column-level lineage, model docs, schema contracts. 'Semantic precision' &mdash; a definition unambiguous to both a human and a model &mdash; becomes a real skill and a shipped artifact. Competing with AI on raw code production shrinks the role; owning the context that makes every agent correct expands it.</p>",
+    "tags": [
+      "career",
+      "ai-context",
+      "semantic-precision",
+      "governance"
+    ],
+    "src": "https://www.getdbt.com/blog/the-analytics-engineer-in-2026-system-designer-governance-owner-ai-context-provider"
   }
 ];

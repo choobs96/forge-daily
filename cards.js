@@ -1980,5 +1980,80 @@ window.SWIPE_CARDS = [
       "governance"
     ],
     "src": "https://www.getdbt.com/blog/the-analytics-engineer-in-2026-system-designer-governance-owner-ai-context-provider"
+  },
+  {
+    "id": "auto-20260624-1",
+    "cat": "DQ",
+    "level": "Senior",
+    "title": "Two money columns, two different units",
+    "hook": "Summing dollars and credits inflated revenue 100x before anyone noticed.",
+    "body": "<p>Two columns that both look like money are not the same money. In the PAM flat table, Silver <code>stg_hip_value_products.value</code> is in <strong>dollars</strong>, but the Kafka <code>balance_total_credits</code> field is in <strong>credits</strong> &mdash; and 100 credits = $1. Comparing or summing them across the two sources inflated paid revenue 100x. Before any arithmetic that spans systems, confirm the unit of every money-like column and convert explicitly: <code>credits / 100.0 as dollars</code>.</p>",
+    "tags": [
+      "from-my-work",
+      "units",
+      "credits",
+      "correctness"
+    ],
+    "src": "PAM flat-table migration: Silver value=dollars vs Kafka balance_total_credits=credits (100 credits = $1)"
+  },
+  {
+    "id": "auto-20260624-2",
+    "cat": "SQL",
+    "level": "Senior",
+    "title": "Cycle dedup needs overlap, not a shared start date",
+    "hook": "An old cycle that starts earlier but covers the same period slips straight through.",
+    "body": "<p>Deduping overlapping billing cycles by matching the same <code>cycle_start</code> is too narrow: an old-subscription cycle that <em>starts earlier</em> but still covers the same period never matches, survives, and double-counts. The correct test is range <strong>intersection</strong>, not equal start dates:</p><pre><code><span class=\"kw\">on</span> old.cycle_start &lt; cur.cycle_end\n  <span class=\"kw\">and</span> old.cycle_end &gt; cur.cycle_start</code></pre><p>Two ranges overlap iff each starts before the other ends. Equality only catches the aligned case and leaks the rest.</p>",
+    "tags": [
+      "from-my-work",
+      "dedup",
+      "date-range",
+      "overlap"
+    ],
+    "src": "PAM account_cycles dedup: use date-range overlap, not matching cycle_start"
+  },
+  {
+    "id": "auto-20260624-3",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Asset Bundles are now Declarative Automation Bundles",
+    "hook": "Same YAML-as-infrastructure idea, a new name, and a deeper engine swap.",
+    "body": "<p>Databricks Asset Bundles &mdash; the IaC way to ship jobs, pipelines and dashboards as version-controlled YAML alongside your code &mdash; were renamed <strong>Declarative Automation Bundles</strong> in 2026. The bigger change is underneath: the Terraform deployment engine is being deprecated, and the new <strong>Direct Deployment Engine</strong> becomes the sole supported path in 2026 &mdash; faster plans, no local Terraform state to manage. If you scripted bundles around <code>.terraform</code> state files, that assumption breaks; redeploy on the direct engine.</p>",
+    "tags": [
+      "bundles",
+      "iac",
+      "ci-cd",
+      "direct-deployment-engine"
+    ],
+    "src": "https://docs.databricks.com/aws/en/dev-tools/bundles/"
+  },
+  {
+    "id": "auto-20260624-4",
+    "cat": "Streaming",
+    "level": "Senior",
+    "title": "transformWithState replaces flatMapGroupsWithState",
+    "hook": "Spark 4.0's v2 stateful operator: composite state, TTL, and timers built in.",
+    "body": "<p>Spark 4.0 ships <code>transformWithState</code>, the v2 arbitrary-stateful operator replacing <code>flatMapGroupsWithState</code> / <code>mapGroupsWithState</code> (Scala) and <code>applyInPandasWithState</code> (Python). You define a stateful processor object holding composite state &mdash; <code>ValueState</code>, <code>ListState</code>, <code>MapState</code> &mdash; with per-key TTL eviction and named timers, instead of hand-rolling one opaque state blob. It is the right tool for session windows, dedup-with-expiry, and custom event-time logic. Databricks recommends it over the legacy operators for all new streaming state.</p>",
+    "tags": [
+      "transformwithstate",
+      "structured-streaming",
+      "spark-4",
+      "stateful"
+    ],
+    "src": "https://spark.apache.org/docs/4.0.0/streaming/structured-streaming-transform-with-state.html"
+  },
+  {
+    "id": "auto-20260624-5",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Higher-order functions reshape arrays without exploding",
+    "hook": "Skip the explode-aggregate-collect_list shuffle; work on the array in place.",
+    "body": "<p>To reshape an array column the reflex is <code>explode</code> &rarr; aggregate &rarr; <code>collect_list</code> &mdash; a shuffle plus a fan-out risk. Higher-order functions operate on the array in place: <code>transform</code> maps each element, <code>filter</code> keeps some, <code>aggregate</code> folds to a scalar, <code>exists</code> tests a predicate.</p><pre><code><span class=\"kw\">select</span> transform(prices, p -&gt; p * 1.1) <span class=\"kw\">as</span> marked_up,\n  aggregate(prices, 0, (acc, p) -&gt; acc + p) <span class=\"kw\">as</span> total\n<span class=\"kw\">from</span> orders</code></pre><p>No explode, no regroup &mdash; the grain stays one row per order.</p>",
+    "tags": [
+      "higher-order-functions",
+      "arrays",
+      "transform",
+      "spark-sql"
+    ],
+    "src": "https://docs.databricks.com/aws/en/sql/language-manual/functions/transform"
   }
 ];

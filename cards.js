@@ -2055,5 +2055,79 @@ window.SWIPE_CARDS = [
       "spark-sql"
     ],
     "src": "https://docs.databricks.com/aws/en/sql/language-manual/functions/transform"
+  },
+  {
+    "id": "auto-20260626-1",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "collect_list compresses a history into one journey string",
+    "hook": "Turn an opp's stage history into in-out-in-in and read the path at a glance.",
+    "body": "<p>To analyse how entities <em>move</em> through stages, flatten the ordered event rows into a single string per entity. An order-preserving window <code>collect_list</code> builds the path; <code>concat_ws</code> joins it:</p><pre><code><span class=\"kw\">with</span> seq <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> opp_id,\n    collect_list(stage) <span class=\"kw\">over</span> (\n      <span class=\"kw\">partition by</span> opp_id <span class=\"kw\">order by</span> ts\n      <span class=\"kw\">rows between unbounded preceding</span>\n        <span class=\"kw\">and unbounded following</span>) <span class=\"kw\">as</span> path\n  <span class=\"kw\">from</span> stage_transitions)\n<span class=\"kw\">select</span> opp_id, concat_ws(<span class=\"st\">'-'</span>, any_value(path)) <span class=\"kw\">as</span> journey\n<span class=\"kw\">from</span> seq <span class=\"kw\">group by</span> opp_id</code></pre><p>Now group by <code>journey</code> to rank common paths. Use an explicit <code>rows</code> frame &mdash; plain <code>collect_list</code> order isn't guaranteed in Spark.</p>",
+    "tags": [
+      "from-my-work",
+      "collect-list",
+      "sequence",
+      "window"
+    ],
+    "src": "memory/patterns.md 2026-03-06 - opp journey sequence (collect_list + concat_ws)"
+  },
+  {
+    "id": "auto-20260626-2",
+    "cat": "dbt",
+    "level": "Senior",
+    "title": "One checkpoint per upstream, stored in the model itself",
+    "hook": "A single max(updated_at) is wrong when an incremental unions five sources.",
+    "body": "<p>When an incremental model pulls from several event tables, one global watermark mis-fires: a lagging source forces a re-scan of all, or a fast one skips late rows from a slow one. The datadex pattern stores a <em>map</em> of per-source checkpoints inside the built table, then reads each back next run to resume every source independently.</p><pre><code><span class=\"cm\">-- inject: persist a watermark per upstream</span>\nmap(<span class=\"st\">'src_a'</span>, (<span class=\"kw\">select max</span>(__dl_updated) <span class=\"kw\">from</span> src_a),\n    <span class=\"st\">'src_b'</span>, (<span class=\"kw\">select max</span>(__dl_updated) <span class=\"kw\">from</span> src_b)) <span class=\"kw\">as</span> __evt_checkpoint\n<span class=\"cm\">-- extract: read each source's own max back from {{ this }}</span></code></pre><p>Alias every CTE's timestamp to one name so the macros stay generic.</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "checkpoint",
+      "dbt-macros"
+    ],
+    "src": "datadex macros/events_table_incrementation.sql - inject/extract_events_table_checkpoint"
+  },
+  {
+    "id": "auto-20260626-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Iceberg v3 row lineage is CDC without Debezium",
+    "hook": "Every row now carries an id and the sequence number that last touched it.",
+    "body": "<p>Apache Iceberg v3 (GA on Databricks Runtime 18.0+ and Snowflake from May 2026) makes row lineage mandatory: the engine maintains <code>_row_id</code> and <code>_last_updated_sequence_number</code> on every row automatically. That lets you derive change-data-capture &mdash; what was inserted or updated since snapshot N &mdash; natively from the table, no external CDC connector. v3 also brings deletion vectors (up to 10x faster DML) and a native VARIANT type. The lesson: pick a runtime/catalog that actually exposes v3, not just reads it.</p>",
+    "tags": [
+      "iceberg-v3",
+      "row-lineage",
+      "cdc",
+      "table-format"
+    ],
+    "src": "https://www.databricks.com/blog/next-era-open-lakehouse-apache-icebergtm-v3-public-preview-databricks"
+  },
+  {
+    "id": "auto-20260626-4",
+    "cat": "Career",
+    "level": "Core",
+    "title": "The stack is consolidating: Fivetran absorbed dbt Labs",
+    "hook": "Best-of-breed is giving way to bundled platforms in 2026.",
+    "body": "<p>Fivetran completed its dbt Labs merger on 1 June 2026 (~$10B valuation, 100k+ data teams). It is the 2026 theme: Microsoft Fabric, Databricks Lakeflow and Snowflake native ingestion all now bundle ingest plus transform, and the best-of-breed-per-layer era is fading. For your pivot the merger <em>validates</em> dbt as the industry standard, but expect fewer vendor choices and rising bills (some teams saw 4&ndash;8x price jumps). Bet on transferable craft &mdash; SQL and modeling &mdash; over loyalty to any single tool.</p>",
+    "tags": [
+      "career",
+      "consolidation",
+      "dbt",
+      "industry"
+    ],
+    "src": "https://www.getdbt.com/blog/dbt-labs-and-fivetran-merge-announcement"
+  },
+  {
+    "id": "auto-20260626-5",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "Pipe syntax: read a query top to bottom",
+    "hook": "Spark 4 chains steps with |&gt; instead of inside-out subqueries.",
+    "body": "<p>Spark 4.0's pipe syntax chains operations in execution order, so a query reads like a pipeline instead of an inside-out <code>select ... from (select ...)</code>. Each <code>|&gt;</code> takes the previous result and applies one step:</p><pre><code><span class=\"kw\">from</span> jobs\n|&gt; <span class=\"kw\">where</span> status = <span class=\"st\">'won'</span>\n|&gt; aggregate count(*) <span class=\"kw\">as</span> c <span class=\"kw\">group by</span> category\n|&gt; <span class=\"kw\">order by</span> c <span class=\"kw\">desc</span></code></pre><p>Same optimizer, same plan &mdash; a pure readability win. For debugging, comment out the last pipe to inspect the intermediate result. Ideal for ad-hoc exploration where the logic grows step by step.</p>",
+    "tags": [
+      "pipe-syntax",
+      "spark-4",
+      "readability"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-apache-spark-40"
   }
 ];

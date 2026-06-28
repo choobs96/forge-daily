@@ -2129,5 +2129,80 @@ window.SWIPE_CARDS = [
       "readability"
     ],
     "src": "https://www.databricks.com/blog/introducing-apache-spark-40"
+  },
+  {
+    "id": "auto-20260629-1",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Two free-text taxonomies never equi-join cleanly",
+    "hook": "Joining SF lead categories to marketplace categories matched only 61% of rows.",
+    "body": "<p>Real trap from the lead-scoring build: <code>category_c</code> in Salesforce and the marketplace category are both hand-typed taxonomies, so <code>'Air Con'</code> vs <code>'Air Conditioning'</code> and <code>'Plumber'</code> vs <code>'Plumbers'</code> meant a direct equi-join silently dropped ~39% of rows. A 100% join rate on two free-text fields should make you suspicious, not relieved. The fix is two-stage: normalise first (strip the legacy numbered prefix with <code>regexp_replace(category_c, '^[0-9]+ - ', '')</code>, lowercase, trim), then fuzzy-match the residue (levenshtein, soundex, or a curated mapping table) instead of trusting equality.</p>",
+    "tags": [
+      "from-my-work",
+      "fuzzy-join",
+      "free-text",
+      "data-quality"
+    ],
+    "src": "memory/patterns.md 2026-03-09 - SF lead Category__c vs marketplace category 61% match"
+  },
+  {
+    "id": "auto-20260629-2",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Escaped quotes break Spark SQL regex",
+    "hook": "A backslash-quote inside a regexp_replace silently corrupted the pattern.",
+    "body": "<p>Hit while cleaning SF free-text in Python-built Spark SQL: putting an escaped single quote inside a character class (<code>[A-Za-z &/\\']</code>) breaks the regex &mdash; the shell/Python escaping mangles the <code>\\'</code> before Spark ever parses it, so the pattern matches the wrong thing without erroring. The rule: keep quote characters out of regex literals entirely. Build the character class from unquoted ranges only:</p><pre><code>regexp_replace(name, <span class=\"st\">'[^A-Za-z &/-]'</span>, <span class=\"st\">''</span>)</code></pre><p>If you genuinely need to match a quote, match it via its code point or a separate branch &mdash; never inline the escaped character.</p>",
+    "tags": [
+      "from-my-work",
+      "regex",
+      "spark-sql",
+      "data-cleaning"
+    ],
+    "src": "memory/patterns.md 2026-03-09 - escaped quotes break Spark regex, use character classes"
+  },
+  {
+    "id": "auto-20260629-3",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Point-in-time joins: there is no ASOF JOIN in SQL",
+    "hook": "Match each event to the value that was current at that instant - without a keyword for it.",
+    "body": "<p>A point-in-time (as-of) join answers what was the price/plan/balance <em>at the moment of this event</em> &mdash; the closest dimension row at or before the event time. PySpark has <code>merge_asof</code>, but Spark and Databricks SQL still ship no <code>asof join</code> keyword. The portable pattern is an inequality join plus <code>qualify</code>:</p><pre><code><span class=\"kw\">select</span> e.*, d.price\n<span class=\"kw\">from</span> events e\n<span class=\"kw\">join</span> prices d\n  <span class=\"kw\">on</span> d.symbol = e.symbol\n  <span class=\"kw\">and</span> d.ts &lt;= e.ts\n<span class=\"kw\">qualify</span> row_number() <span class=\"kw\">over</span> (\n  <span class=\"kw\">partition by</span> e.event_id <span class=\"kw\">order by</span> d.ts <span class=\"kw\">desc</span>) = <span class=\"num\">1</span></code></pre><p>The <code>&lt;=</code> picks all prior rows; <code>row_number()=1</code> keeps the latest. Index/cluster on the time key &mdash; the inequality join can fan out hard before the dedupe.</p>",
+    "tags": [
+      "point-in-time",
+      "asof-join",
+      "qualify",
+      "time-series"
+    ],
+    "src": "https://www.waitingforcode.com/apache-spark-sql/asof-join-apache-spark-sql/read"
+  },
+  {
+    "id": "auto-20260629-4",
+    "cat": "Spark",
+    "level": "Core",
+    "title": "Spark 4.0 ANSI mode turns silent nulls into errors",
+    "hook": "The cast that used to return null now throws mid-pipeline.",
+    "body": "<p>Spark 4.0 (May 2025) flipped <code>spark.sql.ansi.enabled</code> to <code>true</code> by default. Operations that quietly returned <code>null</code> in Spark 3 &mdash; an invalid <code>cast('abc' as int)</code>, divide-by-zero, arithmetic overflow, a BIGINT inserted into an INT column &mdash; now raise runtime errors. It is the single biggest breaking change in the upgrade and surfaces only when dirty data hits the bad path, so it can pass tests and fail in prod. Do not just disable ANSI; wrap the cases you intend to tolerate with <code>try_cast</code> / <code>try_divide</code>, which return null for that op while keeping strict semantics everywhere else.</p>",
+    "tags": [
+      "spark-4",
+      "ansi-mode",
+      "try-cast",
+      "breaking-change"
+    ],
+    "src": "https://spark.apache.org/docs/latest/sql-ref-ansi-compliance.html"
+  },
+  {
+    "id": "auto-20260629-5",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "The dbt MCP server makes your models the agent's API",
+    "hook": "Agents stop guessing schemas and start calling your governed metrics.",
+    "body": "<p>The dbt MCP server exposes your dbt project to AI agents over the Model Context Protocol: the Semantic Layer (governed metric queries), the Discovery API (model metadata and lineage), and the CLI. Instead of an agent free-handing SQL against raw tables and hallucinating a revenue definition, it calls a tool that returns the <em>one</em> agreed metric. The protocol is now governed by the Linux Foundation's Agentic AI Foundation. The career read: curating the semantic layer and its metadata is what makes agentic analytics trustworthy &mdash; that curation is the analytics-engineer job, not a side quest.</p>",
+    "tags": [
+      "mcp",
+      "semantic-layer",
+      "ai-agents",
+      "dbt"
+    ],
+    "src": "https://docs.getdbt.com/blog/introducing-dbt-mcp-server"
   }
 ];

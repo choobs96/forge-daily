@@ -2204,5 +2204,77 @@ window.SWIPE_CARDS = [
       "dbt"
     ],
     "src": "https://docs.getdbt.com/blog/introducing-dbt-mcp-server"
+  },
+  {
+    "id": "auto-20260630-1",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "A merge-incremental cannot delete - add a post-hook",
+    "hook": "Merge inserts and updates; the row that quietly goes stale lives forever.",
+    "body": "<p>Real pattern from the jobs <code>left join</code> claims incremental model. A <code>merge</code>-based incremental only knows two moves &mdash; insert a new row, update a matched one. It has no way to say <em>this previously-claimed row is no longer claimed</em>, so a stale row just lingers. The fix is a <code>post_hook</code> that runs a delete after the merge to evict rows the source dropped:</p><pre><code>post_hook=<span class=\"str\">\"delete from {{ this }} t where not exists (\n  select 1 from source s where s.job_id = t.job_id)\"</span></code></pre><p><code>insert_overwrite</code> dodges this by rewriting whole partitions, but the team preferred checkpoint-based merge for efficiency &mdash; so the delete hook is the price. Picking merge for a left-join incremental? Always answer: what removes rows the source no longer has?</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "merge",
+      "post-hook"
+    ],
+    "src": "memory/patterns.md 2026-03-10 - jobs LEFT JOIN claims merge incremental post-hook"
+  },
+  {
+    "id": "auto-20260630-2",
+    "cat": "dbt",
+    "level": "Core",
+    "title": "sqlfluff indents SQL inside Jinja, not under it",
+    "hook": "Stepping the SQL in under a {% if %} tag looks tidy - and fails LT02.",
+    "body": "<p>Real lint gotcha from datadex models. Wrapping SQL in a <code>{% if %} ... {% endif %}</code> block tempts you to indent the SQL one level deeper, the way you would nest any code block. sqlfluff's <strong>LT02</strong> (layout.indent) does not treat the Jinja control tag as an indent level &mdash; it wants the SQL inside aligned with the surrounding SQL:</p><pre><code>{% if is_incremental() %}\n<span class=\"kw\">where</span> updated_at &gt; (<span class=\"kw\">select</span> max(updated_at) <span class=\"kw\">from</span> {{ this }})\n{% endif %}</code></pre><p>The <code>where</code> sits flush with the code around the block, not stepped in under <code>{% if %}</code>. Worth knowing because hipages PRs must pass lint before merge.</p>",
+    "tags": [
+      "from-my-work",
+      "sqlfluff",
+      "jinja",
+      "lint"
+    ],
+    "src": "memory/patterns.md 2026-03-10 - sqlfluff LT02 inside Jinja if blocks"
+  },
+  {
+    "id": "auto-20260630-3",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "DataFusion Comet: an open-source Photon",
+    "hook": "A drop-in accelerator that runs your Spark plan in Rust - no code changes.",
+    "body": "<p>Apache DataFusion Comet is an OSS plugin that intercepts Spark's physical plan and executes supported operators natively in <strong>Rust on Apache Arrow</strong> columnar batches, off the JVM row-by-row path. You add a jar plus a few configs; unsupported operators fall back to vanilla Spark, so you can enable it incrementally and safely. Comet 0.16 (May 2026) supports Spark 4.0 and 4.1 and benchmarks near <strong>2x</strong> on TPC-DS at ~1TB &mdash; roughly 50% compute savings. It is the open answer to proprietary native engines like Photon, and real leverage if you run Spark anywhere off Databricks.</p>",
+    "tags": [
+      "comet",
+      "datafusion",
+      "performance"
+    ],
+    "src": "https://datafusion.apache.org/comet/"
+  },
+  {
+    "id": "auto-20260630-4",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "XTable translates table formats both ways",
+    "hook": "UniForm only lets Iceberg read your Delta; XTable makes the metadata bidirectional.",
+    "body": "<p>Apache XTable (incubating; backed by Onehouse, Microsoft, Google) writes the metadata of one lakehouse format <em>from</em> another &mdash; Delta to Iceberg, Iceberg to Hudi, any direction &mdash; without copying the data. It reads your existing <code>_delta_log</code> / <code>metadata</code> / <code>.hoodie</code> and emits sibling metadata for the other formats in place, so the same Parquet files are queryable as all three. The contrast with Delta UniForm: UniForm is <strong>one-way and read-only</strong> (expose Delta as Iceberg/Hudi); XTable is <strong>omni-directional</strong>. Caveat &mdash; still incubating: merge-on-read tables and deletion vectors are not yet supported, so verify before relying on it in prod.</p>",
+    "tags": [
+      "xtable",
+      "iceberg",
+      "interoperability"
+    ],
+    "src": "https://xtable.apache.org/"
+  },
+  {
+    "id": "auto-20260630-5",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "when not matched by source deletes in one merge",
+    "hook": "The third merge clause turns an upsert into a full sync - no separate delete pass.",
+    "body": "<p>Everyone knows merge's two clauses: <code>when matched</code> (update) and <code>when not matched</code> (insert). Delta and Databricks add a third &mdash; <code>when not matched by source</code> &mdash; which fires for <em>target</em> rows that have no match in the source. That makes one statement a full sync: upsert what the source has, delete what it does not.</p><pre><code><span class=\"kw\">merge into</span> dim_account t\n<span class=\"kw\">using</span> daily_snapshot s <span class=\"kw\">on</span> t.id = s.id\n<span class=\"kw\">when matched then update set</span> *\n<span class=\"kw\">when not matched then insert</span> *\n<span class=\"kw\">when not matched by source then delete</span>;</code></pre><p>Always scope it with an extra predicate (e.g. <code>and t.region = 'au'</code>) so it only deletes inside the slice the source actually covers &mdash; otherwise it wipes rows the snapshot never meant to manage. This is the native version of the dbt delete post-hook.</p>",
+    "tags": [
+      "merge",
+      "when-not-matched-by-source",
+      "full-sync"
+    ],
+    "src": "https://docs.databricks.com/aws/en/sql/language-manual/delta-merge-into.html"
   }
 ];

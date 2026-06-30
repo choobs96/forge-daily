@@ -2276,5 +2276,94 @@ window.SWIPE_CARDS = [
       "full-sync"
     ],
     "src": "https://docs.databricks.com/aws/en/sql/language-manual/delta-merge-into.html"
+  },
+  {
+    "id": "auto-20260701-1",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "Snapshots: hard_deletes='new_record' tracks the delete",
+    "hook": "A row vanishing from the source should be history, not a silent gap.",
+    "body": "<p>By default a dbt snapshot ignores a source hard-delete &mdash; the row just stops updating, so you cannot tell &ldquo;deleted&rdquo; from &ldquo;unchanged&rdquo;. dbt 1.9 adds a <code>hard_deletes</code> config with three modes: <code>ignore</code> (old default), <code>invalidate</code> (close the current row's validity window), and <code>new_record</code> (insert a fresh version flagged <code>dbt_is_deleted = true</code>, and flip it back to false if the key reappears). The third gives you a continuous, queryable deletion trail.</p><pre><code>snapshots:\n  - name: snap_accounts\n    config:\n      strategy: timestamp\n      updated_at: updated_at\n      hard_deletes: new_record</code></pre><p>Gotcha: dbt does NOT migrate existing snapshots &mdash; only enable it on net-new ones, or rebuild the table first.</p>",
+    "tags": [
+      "snapshots",
+      "hard-deletes",
+      "scd2",
+      "dbt-1.9"
+    ],
+    "src": "https://docs.getdbt.com/reference/resource-configs/hard-deletes"
+  },
+  {
+    "id": "auto-20260701-2",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "PyIceberg: write Iceberg from Python, no JVM",
+    "hook": "You do not need a Spark cluster to land a table in the lakehouse.",
+    "body": "<p>PyIceberg is the official pure-Python client for Apache Iceberg &mdash; it talks straight to a catalog (REST, Glue, Hive, Nessie), with no Spark or JVM. You load a table, append a PyArrow table or pandas frame, and it handles schema evolution, partitioning and time-travel natively. Ideal for small/medium ingestion, ML feature writes, and local dev where spinning a cluster is overkill.</p><pre><code>from pyiceberg.catalog import load_catalog\ncat = load_catalog(\"prod\")\ntbl = cat.load_table(\"sales.orders\")\ntbl.append(arrow_table)   # commits a new snapshot</code></pre><p>The catch: it is single-process, so for genuinely large rewrites or heavy MERGE you still want Spark/Trino. Treat PyIceberg as the lightweight on-ramp, not the replacement.</p>",
+    "tags": [
+      "pyiceberg",
+      "iceberg",
+      "python",
+      "ingestion"
+    ],
+    "src": "https://py.iceberg.apache.org/"
+  },
+  {
+    "id": "auto-20260701-3",
+    "cat": "Streaming",
+    "level": "Senior",
+    "title": "Apache Paimon: the streaming-first table format",
+    "hook": "When Iceberg drowns in delete files, this is why a fourth format exists.",
+    "body": "<p>Feed a high-churn CDC stream of updates and deletes into Iceberg via merge-on-read and you accumulate a growing pile of delete files between compactions, hurting reads. Apache Paimon is built for exactly this: an <strong>LSM-tree</strong> store (like a database engine) that absorbs high-frequency upserts cheaply, tuned for Flink. Its standout trick &mdash; a primary-key table doubles as a <em>changelog source</em>, emitting +I/-U/+U/-D records, so one Flink job's output streams into the next. Use Paimon for mutable, real-time streams; keep Iceberg as the default for append-heavy, mixed-engine batch analytics. It is a specialist, not an Iceberg replacement.</p>",
+    "tags": [
+      "paimon",
+      "lsm-tree",
+      "flink",
+      "table-format"
+    ],
+    "src": "https://datalakehousehub.com/blog/2026-05-paimon-vs-iceberg-mutable-streams/"
+  },
+  {
+    "id": "auto-20260701-4",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Recursive CTEs landed in Databricks SQL",
+    "hook": "Walk a hierarchy or a graph without exploding it into N self-joins.",
+    "body": "<p>From Databricks Runtime 17.0 / DBSQL 2025.20, <code>with recursive</code> is supported (ANSI syntax, also now in open-source Spark). An <em>anchor</em> query seeds the result; a <em>recursive</em> member references the CTE and re-runs until it adds no new rows &mdash; perfect for org charts, category trees, and bill-of-materials.</p><pre><code><span class=\"kw\">with recursive</span> chain(id, parent_id, lvl) <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> id, parent_id, <span class=\"num\">0</span> <span class=\"kw\">from</span> categories <span class=\"kw\">where</span> parent_id <span class=\"kw\">is null</span>\n  <span class=\"kw\">union all</span>\n  <span class=\"kw\">select</span> c.id, c.parent_id, chain.lvl + <span class=\"num\">1</span>\n  <span class=\"kw\">from</span> categories c <span class=\"kw\">join</span> chain <span class=\"kw\">on</span> c.parent_id = chain.id)\n<span class=\"kw\">select</span> * <span class=\"kw\">from</span> chain;</code></pre><p>Safety rails stop runaways: max depth 100 and 1M rows, or the query errors. For deep traversals raise the limit deliberately rather than looping in Python.</p>",
+    "tags": [
+      "recursive-cte",
+      "hierarchy",
+      "databricks-sql"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-recursive-common-table-expressions-databricks"
+  },
+  {
+    "id": "auto-20260701-5",
+    "cat": "Modeling",
+    "level": "Core",
+    "title": "A lookup seed with duplicate keys fans out the fact",
+    "hook": "Forget select distinct on the reference table and your row count quietly doubles.",
+    "body": "<p>Real pattern from the <code>rpt_jobs</code> migration bridge. Legacy reason codes are mapped to display strings via a seed (<code>ref_job_closed_reason</code>), but the seed holds duplicates &mdash; several PascalCase codes collapse to the same legacy string. Left-join that raw and the fact fans out: &ldquo;Small Job&rdquo; appears twice, every metric on it inflates. The fix is to dedupe the lookup at the join boundary and verify cardinality before trusting it:</p><pre><code><span class=\"kw\">select distinct</span> job_closed_reason, legacy_closed_reason\n<span class=\"kw\">from</span> {{ ref(<span class=\"st\">'ref_job_closed_reason'</span>) }}\n<span class=\"kw\">where</span> job_closed_reason <span class=\"kw\">is not null and</span> job_closed_reason &lt;&gt; <span class=\"st\">''</span></code></pre><p>A seed feels safe because it is small and hand-curated &mdash; that is exactly why fan-out from it goes unnoticed. Treat every dimension/seed join as a grain risk: confirm one row per key first.</p>",
+    "tags": [
+      "from-my-work",
+      "fan-out",
+      "seed",
+      "grain"
+    ],
+    "src": "datadex: domains/marketplace/models/marts/rpt_jobs.sql"
+  },
+  {
+    "id": "auto-20260701-6",
+    "cat": "dbt",
+    "level": "Senior",
+    "title": "Bake incremental safeguards into one macro",
+    "hook": "Three silent incremental bugs, solved once instead of per model.",
+    "body": "<p>The datadex <code>create_incremental_loading_cte</code> macro wraps three safeguards every staging model needs, so none get forgotten. (1) <strong>Dedup</strong>: a <code>row_number() over (partition by pk order by ts desc)</code> kept at <code>= 1</code>, because CDC sources emit multiple rows per key per batch. (2) <strong>Cold-start</strong>: a baseline-table cutoff so the very first run does not full-scan history. (3) <strong>Quote-aware watermark</strong>: <code>quote_source_inc_value</code> &mdash; a high-watermark column that is a <em>string</em> timestamp must be compared as a quoted literal; compare it unquoted and the filter silently returns nothing or everything. Encoding these in a macro keeps every model consistent and turns three easy-to-miss bugs into one reviewed implementation.</p>",
+    "tags": [
+      "from-my-work",
+      "incremental",
+      "macro",
+      "cdc"
+    ],
+    "src": "datadex: macros/create_incremental_loading_cte.sql"
   }
 ];

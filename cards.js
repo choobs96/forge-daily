@@ -2365,5 +2365,78 @@ window.SWIPE_CARDS = [
       "cdc"
     ],
     "src": "datadex: macros/create_incremental_loading_cte.sql"
+  },
+  {
+    "id": "auto-20260702-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "A Salesforce custom field can be 99.8% empty",
+    "hook": "Before you build a metric on a column, check how often it is even filled.",
+    "body": "<p>On hipages Salesforce data, <code>tradie_engagement_summary_c</code> is populated for only ~0.2% of leads and ~0% of accounts; <code>telephone_status_c</code> is 100% null for 2024+ leads. A feature, filter, or join built on a near-empty column reflects the tiny populated minority, not the population &mdash; pure noise dressed as signal. Profile fill rate before trusting any column:</p><pre><code><span class=\"kw\">select</span> count(col) / count(*) <span class=\"kw\">as</span> fill_rate <span class=\"kw\">from</span> t;</code></pre><p>Below ~10% filled, a column cannot carry a metric. Drop it, or confirm the sparsity is expected first.</p>",
+    "tags": [
+      "from-my-work",
+      "null-profiling",
+      "salesforce"
+    ],
+    "src": "patterns.md 2026-04-02 - tradie_engagement_summary_c 0.2% populated"
+  },
+  {
+    "id": "auto-20260702-2",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "Roll a per-event flag up to the entity before you count it",
+    "hook": "Counting 'any bad touchpoint' at event grain over-weights the busy accounts.",
+    "body": "<p>To answer <em>how many opportunities had any out-of-touch event</em>, collapse events to one row per opp first, then aggregate. Counting the raw event flag weights each opp by its number of touchpoints, so a chatty account distorts the total. Pattern:</p><pre><code><span class=\"kw\">with</span> per_opp <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> opp_id, month,\n    max(<span class=\"kw\">case when</span> tp_outcome = <span class=\"str\">'out'</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> has_any_out\n  <span class=\"kw\">from</span> touchpoints <span class=\"kw\">group by</span> opp_id, month)\n<span class=\"kw\">select</span> month, sum(has_any_out) <span class=\"kw\">from</span> per_opp <span class=\"kw\">group by</span> month;</code></pre><p>Roll up to the decision grain first, measure second.</p>",
+    "tags": [
+      "from-my-work",
+      "grain",
+      "rollup"
+    ],
+    "src": "patterns.md 2026-03-03 - PRO touchpoint opp-level rollup"
+  },
+  {
+    "id": "auto-20260702-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Lance: the AI-native table format beside Iceberg",
+    "hook": "Iceberg runs your SQL; Lance serves your embeddings and training rows.",
+    "body": "<p>Lance is a 2026 open lakehouse format built for multimodal AI &mdash; images, video, audio, text, and embeddings in one table, with a native vector index and data versioning. It delivers ~100x faster random access than Parquet for single-row lookups (feeding a model) without losing scan speed. The emerging pattern: Iceberg for governed structured analytics, Lance co-located in the same object store for retrieval and training data, DuckDB bridging the two with SQL. Apache Polaris added Lance table support via its Generic Table API in January 2026.</p>",
+    "tags": [
+      "lance",
+      "multimodal",
+      "vector",
+      "ai-native"
+    ],
+    "src": "https://www.lancedb.com/blog/from-bi-to-ai-lance-and-iceberg"
+  },
+  {
+    "id": "auto-20260702-4",
+    "cat": "Streaming",
+    "level": "Senior",
+    "title": "Query a streaming query's state like a table",
+    "hook": "Your aggregate looks wrong - now you can read the state store directly.",
+    "body": "<p>Spark 4.0's State Data Source lets you point a batch read at a running or checkpointed stream's state store and inspect the actual key-value pairs it holds &mdash; the running counts, dedup keys, and session windows you previously had to guess at from logs. Two readers: <code>statestore</code> for the contents, <code>state-metadata</code> for operator info. Databricks extends it with a changelog feed in CDC format so you see how state evolved over batches. It turns 'why is this aggregate off?' from log-archaeology into a query.</p>",
+    "tags": [
+      "structured-streaming",
+      "state-store",
+      "debugging",
+      "spark-4"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-state-reader-api-new-statestore-data-source"
+  },
+  {
+    "id": "auto-20260702-5",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "Agent Bricks auto-builds the eval it grades itself on",
+    "hook": "Describe the task, connect the data - it generates its own benchmark.",
+    "body": "<p>Databricks Agent Bricks takes a plain-English task plus your Unity Catalog data and automatically generates task-aware benchmarks, LLM judges, and synthetic data that mimics yours, then searches optimization techniques to trade off cost against quality. The lesson for a data person: the scarce input is no longer prompt-tweaking but a clean, well-described data model and a correct definition of a 'good answer'. At the 2026 Data + AI Summit Databricks reported 100k+ agents built this way. Own the eval definition and you own the agent's quality.</p>",
+    "tags": [
+      "agent-bricks",
+      "evaluation",
+      "llm-judge",
+      "databricks"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-agent-bricks"
   }
 ];

@@ -2438,5 +2438,78 @@ window.SWIPE_CARDS = [
       "databricks"
     ],
     "src": "https://www.databricks.com/blog/introducing-agent-bricks"
+  },
+  {
+    "id": "auto-20260703-1",
+    "cat": "DQ",
+    "level": "Core",
+    "title": "One in twenty partner jobs is not a real job",
+    "hook": "Skip the validity filter and every volume and conversion number reads high.",
+    "body": "<p>On <code>marketplace__jobs_claims_category_geo_account</code>, roughly 4.6% of partner rows carry <code>valid_indicator &lt;&gt; 'valid'</code> &mdash; test jobs, cancelled fakes, and bad data. Count them and your job volume, claim rate, and conversion all inflate silently. Make it the first line of any partner analysis:</p><pre><code><span class=\"kw\">select</span> ... <span class=\"kw\">from</span> marketplace__jobs_claims_category_geo_account\n<span class=\"kw\">where</span> valid_indicator = <span class=\"str\">'valid'</span>;</code></pre><p>A cheap filter that prevents a whole class of over-counting.</p>",
+    "tags": [
+      "from-my-work",
+      "data-quality",
+      "filtering"
+    ],
+    "src": "patterns.md 2026-04-14 - marketplace jobs valid_indicator filter"
+  },
+  {
+    "id": "auto-20260703-2",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Custom Spark connectors are pure Python now",
+    "hook": "A REST API or Google Sheet as a Spark source - no Scala, no JVM.",
+    "body": "<p>The Python Data Source API went GA in October 2025 (Spark 4.0, DBR 15.4 LTS+). Before it, a custom connector meant Data Source v1/v2 in Scala or Java and deep Spark internals. Now you subclass <code>DataSource</code> plus a <code>DataSourceReader</code> in Python, yield Arrow batches, and register it &mdash; batch or streaming. Then read it like any built-in format:</p><pre><code>df = spark.read.format(<span class=\"str\">\"restapi\"</span>).option(<span class=\"str\">\"url\"</span>, url).load()</code></pre><p>It unlocks REST APIs, Sheets, HuggingFace, and proprietary systems without leaving Python.</p>",
+    "tags": [
+      "spark-4",
+      "python",
+      "connectors",
+      "arrow"
+    ],
+    "src": "https://www.databricks.com/blog/announcing-general-availability-python-data-source-api"
+  },
+  {
+    "id": "auto-20260703-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Clean Rooms: join data you are never allowed to see",
+    "hook": "Two companies compute on shared data; neither reads the other's raw rows.",
+    "body": "<p>Databricks Clean Rooms (GA on AWS and Azure in FY26) let up to 10 organisations run approved notebooks over each other's data using Delta Sharing on isolated serverless compute. Collaborators see only schemas &mdash; column names and types &mdash; never row-level data, which stays in each party's own Unity Catalog. Notebooks write to temporary output tables, so you control exactly what leaves the room, and egress is locked down. FY26 added HIPAA compliance and cross-cloud federated querying. The pattern for privacy-safe partner analytics without a raw-data handoff.</p>",
+    "tags": [
+      "clean-rooms",
+      "governance",
+      "privacy",
+      "delta-sharing"
+    ],
+    "src": "https://www.databricks.com/blog/top-10-questions-you-asked-about-databricks-clean-rooms-answered"
+  },
+  {
+    "id": "auto-20260703-4",
+    "cat": "Platform",
+    "level": "Core",
+    "title": "Lakebridge automates the warehouse migration grind",
+    "hook": "Profiling, SQL conversion, and reconciliation for a legacy move - free and open.",
+    "body": "<p>Lakebridge (a free, open databrickslabs project) automates migrations from legacy warehouses to Databricks SQL in three stages: <strong>Analyzer</strong> profiles and assesses the source, <strong>Converter</strong> rewrites legacy SQL and ETL into Databricks or Spark SQL, and <strong>Validator</strong> reconciles row counts and correctness after cutover. Databricks claims it handles up to ~80% of migration tasks. The lesson for a pivoting analyst: a warehouse migration is now a repeatable, tool-assisted workflow with a built-in reconciliation gate &mdash; not a risky hand-port you eyeball afterwards.</p>",
+    "tags": [
+      "migration",
+      "tooling",
+      "databricks-labs"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-lakebridge-free-open-data-migration-databricks-sql"
+  },
+  {
+    "id": "auto-20260703-5",
+    "cat": "SQL",
+    "level": "Senior",
+    "title": "Coalescing evolving structs needs a shape-normalise first",
+    "hook": "A wrapper cast on the result is too late - the mismatch is at plan time.",
+    "body": "<p>Snowplow lands each schema version as its own column, and the reflex is <code>coalesce()</code> across them to grab the latest one present. Trap: if the entity is a struct and a newer version added a field, the branches have different shapes and <code>coalesce()</code> throws <code>DATATYPE_MISMATCH</code> at plan time. Wrapping <code>transform()</code> around the coalesce does not help &mdash; it only fixes the output type. Normalise each branch to one canonical <code>named_struct</code> first, casting a typed null for fields older versions lack:</p><pre><code><span class=\"kw\">coalesce</span>(\n  transform(entity_v5, x -&gt; named_struct(<span class=\"str\">'job_id'</span>, x.job_id, <span class=\"str\">'label'</span>, x.label)),\n  transform(entity_v3, x -&gt; named_struct(<span class=\"str\">'job_id'</span>, x.job_id, <span class=\"str\">'label'</span>, <span class=\"kw\">cast</span>(null <span class=\"kw\">as</span> string)))\n)</code></pre>",
+    "tags": [
+      "from-my-work",
+      "spark-sql",
+      "schema-evolution",
+      "struct"
+    ],
+    "src": "datadex macros/get_columns_from_table.sql - get_latest_value_from_columns_based_on_pattern"
   }
 ];

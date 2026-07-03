@@ -2511,5 +2511,80 @@ window.SWIPE_CARDS = [
       "struct"
     ],
     "src": "datadex macros/get_columns_from_table.sql - get_latest_value_from_columns_based_on_pattern"
+  },
+  {
+    "id": "auto-20260704-1",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Averaging a rate weights the wrong rows",
+    "hook": "sum(numerator) / sum(denominator) is the only honest rate.",
+    "body": "<p>Computing conversion or click-through as <code>avg(per_row_rate)</code> silently over-weights low-volume rows &mdash; a day with 1 click / 1 impression counts the same as one with 5k / 10k. Divide the totals instead:</p><pre><code><span class=\"kw\">select</span> <span class=\"kw\">sum</span>(clicks) / <span class=\"kw\">sum</span>(impressions) <span class=\"kw\">as</span> ctr</code></pre><p>In databricks ai/bi widgets division is banned in <code>fields[].expression</code>, so build it as a dataset custom calculation (<code>measure(sum(clicks)) / measure(sum(impressions))</code>) or pre-aggregate in sql.</p>",
+    "tags": [
+      "from-my-work",
+      "rate-metric",
+      "aggregation",
+      "dashboard"
+    ],
+    "src": "patterns.md 2026-05-11 - rate metrics use sum/sum, never avg-of-rates"
+  },
+  {
+    "id": "auto-20260704-2",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Dollars and credits in one sum is a silent bug",
+    "hook": "100 credits = one dollar - and nothing in the schema warns you.",
+    "body": "<p>In the pam flat-table migration, silver <code>stg_hip_value_products.value</code> is in <strong>dollars</strong> while kafka <code>balance_total_credits</code> (every <code>*_credits</code> column in domain_events) is in <strong>credits</strong>, at 100 credits to the dollar. Both are plain numerics, so a join-and-sum compiles fine and inflated paid revenue 100x. The rule: confirm the <em>unit</em> of every numeric column before you add or compare it &mdash; the type system never catches a unit mismatch, only a human reading the source does.</p>",
+    "tags": [
+      "from-my-work",
+      "units",
+      "credits",
+      "correctness"
+    ],
+    "src": "patterns.md 2026-05-07 - silver dollars vs kafka credits (100:1) inflation bug"
+  },
+  {
+    "id": "auto-20260704-3",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "VARIANT stores JSON and stays queryable",
+    "hook": "About 8x faster than a json string, and nested types survive.",
+    "body": "<p>Spark 4.0 and Delta added the <code>variant</code> type for semi-structured data: one column holds arbitrary nested json in a compact binary form, but a nested int stays an int and reads roughly 8x faster than parsing a json string on every query. Build it with <code>parse_json()</code> and pull fields with path syntax:</p><pre><code><span class=\"kw\">select</span> parse_json(raw):user.id::bigint <span class=\"kw\">from</span> events;</code></pre><p>Databricks now recommends variant over json-as-string, and over rigid structs when the schema keeps drifting.</p>",
+    "tags": [
+      "variant",
+      "semi-structured",
+      "spark-4",
+      "delta"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-open-variant-data-type-delta-lake-and-apache-spark"
+  },
+  {
+    "id": "auto-20260704-4",
+    "cat": "Platform",
+    "level": "Senior",
+    "title": "Iceberg v3 gives you CDC without a CDC tool",
+    "hook": "Every row now carries an id and a last-updated sequence number.",
+    "body": "<p>Iceberg v3 (GA on Snowflake May 2026, Databricks Runtime 18.0+) makes row lineage a table-level guarantee: each row gets a stable <code>_row_id</code> plus a <code>_last_updated_sequence_number</code> stamped by the commit that last changed it. So you can derive change-data-capture natively &mdash; diff two snapshots by sequence number &mdash; instead of bolting on Debezium or a merge-audit column. v3 also brings deletion vectors (up to 10x faster DML) and a real <code>variant</code> type, converging Iceberg and Delta capabilities.</p>",
+    "tags": [
+      "iceberg-v3",
+      "row-lineage",
+      "cdc",
+      "table-format"
+    ],
+    "src": "https://www.databricks.com/blog/next-era-open-lakehouse-apache-icebergtm-v3-public-preview-databricks"
+  },
+  {
+    "id": "auto-20260704-5",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "Declarative pipelines are now open-source Spark",
+    "hook": "DLT's engine landed in Apache Spark 4.1 as pyspark.pipelines.",
+    "body": "<p>Databricks open-sourced its declarative pipeline framework into Apache Spark 4.1 (the <code>pyspark.pipelines</code> module), branded Lakeflow Spark Declarative Pipelines. You declare tables and the flows between them in sql/python and the engine derives the DAG, incrementality, and retries &mdash; no hand-written orchestration. Code against open-source Spark runs unchanged on Databricks. The catch: <code>auto cdc</code> (out-of-order CDC handling with SCD1/SCD2) is a Lakeflow-only extension, not in the open-source module.</p>",
+    "tags": [
+      "lakeflow",
+      "declarative-pipelines",
+      "spark-4-1",
+      "dlt"
+    ],
+    "src": "https://docs.databricks.com/aws/en/ldp/"
   }
 ];

@@ -2586,5 +2586,80 @@ window.SWIPE_CARDS = [
       "dlt"
     ],
     "src": "https://docs.databricks.com/aws/en/ldp/"
+  },
+  {
+    "id": "auto-20260705-1",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "A fixed +10h offset breaks twice a year",
+    "hook": "Half the year your AEST conversion is silently one hour wrong.",
+    "body": "<p>Converting UTC to Sydney time with <code>ts + interval 10 hours</code> is wrong for the ~5 months of daylight saving, when the state runs AEDT (+11). Every timestamp near midnight lands on the wrong day, drifting rows into the wrong reporting bucket. Use a named IANA zone so the switch is handled for you:</p><pre><code>convert_timezone(<span class=\"st\">'UTC'</span>, <span class=\"st\">'Australia/Sydney'</span>, ts)</code></pre><p>Our own <code>timezone_convert_utc_to_business_timezone</code> macro does exactly this. A constant hour offset is a code smell for any zone that observes DST.</p>",
+    "tags": [
+      "from-my-work",
+      "timezone",
+      "dst",
+      "convert-timezone"
+    ],
+    "src": "datadex macros/timezone.sql"
+  },
+  {
+    "id": "auto-20260705-2",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Bot traffic inflates web session counts",
+    "hook": "Crawlers, scrapers and pingers pad every Snowplow metric you report.",
+    "body": "<p>Web-event tables carry a heavy tail of non-human traffic &mdash; Googlebot, Bingbot, PhantomJS, uptime pingers &mdash; and counting it overstates sessions, conversion denominators, and category demand. Filter on the user agent before you aggregate:</p><pre><code><span class=\"kw\">and not</span> rlike(useragent,\n  <span class=\"st\">'.*(bot|crawl|spider|slurp|archiv|pingdom|phantomjs).*'</span>)</code></pre><p>Our <code>filter_bots</code> macro does this, plus a false-positive allowlist for mobile apps mis-flagged as bots. Craft note: a <code>coalesce</code>-based null guard errored in Spark, so it uses <code>(not flag = true or flag is null)</code> instead.</p>",
+    "tags": [
+      "from-my-work",
+      "bot-filter",
+      "snowplow",
+      "web-analytics"
+    ],
+    "src": "datadex macros/filter_bots.sql"
+  },
+  {
+    "id": "auto-20260705-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Ibis: one dataframe API, twenty backends",
+    "hook": "Prototype on DuckDB locally, run on Spark in prod, change one line.",
+    "body": "<p>Ibis is a portable Python dataframe library that decouples the API from execution: you write pandas-style expressions and Ibis compiles them (via SQLGlot) to whichever engine your connection points at &mdash; 20+ backends including DuckDB, Polars, Spark, BigQuery, Trino. Iterate fast on a local DuckDB sample, then switch the connection string to a distributed backend when you outgrow one machine, with no query rewrite. It is a pragmatic answer to the single-node-vs-cluster and vendor-lock questions in one library.</p>",
+    "tags": [
+      "ibis",
+      "dataframe",
+      "portability",
+      "duckdb"
+    ],
+    "src": "https://ibis-project.org/why"
+  },
+  {
+    "id": "auto-20260705-4",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "Your dbt marts can back a RAG app",
+    "hook": "A Delta Sync index turns a governed table into a live knowledge base.",
+    "body": "<p>Databricks AI Search (formerly Vector Search) builds a vector index directly on a Delta table. A <em>Delta Sync</em> index watches the source via Change Data Feed and incrementally re-embeds rows as they change &mdash; no hand-built ingestion or nightly full re-index. It supports hybrid keyword-plus-semantic search and inherits Unity Catalog governance. For the pivot: the same modeling and freshness rigour you apply to marts now feeds retrieval quality for an LLM app, keeping the AE close to how data is actually consumed.</p>",
+    "tags": [
+      "vector-search",
+      "rag",
+      "delta-sync",
+      "embeddings"
+    ],
+    "src": "https://docs.databricks.com/aws/en/vector-search/vector-search"
+  },
+  {
+    "id": "auto-20260705-5",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Read parallelism is set by files, not cores",
+    "hook": "A slow scan on an idle cluster is often too few input partitions.",
+    "body": "<p>Spark builds read partitions by packing files up to <code>spark.sql.files.maxPartitionBytes</code> (default 128MB), plus a ~4MB <code>openCostInBytes</code> per file. So a handful of large files yields few partitions and most executors sit idle no matter how many cores you add. Shrinking the value raises parallelism for a scan-bound job (streaming, many small files); the default suits large files. This is the <em>read</em> knob &mdash; distinct from <code>shuffle.partitions</code>, which governs post-shuffle sizing. Right-size it before scaling the cluster.</p>",
+    "tags": [
+      "maxpartitionbytes",
+      "read-partitions",
+      "parallelism",
+      "tuning"
+    ],
+    "src": "https://spark.apache.org/docs/latest/sql-performance-tuning.html"
   }
 ];

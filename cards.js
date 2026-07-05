@@ -2661,5 +2661,80 @@ window.SWIPE_CARDS = [
       "tuning"
     ],
     "src": "https://spark.apache.org/docs/latest/sql-performance-tuning.html"
+  },
+  {
+    "id": "auto-20260706-1",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "approx_count_distinct is 10-100x cheaper for exploration",
+    "hook": "count(distinct) does an exact shuffle you rarely need while profiling.",
+    "body": "<p>An exact <code>count(distinct col)</code> shuffles every value to one place to dedupe &mdash; expensive on a billion-row grain check. For profiling, grain sanity, and null-rate exploration, <code>approx_count_distinct(col)</code> uses HyperLogLog: 10-100x faster on Spark with ~2% error, no full shuffle.</p><pre><code><span class=\"kw\">select</span> approx_count_distinct(account_id) <span class=\"kw\">as</span> approx_pk,\n       count(*) <span class=\"kw\">as</span> rows\n<span class=\"kw\">from</span> fct_jobs;</code></pre><p>Switch to exact <code>count(distinct)</code> only for production metrics where the 2% matters.</p>",
+    "tags": [
+      "approx-count-distinct",
+      "hyperloglog",
+      "profiling",
+      "from-my-work"
+    ],
+    "src": "patterns.md 2026-04-22 — approx_count_distinct for exploration"
+  },
+  {
+    "id": "auto-20260706-2",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "A row-count drop after full-refresh is not always a bug",
+    "hook": "Incremental models quietly hoard records the source already deleted.",
+    "body": "<p>Rows vanishing from an SF-sourced model after <code>--full-refresh</code> usually is not a transformation bug. An incremental run only ever appends/merges, so it <em>retains</em> records that were later hard-deleted or purged upstream (stale test accounts, GDPR wipes). A full-refresh rebuilds from the live source and drops them all at once &mdash; the count falls, but the new count is the correct one. Before suspecting your SQL, diff the missing IDs against the raw source table. If they are gone there too, the pipeline is fine.</p>",
+    "tags": [
+      "full-refresh",
+      "incremental",
+      "hard-delete",
+      "from-my-work"
+    ],
+    "src": "lessons-locked.md 2026-06-12 — SF full-refresh drops purged rows"
+  },
+  {
+    "id": "auto-20260706-3",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Spark Connect: the driver is now a remote server",
+    "hook": "Stable in Spark 4.0 — your app is a thin gRPC client, not the driver.",
+    "body": "<p>Classic Spark tightly couples your app to the JVM driver. <strong>Spark Connect</strong> (GA in Spark 4.0) splits them: the client turns DataFrame ops into unresolved logical plans, serialises them as protobuf, and ships them over gRPC to a remote driver. Wins: embed Spark in an IDE, notebook, or app server; upgrade the cluster without touching client code; a crashing client no longer kills the driver serving everyone else. It is also how Databricks Connect and non-JVM clients talk to a cluster.</p>",
+    "tags": [
+      "spark-connect",
+      "grpc",
+      "spark-4.0",
+      "thin-client"
+    ],
+    "src": "https://spark.apache.org/docs/latest/spark-connect-overview.html"
+  },
+  {
+    "id": "auto-20260706-4",
+    "cat": "dbt",
+    "level": "Advanced",
+    "title": "dbt --empty: validate the DAG without scanning data",
+    "hook": "Build every model with zero rows to catch broken refs for free.",
+    "body": "<p>The <code>--empty</code> flag (dbt 1.8+) wraps each input in <code>limit 0 where false</code>, so models build their real schema and DDL but scan no data. It proves refs resolve, SQL compiles against actual warehouse types, and column contracts hold &mdash; at near-zero cost.</p><pre><code>dbt build -s <span class=\"kw\">state:modified+</span> --empty --defer --state target/</code></pre><p>Pair it with Slim CI for a cheap dry-run pull-request check; run the full-data build only on merge. Catches drift that a <code>dbt compile</code> alone misses.</p>",
+    "tags": [
+      "dbt-empty",
+      "dry-run",
+      "slim-ci",
+      "dbt-1.8"
+    ],
+    "src": "https://docs.getdbt.com/docs/build/empty-flag"
+  },
+  {
+    "id": "auto-20260706-5",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "ai_query brings the LLM inside your SQL",
+    "hook": "Classify or extract across a whole table with one function call.",
+    "body": "<p>Databricks AI Functions run inference straight from SQL. Task-specific ones &mdash; <code>ai_classify</code>, <code>ai_extract</code>, <code>ai_translate</code>, <code>ai_parse_document</code> &mdash; are tuned for one job; <code>ai_query</code> is the general escape hatch for any model with a custom prompt.</p><pre><code><span class=\"kw\">select</span> review_id,\n  ai_classify(body, array('praise','complaint','question')) <span class=\"kw\">as</span> intent\n<span class=\"kw\">from</span> tradie_reviews;</code></pre><p>Since March 2025 they are fully serverless (no endpoint setup) and scale to batch inference inside a dbt model or DLT pipeline. Cost lands under MODEL_SERVING / BATCH_INFERENCE.</p>",
+    "tags": [
+      "ai-functions",
+      "ai-query",
+      "batch-inference",
+      "databricks"
+    ],
+    "src": "https://docs.databricks.com/aws/en/large-language-models/ai-functions"
   }
 ];

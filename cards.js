@@ -2736,5 +2736,84 @@ window.SWIPE_CARDS = [
       "databricks"
     ],
     "src": "https://docs.databricks.com/aws/en/large-language-models/ai-functions"
+  },
+  {
+    "id": "auto-20260707-1",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "CTAS quietly strips VARCHAR back to STRING",
+    "hook": "Your cast(col as varchar(255)) never made it into the Delta schema.",
+    "body": "<p>A <code>cast(col <span class=\"kw\">as</span> varchar(255))</code> inside <code>create table ... as select</code> gets normalised to unbounded <code>string</code> in Delta's stored schema. Harmless &mdash; until a connector reads that schema: the Salesforce sync maps unbounded string to a 1,048,576-char field, blowing SF's 32,000 limit, and rejects the column. Same trap: <code>bigint</code> is precision 19 vs SF's max 18. Fix: drop the table, <code>create table</code> with explicit column DDL (<code>varchar(n)</code>, <code>decimal(18,s)</code>), then <code>insert into ... select</code>. Verify with <code>show create table</code>.</p>",
+    "tags": [
+      "delta",
+      "ctas",
+      "varchar",
+      "salesforce-sync",
+      "from-my-work"
+    ],
+    "src": "pam_portfolio_flat_sf_v2 build — platform-constraints.md, Databricks→SF sync"
+  },
+  {
+    "id": "auto-20260707-2",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "A dim table covers a population, not the universe",
+    "hook": "The dim you based your build on was silently missing 24% of accounts.",
+    "body": "<p>Every dimension table encodes upstream filter decisions someone else made. A lookup that reads like <em>all accounts</em> turned out to be <em>PAM-attributable accounts only</em> &mdash; three separate drop points upstream &mdash; and the flat table built on it silently lost rows; falling back to the raw source recovered 1,131 of them. Before basing a build on any dim, profile its population: <code>count(<span class=\"kw\">distinct</span> key)</code> in the dim vs the raw source, and diff a sample of the missing keys to learn <em>which</em> segment is excluded.</p>",
+    "tags": [
+      "dimension",
+      "population",
+      "coverage",
+      "profiling",
+      "from-my-work"
+    ],
+    "src": "memory/poc-dc-sf-id-gaps.md — poc_dc is PAM-attributable, not all accounts"
+  },
+  {
+    "id": "auto-20260707-3",
+    "cat": "Spark",
+    "level": "Advanced",
+    "title": "Arrow-native UDFs skip the pandas hop",
+    "hook": "Spark 4.1 lets Python UDFs consume Arrow batches directly.",
+    "body": "<p>Classic Python UDFs pickle rows one at a time; pandas UDFs fixed the batching but still convert every batch Arrow &rarr; pandas &rarr; Arrow, paying conversion and memory on both edges. Spark 4.1 adds <strong>Arrow-native UDFs and UDTFs</strong>: your function receives and returns Arrow RecordBatches directly, so there is no pandas dependency, no conversion tax, and lower peak memory. If a UDF only shuffles columns around or calls a vectorised library that already speaks Arrow, this is now the fastest Python path &mdash; worth re-benchmarking your slowest pandas UDFs.</p>",
+    "tags": [
+      "spark-4.1",
+      "arrow",
+      "pyspark",
+      "udf",
+      "performance"
+    ],
+    "src": "https://spark.apache.org/releases/spark-release-4.1.0.html"
+  },
+  {
+    "id": "auto-20260707-4",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "SQL scripting is GA: loops and IF in pure SQL",
+    "hook": "Spark 4.1 runs procedural blocks without a Python wrapper.",
+    "body": "<p>SQL scripting hit GA in Spark 4.1 and is on by default: <code>begin ... end</code> blocks with variables, control flow, exception handlers, and dynamic SQL &mdash; no notebook Python glue needed.</p><pre><code><span class=\"kw\">begin</span>\n  <span class=\"kw\">declare</span> cnt <span class=\"kw\">int</span>;\n  <span class=\"kw\">set</span> cnt = (<span class=\"kw\">select</span> count(*) <span class=\"kw\">from</span> new_rows);\n  <span class=\"kw\">if</span> cnt &gt; <span class=\"num\">0</span> <span class=\"kw\">then</span> <span class=\"kw\">insert into</span> tgt <span class=\"kw\">select</span> * <span class=\"kw\">from</span> new_rows;\n  <span class=\"kw\">end if</span>;\n<span class=\"kw\">end</span></code></pre><p>Use it for conditional backfills and guarded merges; it is also the body language for Unity Catalog stored procedures.</p>",
+    "tags": [
+      "sql-scripting",
+      "spark-4.1",
+      "control-flow",
+      "execute-immediate"
+    ],
+    "src": "https://spark.apache.org/releases/spark-release-4.1.0.html"
+  },
+  {
+    "id": "auto-20260707-5",
+    "cat": "SQL",
+    "level": "Advanced",
+    "title": "Theta sketches: distinct counts you can merge and intersect",
+    "hook": "approx_count_distinct gives a number; a sketch gives reusable state.",
+    "body": "<p><code>approx_count_distinct</code> returns one number you cannot reuse. A <strong>sketch</strong> is a tiny mergeable summary: store one per day or segment, then union them across any window later &mdash; no rescan of raw events. Spark 4.1 ships Apache DataSketches natively: <strong>Theta</strong> sketches support union, <em>intersection and difference</em> (e.g. audience overlap between two campaigns &mdash; impossible with plain HLL counts), and <strong>KLL</strong> sketches do the same trick for quantiles. Pattern: aggregate sketches in a daily incremental model, merge at query time.</p>",
+    "tags": [
+      "datasketches",
+      "theta",
+      "kll",
+      "spark-4.1",
+      "approximation"
+    ],
+    "src": "https://spark.apache.org/releases/spark-release-4.1.0.html"
   }
 ];

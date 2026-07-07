@@ -2815,5 +2815,84 @@ window.SWIPE_CARDS = [
       "approximation"
     ],
     "src": "https://spark.apache.org/releases/spark-release-4.1.0.html"
+  },
+  {
+    "id": "auto-20260708-1",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "Your bot filter flags the mobile app as a bot",
+    "hook": "Filtering bots by user-agent quietly dropped real homeowner-app traffic.",
+    "body": "<p>A user-agent bot filter matches suspicious agent strings &mdash; but native mobile clients send agents like <code>homeowner-ios/</code> and <code>okhttp/</code> (the Android HTTP library) that look automated and get caught as bots. So your session counts silently <em>deflate</em> for the whole app cohort, and no error ever fires. The fix is a false-positive allowlist layered on top of the bot rule: <code><span class=\"kw\">where</span> ua <span class=\"kw\">like</span> 'homeowner-ios/%' <span class=\"kw\">or</span> ua <span class=\"kw\">like</span> 'okhttp/%'</code>. Keep it in one macro so every staging model applies the same exception.</p>",
+    "tags": [
+      "bot-filter",
+      "snowplow",
+      "user-agent",
+      "dq",
+      "from-my-work"
+    ],
+    "src": "datadex macros/snowplow_bot_filter_false_positives.sql"
+  },
+  {
+    "id": "auto-20260708-2",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "Put the null test first in a bucketing case",
+    "hook": "A null radius did not stay null - it landed in your top bucket.",
+    "body": "<p>A bucketing <code>case</code> that leads with numeric thresholds and ends in <code>else</code> lets null rows fall through to the last branch &mdash; so a null radius quietly reports as the <code>'100+'</code> bucket and inflates it. sql evaluates <code>null &lt;= 30</code> as unknown, never true, so every threshold skips the null and <code>else</code> swallows it. Lead with the null test so missing stays missing:</p><pre><code><span class=\"kw\">case</span>\n  <span class=\"kw\">when</span> radius_km <span class=\"kw\">is null then null</span>\n  <span class=\"kw\">when</span> radius_km &lt;= <span class=\"num\">30</span> <span class=\"kw\">then</span> '0-30'\n  <span class=\"kw\">else</span> '100+'\n<span class=\"kw\">end</span></code></pre>",
+    "tags": [
+      "case",
+      "null-handling",
+      "bucketing",
+      "from-my-work"
+    ],
+    "src": "datadex macros/radius_in_km_bucket.sql"
+  },
+  {
+    "id": "auto-20260708-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Apache Polaris is now the vendor-neutral Iceberg catalog",
+    "hook": "The catalog that governs your tables graduated to a top-level Apache project in Feb 2026.",
+    "body": "<p>Snowflake donated Polaris to Apache in 2024; it graduated to a top-level project in February 2026 after 18 months of incubation with Google, Microsoft and Confluent. It implements the Iceberg REST Catalog spec and ships RBAC, credential vending, catalog federation and SQL views &mdash; so Spark, Trino, Snowflake and Dremio can all read the same governed tables with no proprietary lock-in. The takeaway: the <em>catalog</em>, not the file format, is now where governance and multi-engine interop actually live.</p>",
+    "tags": [
+      "apache-polaris",
+      "iceberg",
+      "catalog",
+      "rest-catalog",
+      "governance"
+    ],
+    "src": "https://polaris.apache.org/blog/2026/02/19/apache-polaris-graduates-to-top-level-project/"
+  },
+  {
+    "id": "auto-20260708-4",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "Text-to-SQL collapses on real enterprise schemas",
+    "hook": "Top models solve 6% of Spider 2.0 - down from 87% on the old benchmark.",
+    "body": "<p>Spider 1.0 is a solved toy: models hit ~87% execution accuracy. Spider 2.0 rebuilt the test around real enterprise workloads &mdash; databases with 3,000+ columns, BigQuery and Snowflake dialects, multi-step transforms. gpt-4 solves 6%; o1-preview only 21%. The gap is schema scale and dialect, not SQL syntax. This is the hard data behind the curator role: a text-to-SQL surface like Genie needs a small, curated, well-described semantic layer, or the model drowns in the real warehouse.</p>",
+    "tags": [
+      "text-to-sql",
+      "spider-2.0",
+      "genie",
+      "evaluation",
+      "semantic-layer"
+    ],
+    "src": "https://arxiv.org/abs/2411.07763"
+  },
+  {
+    "id": "auto-20260708-5",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Snowflake's new ingestion engine is 20-year-old Apache NiFi",
+    "hook": "Openflow is managed NiFi - Snowflake's answer to Fivetran and Lakeflow Connect.",
+    "body": "<p>Openflow (GA 2025, expanding through 2026) is Snowflake's managed data-integration service, and under the hood it is <strong>Apache NiFi</strong> &mdash; the flow-based tool that began life as the NSA's NiagaraFiles. You compose familiar NiFi processors plus Snowflake components to ingest structured, semi-structured and unstructured data, and can run the data plane inside your own VPC (BYOC). The lesson for a platform-watcher: the shiny 'new' ingestion layer each warehouse ships is often a battle-tested OSS engine wrapped in managed hosting.</p>",
+    "tags": [
+      "snowflake",
+      "openflow",
+      "nifi",
+      "ingestion",
+      "byoc"
+    ],
+    "src": "https://docs.snowflake.com/en/user-guide/data-integration/openflow/about"
   }
 ];

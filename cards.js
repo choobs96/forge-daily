@@ -2894,5 +2894,83 @@ window.SWIPE_CARDS = [
       "byoc"
     ],
     "src": "https://docs.snowflake.com/en/user-guide/data-integration/openflow/about"
+  },
+  {
+    "id": "auto-20260709-1",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "Read secrets with a parser, never shell-grep the config",
+    "hook": "grep over a nested config returns an empty string, and your script silently runs unauthenticated.",
+    "body": "<p>Shell text tools flatten structure. <code>grep -m1 '^host' ~/.databrickscfg</code> returns the whole <code>host = https://...</code> line, not the url; grepping a pat out of nested json yields zero chars. The empty credential does not error &mdash; it silently fails auth downstream. Read config with a real parser at runtime:</p><pre><code>python3 -c \"import json,os; e=json.load(open(os.path.expanduser('~/.claude.json')))['mcpServers']['databricks']['env']; print(e['DATABRICKS_TOKEN'])\"</code></pre><p>Never hardcode the value into a script that persists.</p>",
+    "tags": [
+      "from-my-work",
+      "secrets",
+      "config",
+      "shell"
+    ],
+    "src": "memory/patterns.md 2026-07-06 - never shell-grep nested config for creds"
+  },
+  {
+    "id": "auto-20260709-2",
+    "cat": "Modeling",
+    "level": "Advanced",
+    "title": "A re-owned job leaves a duplicate row in the fact",
+    "hook": "When a job changes owner, both owners' rows survive and your counts double.",
+    "body": "<p>In our marketplace fact a job whose consumer changed hands lands <strong>twice</strong> &mdash; one row per owner &mdash; so <code>count(*)</code> over-reports. The dedup keeps the current owner and deletes the stale one: within each duplicated job, find the original via</p><pre><code><span class=\"kw\">first_value</span>(consumer_user_id) <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> latest_job_id <span class=\"kw\">order by</span> last_modified_ts <span class=\"kw\">asc</span>)</code></pre><p>then a post-hook deletes rows matching it. When an entity's identity can churn, dedup on the newest record, not a blind <code>distinct</code>.</p>",
+    "tags": [
+      "from-my-work",
+      "fan-out",
+      "dedup",
+      "window"
+    ],
+    "src": "datadex macro find_latest_job_owner"
+  },
+  {
+    "id": "auto-20260709-3",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "LTAP unifies OLTP and OLAP on one copy",
+    "hook": "Databricks' answer to HTAP joins the two worlds at the storage layer, not the engine.",
+    "body": "<p>Announced June 2026, <strong>LTAP</strong> (Lake Transactional/Analytical Processing) runs operational, analytical and streaming workloads over a single copy of data on open object storage &mdash; Delta and Iceberg &mdash; governed by Unity Catalog. It builds on Lakebase (serverless Postgres) and folds it under the lakehouse. Unlike HTAP, which unifies at the engine, LTAP unifies at <em>storage</em>: no ETL, no replicas, so operational and analytical results never drift apart.</p>",
+    "tags": [
+      "ltap",
+      "lakebase",
+      "oltp",
+      "htap",
+      "databricks"
+    ],
+    "src": "https://www.databricks.com/company/newsroom/press-releases/databricks-launches-ltap-first-lake-transactionalanalytical"
+  },
+  {
+    "id": "auto-20260709-4",
+    "cat": "DQ",
+    "level": "Advanced",
+    "title": "ZeroOps traces a pipeline failure and drafts the fix",
+    "hook": "It follows lineage to the root cause, then tests a repair on a shallow clone before you approve.",
+    "body": "<p>Genie ZeroOps, now inside Lakeflow, watches live pipelines. When one breaks it traces the failure through Unity Catalog's column-level lineage back to the root cause, proposes a fix, and validates that fix against a <strong>shallow clone</strong> of the affected table &mdash; all before a human approves. Steal the pattern even without the product: a self-healing pipeline should prove its repair on a cheap clone, never on prod.</p>",
+    "tags": [
+      "zeroops",
+      "lakeflow",
+      "lineage",
+      "self-healing",
+      "databricks"
+    ],
+    "src": "https://www.databricks.com/blog/unifying-data-and-governance-agentic-era-whats-new-azure-databricks"
+  },
+  {
+    "id": "auto-20260709-5",
+    "cat": "AI",
+    "level": "Advanced",
+    "title": "Lakebase Search puts vector retrieval inside Postgres",
+    "hook": "Hybrid vector plus full-text search native to your operational database - no separate vector store.",
+    "body": "<p>Lakebase Search (beta, 2026) builds hybrid vector <em>and</em> full-text retrieval directly into Lakebase's Postgres, with 32x compression that makes 1B+ vector indexes cheap. For a data engineer shipping a RAG or agent app it collapses a moving part: your embeddings live beside the operational rows they describe, under the same Unity Catalog identity &mdash; instead of syncing a bolt-on vector db that drifts out of step with the source data.</p>",
+    "tags": [
+      "lakebase",
+      "vector-search",
+      "rag",
+      "postgres",
+      "databricks"
+    ],
+    "src": "https://www.databricks.com/blog/whats-new-azure-databricks-fabcon-2026-lakebase-lakeflow-and-genie"
   }
 ];

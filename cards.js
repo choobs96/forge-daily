@@ -2972,5 +2972,79 @@ window.SWIPE_CARDS = [
       "databricks"
     ],
     "src": "https://www.databricks.com/blog/whats-new-azure-databricks-fabcon-2026-lakebase-lakeflow-and-genie"
+  },
+  {
+    "id": "auto-20260710-1",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "AI/BI widgets can't divide inline - use a MEASURE calc",
+    "hook": "You know the rate is sum/sum, but the widget won't let you type it.",
+    "body": "<p>A rate must be <code>sum(numerator) / sum(denominator)</code>, never <code>avg(per-row rate)</code> &mdash; averaging rates over-weights low-volume rows. The trap on Databricks AI/BI: division isn't allowed in a widget's <code>fields[].expression</code>, so you can't fix it at the widget. Define it once as a dataset-level custom calculation instead:</p><pre><code>measure(sum(clicks)) / measure(sum(impressions))</code></pre><p>Now every widget on that dataset gets the correct, volume-weighted rate.</p>",
+    "tags": [
+      "from-my-work",
+      "ai-bi-dashboard",
+      "measure",
+      "rate-metric"
+    ],
+    "src": "lessons-locked.md 2026-05-11 - Databricks AI/BI rate widgets"
+  },
+  {
+    "id": "auto-20260710-2",
+    "cat": "dbt",
+    "level": "Core",
+    "title": "audit_columns() stamps run time, not data time",
+    "hook": "Every datadex model ends with it - but it doesn't mean what it looks like.",
+    "body": "<p>The house macro injects one audit column:</p><pre><code>current_timestamp as __model_updated_ts</code></pre><p>It records when the <em>model last ran</em>, not when the row's data actually changed. So a <code>table</code>-materialized upstream re-stamps every row on each rebuild, and a checkpoint keyed off <code>__model_updated_ts</code> re-scans everything daily. Never use it to detect stale source data or as an incremental watermark &mdash; key incrementals off the source event / commit timestamp instead.</p>",
+    "tags": [
+      "from-my-work",
+      "audit-columns",
+      "incremental",
+      "watermark"
+    ],
+    "src": "datadex macros/audit_columns.sql"
+  },
+  {
+    "id": "auto-20260710-3",
+    "cat": "Streaming",
+    "level": "Advanced",
+    "title": "Delta Change Data Feed: CDC without Debezium",
+    "hook": "Read the exact rows that changed between two versions of a Delta table.",
+    "body": "<p>Set <code>delta.enableChangeDataFeed = true</code> and Delta records row-level changes. Then read them in batch or streaming:</p><pre><code><span class=\"kw\">select</span> * <span class=\"kw\">from</span> table_changes(<span class=\"str\">'sales.orders'</span>, <span class=\"num\">12</span>, <span class=\"num\">18</span>)</code></pre><p>Each row carries <code>_change_type</code> (insert / update_preimage / update_postimage / delete) and <code>_commit_version</code>, so a downstream MERGE consumes just the delta. Catch: only changes made <em>after</em> you enable CDF are captured &mdash; turn it on before you need the history.</p>",
+    "tags": [
+      "change-data-feed",
+      "table-changes",
+      "delta",
+      "cdc"
+    ],
+    "src": "https://docs.databricks.com/aws/en/delta/delta-change-data-feed"
+  },
+  {
+    "id": "auto-20260710-4",
+    "cat": "SQL",
+    "level": "Core",
+    "title": "Lateral column alias: reference a select alias inline",
+    "hook": "Stop repeating the same CASE three times or wrapping it in a CTE.",
+    "body": "<p>Databricks (DBR 12.2+) lets you reference a column alias later in the <em>same</em> SELECT, and chain them &mdash; no subquery or CTE:</p><pre><code><span class=\"kw\">select</span>\n  price * qty <span class=\"kw\">as</span> gross,\n  gross * <span class=\"num\">0.9</span> <span class=\"kw\">as</span> net,\n  net - cost <span class=\"kw\">as</span> margin\n<span class=\"kw\">from</span> orders;</code></pre><p>Cleaner and DRY. One gotcha: if a joined table has a column with the same name as your alias, the <em>table column</em> wins &mdash; and two identical aliases raise <code>AMBIGUOUS_LATERAL_COLUMN_ALIAS</code>.</p>",
+    "tags": [
+      "lateral-column-alias",
+      "readability",
+      "databricks-sql"
+    ],
+    "src": "https://www.databricks.com/blog/introducing-support-lateral-column-alias"
+  },
+  {
+    "id": "auto-20260710-5",
+    "cat": "Platform",
+    "level": "Advanced",
+    "title": "VACUUM is the moment time travel dies",
+    "hook": "It physically deletes files - and takes your rollback window with them.",
+    "body": "<p><code>vacuum</code> removes data files no longer referenced within <code>delta.deletedFileRetentionDuration</code> (default 7 days). Once it runs, you can no longer time-travel or <code>restore</code> to a version older than that window &mdash; the Parquet is gone, not just unlinked. Time travel also needs the log entry, kept by <code>delta.logRetentionDuration</code> (default 30 days). The sub-7-day guard blocks a reckless <code>vacuum</code> for exactly this reason; raise both properties if you need longer audit or rollback.</p>",
+    "tags": [
+      "vacuum",
+      "time-travel",
+      "retention",
+      "delta"
+    ],
+    "src": "https://docs.databricks.com/aws/en/delta/vacuum"
   }
 ];

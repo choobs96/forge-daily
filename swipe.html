@@ -285,7 +285,9 @@ const DAILY_TARGET = 8;          // fresh cards per day
 const DAILY_CAP = 16;            // hard cap incl. reviews
 const XP_NEW = 15;               // first time you swipe a card "got it"
 const XP_REVIEW = 5;             // clearing a review card again
-const INTERVALS = [1, 1, 2, 4, 7, 14, 30]; // Leitner box -> days until next due
+const INTERVALS = [1, 7, 14, 30, 60, 120, 180]; // Leitner box -> days until next due
+// box 0 = missed (swiped left) -> back tomorrow; box 1 = first "Got it" -> a week out,
+// then spacing widens. Keeps the daily deck fresh instead of re-showing known cards.
 
 const CARDS = (window.SWIPE_CARDS || []).filter(c => c && c.id);
 

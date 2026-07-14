@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JavaScript syntax
+        run: |
+          for f in cards.js sw.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+
+      - name: Install HTML validator
+        run: npm install --no-save html-validate
+
+      - name: Validate HTML
+        run: npx html-validate "*.html"
+
+      - name: Check service worker cache manifest
+        run: |
+          # Every file listed in the sw.js SHELL array must exist in the repo.
+          node - <<'EOF'
+          const fs = require('fs');
+          const sw = fs.readFileSync('sw.js', 'utf8');
+          const m = sw.match(/const\s+SHELL\s*=\s*(\[[^\]]*\])/);
+          if (!m) { console.error('Could not find SHELL array in sw.js'); process.exit(1); }
+          const shell = JSON.parse(m[1]);
+          let missing = [];
+          for (const entry of shell) {
+            const p = entry === './' ? 'index.html' : entry;
+            if (!fs.existsSync(p)) missing.push(entry);
+          }
+          if (missing.length) {
+            console.error('sw.js references files that do not exist: ' + missing.join(', '));
+            process.exit(1);
+          }
+          console.log('All ' + shell.length + ' precached shell entries exist.');
+          EOF

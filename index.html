@@ -913,7 +913,7 @@ ON UPPER(a.id) = b.id       <span class="comment">❌</span>
     <div class="quiz-title">SQL Check 1</div>
     <div class="quiz-q">You need to keep the most recent record per <code>account_id</code> from a CDC stream where many rows share the same key. What's the right approach?</div>
     <div class="quiz-options">
-      <button class="quiz-opt" onclick="answerQuiz(this, false, 'DISTINCT collapses by all columns — won\'t give you "most recent" semantics.')">SELECT DISTINCT account_id, ...</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'DISTINCT collapses by all columns — won\'t give you &quot;most recent&quot; semantics.')">SELECT DISTINCT account_id, ...</button>
       <button class="quiz-opt" onclick="answerQuiz(this, true, 'Correct — ROW_NUMBER partitioned by account_id, ordered by updated_at DESC, filtered to rn=1.')">ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY updated_at DESC) = 1</button>
       <button class="quiz-opt" onclick="answerQuiz(this, false, 'GROUP BY MAX(updated_at) loses the rest of the row\'s columns.')">GROUP BY account_id, then MAX(updated_at)</button>
       <button class="quiz-opt" onclick="answerQuiz(this, false, 'LIMIT 1 only gives one row total, not one per account.')">ORDER BY updated_at DESC LIMIT 1</button>
@@ -1474,7 +1474,7 @@ git rebase --abort</code></pre>
     <div class="quiz-q">Your dbt model on a 2B-row Delta table runs in 4 minutes. The query filters <code>WHERE event_date >= '2026-05-01'</code> but the table is partitioned by <code>year</code>. What's the cheapest first move?</div>
     <div class="quiz-options">
       <button class="quiz-opt" onclick="answerQuiz(this, false, 'Bigger cluster masks the problem but burns money.')">Increase cluster size.</button>
-      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — the filter only prunes if it touches the partition column. Adding "AND year = 2026" lets partition pruning skip all other years.')">Add <code>AND year = 2026</code> to use partition pruning, then consider repartitioning by date_day.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — the filter only prunes if it touches the partition column. Adding &quot;AND year = 2026&quot; lets partition pruning skip all other years.')">Add <code>AND year = 2026</code> to use partition pruning, then consider repartitioning by date_day.</button>
       <button class="quiz-opt" onclick="answerQuiz(this, false, 'Indexes aren\'t a primary concept in columnar warehouses.')">Add an index on event_date.</button>
       <button class="quiz-opt" onclick="answerQuiz(this, false, 'Caching helps repeat queries, not the first run.')">Cache the table.</button>
     </div>

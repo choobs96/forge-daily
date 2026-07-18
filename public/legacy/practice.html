@@ -337,14 +337,14 @@ pre code { background: none; border: none; padding: 0; color: inherit; }
 }
 </style>
 
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="../manifest.webmanifest">
 <meta name="theme-color" content="#07091a">
-<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Forge">
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<!-- legacy SW registration removed: workbox SW owns the scope -->
 </head>
 <body>
 

@@ -35,6 +35,7 @@ class ForgeStore {
   toast = $state<{ msg: string; kind: 'xp' | 'info' | 'streak' } | null>(null);
 
   constructor() {
+    this.persist(); // materialize forge:v2 on first boot (also stamps a migration)
     void loadCards().then((c) => {
       this.cards = c;
       this.cardsReady = true;
@@ -123,10 +124,14 @@ class ForgeStore {
       s.bestCombo = Math.max(s.bestCombo, s.combo);
     } else {
       s.combo = 0;
-      // in-session relearn: requeue a copy near the end (only once)
+      // in-session relearn: requeue a copy near the end (only once).
+      // A relearned NEW card becomes a review item, whose ids are srs-key
+      // prefixed ('card:<id>') — keep the format consistent.
       if (!item.relearn) {
+        const relearnItem: SessionItem =
+          item.type === 'new' ? { type: 'review', id: `card:${item.id}`, relearn: true } : { ...item, relearn: true };
         const insertAt = Math.min(s.items.length, s.idx + Math.max(3, s.items.length - s.idx - 1));
-        s.items.splice(insertAt, 0, { ...item, type: item.type === 'new' ? 'review' : item.type, relearn: true });
+        s.items.splice(insertAt, 0, relearnItem);
       }
     }
     const earned = comboXp(base, s.combo);

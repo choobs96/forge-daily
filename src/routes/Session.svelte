@@ -44,6 +44,19 @@
     lessonScreen = 0;
   });
 
+  // Entering #/session directly with a stale (yesterday's) session — or none
+  // at all — must rebuild today's deck. Waits for cards to load first.
+  $effect(() => {
+    if (store.cardsReady && (!store.state.session || store.state.session.date !== store.today)) {
+      store.ensureSession();
+    }
+  });
+  // An assembled session with zero items (e.g. quick session with nothing due)
+  // completes immediately instead of rendering a blank player.
+  $effect(() => {
+    if (session && !session.done && session.items.length === 0) store.finishSession();
+  });
+
   function afterAnswer(res: { xp: number; entryKey: string }) {
     if (res.xp > 0) {
       xpFly = { amount: res.xp, key: Date.now() };

@@ -55,6 +55,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,webmanifest}'],
         globIgnores: ['legacy/**', 'cards.js'],
         navigateFallback: 'index.html',
+        // Legacy pages are real documents, not SPA routes — never rewrite
+        // their navigations to the app shell. Same for the redirect stubs.
+        navigateFallbackDenylist: [/\/legacy\//, /\.html$/],
         runtimeCaching: [
           {
             // Content updates flow without a redeploy: network-first, cache fallback.

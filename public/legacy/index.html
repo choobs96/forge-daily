@@ -1,0 +1,2897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyst → Analytics Engineer Pivot · Learning Hub</title>
+<style>
+:root {
+  --bg: #0b1020;
+  --bg-elev: #131a32;
+  --bg-card: #1a2244;
+  --bg-card-hover: #222c54;
+  --border: #2a3563;
+  --text: #e8ecf7;
+  --text-dim: #a0a8c8;
+  --text-muted: #6b7290;
+  --accent: #7aa2ff;
+  --accent-2: #a78bfa;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --code-bg: #0a1024;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+[data-theme="light"] {
+  --bg: #f7f8fc;
+  --bg-elev: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #eef2ff;
+  --border: #d8dceb;
+  --text: #1a1f36;
+  --text-dim: #4a5078;
+  --text-muted: #7a829e;
+  --accent: #4a6cf7;
+  --accent-2: #7c3aed;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #d97706;
+  --code-bg: #1a1f36;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+/* Sidebar */
+.sidebar {
+  background: var(--bg-elev);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar h1 {
+  font-size: 18px;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.sidebar .tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.progress-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+.progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  width: 0%;
+  transition: width .3s;
+}
+.nav-section { margin-bottom: 18px; }
+.nav-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin: 12px 0 6px;
+  font-weight: 600;
+}
+.nav-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-link:hover { background: var(--bg-card-hover); color: var(--text); }
+.nav-link.active { background: var(--bg-card); color: var(--accent); }
+.nav-link .check {
+  font-size: 10px;
+  color: var(--green);
+  opacity: 0;
+}
+.nav-link.completed .check { opacity: 1; }
+.sidebar-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+  transition: all .15s;
+}
+.btn:hover { background: var(--bg-card-hover); border-color: var(--accent); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: white; }
+.btn-primary:hover { opacity: .9; }
+
+/* Main */
+.main {
+  padding: 40px 56px;
+  max-width: 1100px;
+}
+.module { display: none; animation: fadeIn .3s; }
+.module.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.module-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.module-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.module h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.module-subtitle {
+  color: var(--text-dim);
+  font-size: 16px;
+}
+.level-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-left: 8px;
+}
+.level-beginner { background: rgba(74, 222, 128, .15); color: var(--green); }
+.level-intermediate { background: rgba(251, 191, 36, .15); color: var(--amber); }
+.level-advanced { background: rgba(248, 113, 113, .15); color: var(--red); }
+
+h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+  letter-spacing: -0.3px;
+}
+h3:first-of-type { margin-top: 0; }
+h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 8px;
+  color: var(--text);
+}
+p { margin-bottom: 12px; color: var(--text-dim); }
+.lead { font-size: 17px; color: var(--text); margin-bottom: 16px; }
+
+ul, ol { padding-left: 22px; margin-bottom: 12px; color: var(--text-dim); }
+li { margin-bottom: 4px; }
+
+code {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 13px;
+  background: var(--bg-card);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+pre {
+  background: var(--code-bg);
+  color: #e8ecf7;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  border: 1px solid var(--border);
+}
+pre code { background: none; border: none; color: inherit; padding: 0; }
+.kw { color: #f472b6; }
+.str { color: #a7f3d0; }
+.fn { color: #93c5fd; }
+.cm { color: #6b7290; font-style: italic; }
+.num { color: #fbbf24; }
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all .2s;
+}
+.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.card h4 { margin-top: 0; color: var(--accent); }
+
+/* Flashcards */
+.flashcard-set { margin: 16px 0 24px; }
+.flashcard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  position: relative;
+  min-height: 100px;
+  transition: all .2s;
+}
+.flashcard:hover { border-color: var(--accent); }
+.flashcard .question { font-weight: 600; font-size: 15px; color: var(--text); }
+.flashcard .answer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-dim);
+  font-size: 14px;
+  display: none;
+}
+.flashcard.flipped .answer { display: block; }
+.flashcard .hint {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Fast-pointer cards */
+.fastcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+.fastcard {
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+}
+.fastcard .term {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.fastcard .def { color: var(--text-dim); font-size: 12.5px; }
+
+/* Quiz */
+.quiz {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+}
+.quiz-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.quiz-q { font-size: 14px; margin-bottom: 12px; }
+.quiz-options { display: flex; flex-direction: column; gap: 6px; }
+.quiz-opt {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-dim);
+  transition: all .15s;
+}
+.quiz-opt:hover { background: var(--bg-card-hover); color: var(--text); }
+.quiz-opt.correct { background: rgba(74,222,128,.15); border-color: var(--green); color: var(--green); }
+.quiz-opt.wrong { background: rgba(248,113,113,.15); border-color: var(--red); color: var(--red); }
+.quiz-feedback {
+  margin-top: 12px;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: none;
+}
+.quiz-feedback.show { display: block; }
+.quiz-feedback.correct { background: rgba(74,222,128,.1); color: var(--green); border: 1px solid var(--green); }
+.quiz-feedback.wrong { background: rgba(248,113,113,.1); color: var(--red); border: 1px solid var(--red); }
+
+/* Recap */
+.recap {
+  background: linear-gradient(135deg, rgba(122,162,255,.08), rgba(167,139,250,.08));
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 32px 0;
+}
+.recap-title {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.recap ul { margin: 0; padding-left: 18px; }
+.recap li { color: var(--text); font-size: 14px; margin-bottom: 6px; }
+
+/* Callout */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-card);
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.callout.warn { border-color: var(--amber); }
+.callout.warn .callout-title { color: var(--amber); }
+.callout.danger { border-color: var(--red); }
+.callout.danger .callout-title { color: var(--red); }
+.callout-title {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+th, td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th { background: var(--bg-elev); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--text); }
+td { color: var(--text-dim); }
+tr:last-child td { border-bottom: none; }
+
+/* Pop quiz modal */
+.pop-quiz-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  transition: transform .15s;
+}
+.pop-quiz-btn:hover { transform: scale(1.05); }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: var(--shadow);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.modal-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 20px;
+}
+.modal h3 { margin: 0 0 20px; font-size: 18px; }
+
+/* Cheat sheet */
+.cheatsheet {
+  background: var(--code-bg);
+  color: #e8ecf7;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px 0;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  border: 1px solid var(--border);
+}
+.cheatsheet .label { color: var(--accent); font-weight: 600; }
+.cheatsheet .comment { color: var(--text-muted); }
+
+/* Topnav for module switch */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.module-nav {
+  display: flex;
+  gap: 8px;
+}
+.module-nav-btn {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.module-nav-btn:hover { background: var(--bg-card-hover); }
+.module-nav-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Two-column blocks */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+@media (max-width: 1000px) {
+  body { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .main { padding: 24px; }
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* Mark complete button */
+.complete-btn {
+  margin-top: 24px;
+  padding: 10px 20px;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.complete-btn:hover { border-color: var(--green); color: var(--green); }
+.complete-btn.done { background: rgba(74,222,128,.15); color: var(--green); border-color: var(--green); }
+
+/* SQL line numbers */
+pre.line-numbers {
+  counter-reset: line;
+  padding-left: 50px;
+  position: relative;
+}
+</style>
+
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#07091a">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge">
+<!-- legacy SW registration removed: workbox SW owns the scope -->
+</head>
+<body>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h1>AE Pivot Hub</h1>
+  <div class="tagline">Data Analyst → Analytics Engineer</div>
+
+  <div class="progress-wrap">
+    <div style="display:flex;justify-content:space-between;">
+      <span>Progress</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><span id="completed-count">0</span> of 13 modules</div>
+  </div>
+
+  <div class="sidebar-actions">
+    <button class="btn btn-primary" onclick="popQuiz()">Pop Quiz</button>
+    <button class="btn" onclick="toggleTheme()" id="theme-btn">Light</button>
+    <button class="btn" onclick="resetProgress()">Reset</button>
+  </div>
+
+  <nav>
+    <div class="nav-section">
+      <div class="nav-section-title">Start Here</div>
+      <a class="nav-link active" data-target="m0">Roadmap & Mindset <span class="check">✓</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Foundations</div>
+      <a class="nav-link" data-target="m1">Advanced SQL <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m2">Python for DE <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m3">Git & CI/CD <span class="check">✓</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Core Engineering</div>
+      <a class="nav-link" data-target="m4">Data Modeling <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m5">Data Warehousing <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m6">dbt Mastery <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m7">Databricks & Spark <span class="check">✓</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Production</div>
+      <a class="nav-link" data-target="m8">Orchestration <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m9">Ingestion & CDC <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m10">Data Quality & Testing <span class="check">✓</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Going Senior</div>
+      <a class="nav-link" data-target="m11">System Design <span class="check">✓</span></a>
+      <a class="nav-link" data-target="m12">Interview & Portfolio <span class="check">✓</span></a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main">
+
+<!-- ============================== MODULE 0 ============================== -->
+<section class="module active" id="m0">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 0 · Overview</span>
+    <h2>The Roadmap & Mindset Shift</h2>
+    <p class="module-subtitle">Why you already have 60% of the skills — and what the remaining 40% actually looks like.</p>
+  </div>
+
+  <p class="lead">A Data Analyst answers <em>"what's happening?"</em> An Analytics Engineer builds the <em>system</em> that lets the whole company answer that question, repeatedly, correctly, and fast. Same SQL — different muscle.</p>
+
+  <h3>The Three Roles, Disambiguated</h3>
+  <table>
+    <tr><th>Role</th><th>Primary Output</th><th>Owns</th><th>Mental Model</th></tr>
+    <tr><td><b>Data Analyst</b></td><td>Insights, dashboards, ad-hoc queries</td><td>The question</td><td>"Why did X drop?"</td></tr>
+    <tr><td><b>Analytics Engineer</b></td><td>Trusted models, semantic layer, tests</td><td>The transformation</td><td>"Is this metric correct & reproducible?"</td></tr>
+    <tr><td><b>Data Engineer</b></td><td>Pipelines, infra, ingestion, streaming</td><td>The plumbing</td><td>"Does data arrive on time, every time?"</td></tr>
+  </table>
+
+  <h3>Your Current Advantage (you already have these)</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>SQL fluency</h4>
+      <p>You already write joins, CTEs, window functions. You just need to lift it from "answering questions" to "modeling reality."</p>
+    </div>
+    <div class="card">
+      <h4>Business context</h4>
+      <p>You know what a "lead", "contractor", "renewal" means in production. AEs spend years learning what analysts already know.</p>
+    </div>
+    <div class="card">
+      <h4>Stakeholder muscle</h4>
+      <p>You translate vague asks → precise specs. That's harder than dbt.</p>
+    </div>
+    <div class="card">
+      <h4>Tool exposure</h4>
+      <p>Databricks, dbt, Salesforce, Tableau — you've been touching the production stack.</p>
+    </div>
+  </div>
+
+  <h3>What You're Adding</h3>
+  <div class="fastcards">
+    <div class="fastcard"><div class="term">Modeling discipline</div><div class="def">Kimball dimensional modeling, SCDs, fact/dim grain</div></div>
+    <div class="fastcard"><div class="term">Software craft</div><div class="def">Git, PRs, modular code, code review, testing</div></div>
+    <div class="fastcard"><div class="term">dbt as a system</div><div class="def">refs, macros, snapshots, incremental, exposures</div></div>
+    <div class="fastcard"><div class="term">Warehouse internals</div><div class="def">Columnar, partitioning, clustering, file formats</div></div>
+    <div class="fastcard"><div class="term">Orchestration</div><div class="def">Airflow/Dagster DAGs, dependencies, SLAs</div></div>
+    <div class="fastcard"><div class="term">Spark / Databricks</div><div class="def">Delta Lake, photon, broadcast joins, AQE</div></div>
+    <div class="fastcard"><div class="term">CDC & ingestion</div><div class="def">Kafka, Debezium, Fivetran, soft deletes</div></div>
+    <div class="fastcard"><div class="term">Python for DE</div><div class="def">pandas → PySpark, requests, boto3, click CLIs</div></div>
+    <div class="fastcard"><div class="term">Cost & perf</div><div class="def">Query optimisation, warehouse sizing, partitioning</div></div>
+    <div class="fastcard"><div class="term">System design</div><div class="def">Lakehouse, medallion, lineage, contracts</div></div>
+  </div>
+
+  <h3>Suggested 12-Week Plan</h3>
+  <table>
+    <tr><th>Weeks</th><th>Focus</th><th>Outcome</th></tr>
+    <tr><td>1–2</td><td>Advanced SQL + Git</td><td>Comfortable with window functions, branches, PRs</td></tr>
+    <tr><td>3–4</td><td>Data modeling + dbt basics</td><td>Build a 3-layer dbt project from scratch</td></tr>
+    <tr><td>5–6</td><td>dbt advanced + warehouse internals</td><td>Snapshots, incremental, macros; understand partitions</td></tr>
+    <tr><td>7–8</td><td>Spark/Databricks + Python</td><td>Read Spark plans; write a PySpark job</td></tr>
+    <tr><td>9–10</td><td>Orchestration + CDC</td><td>Build an Airflow DAG; explain Kafka end-to-end</td></tr>
+    <tr><td>11–12</td><td>System design + portfolio</td><td>Public dbt project on GitHub; mock interview</td></tr>
+  </table>
+
+  <h3>Quick Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click to flip</div>
+      <div class="question">What's the single biggest mindset shift from Analyst → AE?</div>
+      <div class="answer"><b>From answering questions to building systems.</b> An analyst's deliverable is the answer. An AE's deliverable is the durable model that lets <em>anyone</em> get that answer correctly tomorrow.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click to flip</div>
+      <div class="question">Why is Analytics Engineering a discipline at all (vs just "good analysts")?</div>
+      <div class="answer">Because the volume of data + stakeholders + tools exploded. The cost of one bad metric (e.g. Sales bonus tied to wrong revenue) is millions. AE applies <em>software engineering rigor</em> — version control, testing, modularity — to data transformation.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click to flip</div>
+      <div class="question">What's the difference between an Analytics Engineer and a Data Engineer?</div>
+      <div class="answer">AE owns <b>transformation</b> (warehouse SQL, dbt, semantic layer). DE owns <b>ingestion + infrastructure</b> (Kafka, Spark jobs, Airflow infra, cloud). AEs are SQL-first; DEs are Python/Scala-first. Overlap exists.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m0q1">
+    <div class="quiz-title">Quick Check</div>
+    <div class="quiz-q">A stakeholder asks: "Can you fix the active accounts metric — it's wrong in Tableau." What does an Analytics Engineer do that an Analyst typically wouldn't?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Quick fixes leave the upstream model wrong — every other dashboard will break the same way.')">Fix the Tableau calc directly.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — fix it in the canonical dbt model, add a test, and now every consumer benefits.')">Find the canonical dbt model, fix the logic there, add a dbt test that prevents regression, then update docs.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Patching in the BI layer is the analyst-trap. Push the fix upstream.')">Add a CASE WHEN in the Tableau workbook and document it.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'You\'re an engineer now — find the root cause yourself first.')">Escalate to the data engineering team.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>AE = software engineering discipline applied to data transformation.</li>
+      <li>You already have SQL + business context — the rare half. Layer modeling + craft + tools on top.</li>
+      <li>Fix upstream in the model, not downstream in the dashboard.</li>
+      <li>12-week realistic timeline — depth beats speed.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m0')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 1: ADVANCED SQL ============================== -->
+<section class="module" id="m1">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 1 · Foundations <span class="level-badge level-beginner">Beginner→Adv</span></span>
+    <h2>Advanced SQL</h2>
+    <p class="module-subtitle">From "answers a question" to "production-quality, performant, deterministic."</p>
+  </div>
+
+  <p class="lead">SQL is 70% of the AE job. You probably already write it daily — but there's a gap between "works for this report" and "works in a 100M-row Spark cluster with 12 downstream models depending on it."</p>
+
+  <h3>1. CTEs vs Subqueries — the Style You'll Be Judged On</h3>
+  <p>Every dbt model you'll touch uses CTEs. Subqueries are read once, top-to-bottom; nested subqueries are unreadable.</p>
+  <pre><code><span class="cm">-- 🟢 AE style</span>
+<span class="kw">with</span> active_jobs <span class="kw">as</span> (
+  <span class="kw">select</span> job_id, account_id, created_at
+  <span class="kw">from</span> <span class="fn">{{ ref('stg_jobs') }}</span>
+  <span class="kw">where</span> __is_deleted = <span class="kw">false</span>
+),
+job_counts <span class="kw">as</span> (
+  <span class="kw">select</span> account_id, <span class="fn">count</span>(*) <span class="kw">as</span> job_count
+  <span class="kw">from</span> active_jobs
+  <span class="kw">group by</span> account_id
+)
+<span class="kw">select</span> * <span class="kw">from</span> job_counts <span class="kw">where</span> job_count > <span class="num">5</span>;</code></pre>
+
+  <div class="callout warn">
+    <div class="callout-title">Production gotcha</div>
+    Always filter <code>__is_deleted = false</code> on Kafka CDC tables (jobs, accounts, sites, contacts, etc.). Missing it = production correctness bug.
+  </div>
+
+  <h3>2. Window Functions — the AE Power Tool</h3>
+  <p>Window functions let you do <em>row-level + aggregate</em> together. They're how every "first/last", "running total", "rank", "lag/lead" question gets solved.</p>
+
+  <h4>The anatomy</h4>
+  <pre><code><span class="fn">function</span>() <span class="kw">over</span> (
+  <span class="kw">partition by</span> &lt;reset group&gt;
+  <span class="kw">order by</span> &lt;ordering within group&gt;
+  <span class="kw">rows between</span> &lt;frame&gt;
+)</code></pre>
+
+  <h4>The seven you must know cold</h4>
+  <table>
+    <tr><th>Function</th><th>Use Case</th></tr>
+    <tr><td><code>row_number()</code></td><td>Dedupe — keep latest row per key</td></tr>
+    <tr><td><code>rank()</code> / <code>dense_rank()</code></td><td>Leaderboards, ties handling</td></tr>
+    <tr><td><code>lag()</code> / <code>lead()</code></td><td>Period-over-period, "previous status"</td></tr>
+    <tr><td><code>sum() over</code></td><td>Running total / cumulative</td></tr>
+    <tr><td><code>first_value()</code> / <code>last_value()</code></td><td>First/last status, signup channel</td></tr>
+    <tr><td><code>ntile(n)</code></td><td>Quartile, decile buckets</td></tr>
+    <tr><td><code>count(*) over (partition by)</code></td><td>"How many siblings does this row have"</td></tr>
+  </table>
+
+  <h4>The classic dedupe pattern (memorise this)</h4>
+  <pre><code><span class="kw">with</span> ranked <span class="kw">as</span> (
+  <span class="kw">select</span> *,
+    <span class="fn">row_number</span>() <span class="kw">over</span> (
+      <span class="kw">partition by</span> account_id
+      <span class="kw">order by</span> updated_at <span class="kw">desc</span>
+    ) <span class="kw">as</span> rn
+  <span class="kw">from</span> raw.accounts
+)
+<span class="kw">select</span> * <span class="kw">from</span> ranked <span class="kw">where</span> rn = <span class="num">1</span>;</code></pre>
+
+  <h3>3. Joins — beyond INNER/LEFT</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>SEMI JOIN <span class="level-badge level-intermediate">int</span></h4>
+      <p>"Rows in A that <em>have a match</em> in B" — no row multiplication, no columns from B.</p>
+      <pre><code><span class="kw">select</span> * <span class="kw">from</span> jobs j
+<span class="kw">where exists</span> (
+  <span class="kw">select</span> <span class="num">1</span> <span class="kw">from</span> bookings b
+  <span class="kw">where</span> b.job_id = j.id
+);</code></pre>
+    </div>
+    <div class="card">
+      <h4>ANTI JOIN <span class="level-badge level-intermediate">int</span></h4>
+      <p>"Rows in A with <em>no match</em> in B." Use <code>NOT EXISTS</code> over <code>NOT IN</code> (NULL-safe).</p>
+      <pre><code><span class="kw">select</span> * <span class="kw">from</span> accounts a
+<span class="kw">where not exists</span> (
+  <span class="kw">select</span> <span class="num">1</span> <span class="kw">from</span> jobs j
+  <span class="kw">where</span> j.account_id = a.id
+);</code></pre>
+    </div>
+    <div class="card">
+      <h4>Cross / Cartesian <span class="level-badge level-advanced">adv</span></h4>
+      <p>Multiplies every row of A by every row of B. Useful for date spines, cohort grids — dangerous otherwise.</p>
+    </div>
+    <div class="card">
+      <h4>Lateral / Cross Apply <span class="level-badge level-advanced">adv</span></h4>
+      <p>Per-row subquery that can reference outer columns. In Spark: <code>LATERAL VIEW</code> for exploding arrays.</p>
+    </div>
+  </div>
+
+  <h3>4. Join Fan-Out — the silent killer</h3>
+  <p>If <code>orders</code> has 100 rows and <code>order_items</code> has 500 rows, joining them produces 500 rows. SUM(order_value) is now <em>5× the truth</em>.</p>
+  <pre><code><span class="cm">-- ❌ wrong: order_value is duplicated per item</span>
+<span class="kw">select</span> <span class="fn">sum</span>(o.order_value)
+<span class="kw">from</span> orders o
+<span class="kw">join</span> order_items i <span class="kw">on</span> i.order_id = o.id;
+
+<span class="cm">-- ✅ correct: aggregate one side before joining</span>
+<span class="kw">with</span> items_per_order <span class="kw">as</span> (
+  <span class="kw">select</span> order_id, <span class="fn">count</span>(*) <span class="kw">as</span> item_count
+  <span class="kw">from</span> order_items <span class="kw">group by</span> order_id
+)
+<span class="kw">select</span> <span class="fn">sum</span>(o.order_value), <span class="fn">sum</span>(i.item_count)
+<span class="kw">from</span> orders o
+<span class="kw">left join</span> items_per_order i <span class="kw">on</span> i.order_id = o.id;</code></pre>
+  <div class="callout warn">
+    <div class="callout-title">Always test grain after a join</div>
+    Run <code>count(*) vs count(distinct pk)</code> after every join. If they differ, you have fan-out.
+  </div>
+
+  <h3>5. NULL Handling — the trap</h3>
+  <ul>
+    <li><code>NULL = NULL</code> is <b>NULL</b>, not true. Use <code>IS NULL</code>.</li>
+    <li><code>NOT IN (subquery)</code> returns <b>zero rows</b> if the subquery has any NULL. Use <code>NOT EXISTS</code>.</li>
+    <li><code>COUNT(*)</code> counts NULLs; <code>COUNT(col)</code> ignores them.</li>
+    <li><code>SUM(NULL + 1) = NULL</code> — wrap in <code>COALESCE</code>.</li>
+  </ul>
+
+  <h3>6. Pivots & Unpivots</h3>
+  <pre><code><span class="cm">-- pivot via conditional aggregation</span>
+<span class="kw">select</span>
+  account_id,
+  <span class="fn">sum</span>(<span class="kw">case when</span> status = <span class="str">'won'</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> wins,
+  <span class="fn">sum</span>(<span class="kw">case when</span> status = <span class="str">'lost'</span> <span class="kw">then</span> <span class="num">1</span> <span class="kw">else</span> <span class="num">0</span> <span class="kw">end</span>) <span class="kw">as</span> losses
+<span class="kw">from</span> deals
+<span class="kw">group by</span> account_id;</code></pre>
+
+  <h3>7. Query Plans — read them, don't fear them</h3>
+  <p>In Databricks: <code>EXPLAIN FORMATTED &lt;query&gt;</code>. Top → bottom = inside → outside.</p>
+  <ul>
+    <li><b>Scan</b> — reading a table. Watch <code>PartitionFilters</code>.</li>
+    <li><b>BroadcastHashJoin</b> — small table broadcast to all nodes. Fast.</li>
+    <li><b>SortMergeJoin</b> — both sides large; shuffled. Slow but unavoidable.</li>
+    <li><b>Exchange (Shuffle)</b> — repartitioning. Expensive — minimise.</li>
+    <li><b>Filter</b> — predicate push-down should put it as close to Scan as possible.</li>
+  </ul>
+
+  <h3>SQL Performance Cheat Sheet</h3>
+  <div class="cheatsheet">
+<span class="comment"># Predicates push down — filter EARLY</span>
+<span class="label">WHERE</span> date >= '2026-01-01'   <span class="comment">→ before any JOIN</span>
+
+<span class="comment"># Project only what you need</span>
+<span class="label">SELECT</span> id, name        <span class="comment">→ not SELECT *</span>
+
+<span class="comment"># Aggregate before joining (avoid fan-out)</span>
+
+<span class="comment"># Use EXISTS over IN for nullable subqueries</span>
+
+<span class="comment"># Avoid functions on join keys (kills partition pruning)</span>
+ON a.id = b.id              <span class="comment">✅</span>
+ON UPPER(a.id) = b.id       <span class="comment">❌</span>
+
+<span class="comment"># Broadcast small dim tables explicitly when planner misses</span>
+<span class="label">SELECT /*+ BROADCAST(dim) */</span> ...
+  </div>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What does <code>ROW_NUMBER() OVER (PARTITION BY x ORDER BY y DESC)</code> achieve when filtered to <code>= 1</code>?</div>
+      <div class="answer">Returns the latest (by y) row per x — the canonical dedupe pattern.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Why is <code>NOT IN (subquery)</code> dangerous?</div>
+      <div class="answer">If the subquery returns any NULL, the entire predicate becomes NULL → no rows match. Use <code>NOT EXISTS</code>.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What's the difference between <code>RANK()</code> and <code>DENSE_RANK()</code>?</div>
+      <div class="answer">RANK leaves gaps after ties (1, 2, 2, 4); DENSE_RANK doesn't (1, 2, 2, 3).</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">How do you detect a join fan-out before SUM gives you wrong numbers?</div>
+      <div class="answer">Compare <code>count(*)</code> vs <code>count(distinct primary_key)</code> on the result. If they differ, fan-out occurred.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m1q1">
+    <div class="quiz-title">SQL Check 1</div>
+    <div class="quiz-q">You need to keep the most recent record per <code>account_id</code> from a CDC stream where many rows share the same key. What's the right approach?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'DISTINCT collapses by all columns — won\'t give you &quot;most recent&quot; semantics.')">SELECT DISTINCT account_id, ...</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Correct — ROW_NUMBER partitioned by account_id, ordered by updated_at DESC, filtered to rn=1.')">ROW_NUMBER() OVER (PARTITION BY account_id ORDER BY updated_at DESC) = 1</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'GROUP BY MAX(updated_at) loses the rest of the row\'s columns.')">GROUP BY account_id, then MAX(updated_at)</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'LIMIT 1 only gives one row total, not one per account.')">ORDER BY updated_at DESC LIMIT 1</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz" data-quiz="m1q2">
+    <div class="quiz-title">SQL Check 2</div>
+    <div class="quiz-q">You join <code>orders</code> (1M rows) to <code>order_items</code> (5M rows). What MUST be true if you then aggregate <code>SUM(orders.value)</code>?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — each order row is duplicated by N items, inflating the sum by N×.')">The sum will be wrong (inflated by fan-out) unless you aggregate items first.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'SQL doesn\'t magically deduplicate values across joined rows.')">The sum will be correct because SQL handles duplicates.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'GROUP BY changes the granularity but doesn\'t fix the duplicated value column.')">The sum is fine if you GROUP BY order_id.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'DISTINCT doesn\'t address the fundamental fan-out.')">Adding DISTINCT to the sum fixes it.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Always-CTE style: every dbt model is CTEs top-to-bottom.</li>
+      <li>Window functions are the AE power tool — master the seven core ones.</li>
+      <li>Fan-out is the #1 bug source: <code>count(*) vs count(distinct pk)</code> after joins.</li>
+      <li>NULL traps: <code>= NULL</code>, <code>NOT IN</code>, <code>COUNT(col)</code>.</li>
+      <li>Read query plans — push filters down, project less, broadcast small dims.</li>
+      <li>In a CDC pipeline: <code>__is_deleted = false</code> on CDC tables, always.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m1')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 2: PYTHON ============================== -->
+<section class="module" id="m2">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 2 · Foundations <span class="level-badge level-beginner">Beginner→Int</span></span>
+    <h2>Python for Data Engineering</h2>
+    <p class="module-subtitle">You don't need to be a software engineer. You need to be dangerous in 5 specific areas.</p>
+  </div>
+
+  <p class="lead">As an AE you'll write Python for: glue scripts, custom dbt macros sometimes, PySpark, data quality checks, API ingestion, and CLI tools. ~80% of the language you can ignore.</p>
+
+  <h3>The 5 Areas That Matter</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Data structures</h4>
+      <p>dict, list, tuple, set. List/dict comprehensions. <code>collections.defaultdict</code>, <code>Counter</code>.</p>
+    </div>
+    <div class="card">
+      <h4>2. pandas (then PySpark)</h4>
+      <p>DataFrame ops, groupby, merge, pivot, apply. Same mental model as SQL.</p>
+    </div>
+    <div class="card">
+      <h4>3. requests / APIs</h4>
+      <p>GET/POST, auth headers, pagination, retries with backoff.</p>
+    </div>
+    <div class="card">
+      <h4>4. SQLAlchemy / DB drivers</h4>
+      <p>Connect to Postgres/Databricks. Parameterised queries. Connection pooling basics.</p>
+    </div>
+    <div class="card">
+      <h4>5. CLI + env</h4>
+      <p>argparse / click for scripts. <code>.env</code> with python-dotenv. <code>os.environ</code>.</p>
+    </div>
+  </div>
+
+  <h3>SQL → Pandas Translation Table</h3>
+  <table>
+    <tr><th>SQL</th><th>Pandas</th></tr>
+    <tr><td><code>SELECT col FROM t</code></td><td><code>df['col']</code> or <code>df[['col']]</code></td></tr>
+    <tr><td><code>WHERE x > 5</code></td><td><code>df[df['x'] > 5]</code></td></tr>
+    <tr><td><code>GROUP BY x AGG SUM(y)</code></td><td><code>df.groupby('x')['y'].sum()</code></td></tr>
+    <tr><td><code>JOIN ON id</code></td><td><code>df1.merge(df2, on='id', how='left')</code></td></tr>
+    <tr><td><code>ORDER BY y DESC</code></td><td><code>df.sort_values('y', ascending=False)</code></td></tr>
+    <tr><td><code>UNION ALL</code></td><td><code>pd.concat([df1, df2])</code></td></tr>
+    <tr><td><code>ROW_NUMBER() OVER ...</code></td><td><code>df.groupby('x').cumcount() + 1</code></td></tr>
+    <tr><td><code>CASE WHEN</code></td><td><code>np.where(cond, a, b)</code> or <code>pd.cut</code></td></tr>
+  </table>
+
+  <h3>Pandas → PySpark — what changes</h3>
+  <p>PySpark is pandas-adjacent but lazy (no execution until <code>.show()</code> / <code>.collect()</code>) and distributed. Key differences:</p>
+  <pre><code><span class="cm"># pandas</span>
+df.groupby(<span class="str">'account_id'</span>)[<span class="str">'value'</span>].sum()
+
+<span class="cm"># PySpark</span>
+<span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+df.groupBy(<span class="str">'account_id'</span>).agg(F.sum(<span class="str">'value'</span>))
+
+<span class="cm"># PySpark filter</span>
+df.filter(F.col(<span class="str">'date'</span>) >= <span class="str">'2026-01-01'</span>)</code></pre>
+
+  <h3>Pattern: Idempotent script structure</h3>
+  <pre><code><span class="kw">import</span> click
+<span class="kw">from</span> datetime <span class="kw">import</span> date
+
+<span class="cm">@click.command()</span>
+<span class="cm">@click.option('--run-date', default=str(date.today()))</span>
+<span class="cm">@click.option('--full-refresh', is_flag=True)</span>
+<span class="kw">def</span> <span class="fn">main</span>(run_date, full_refresh):
+    <span class="str">"""ETL the X table for run_date."""</span>
+    logger.info(<span class="str">f"Running for {run_date}"</span>)
+    df = extract(run_date)
+    df = transform(df)
+    load(df, run_date, full_refresh=full_refresh)
+
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+    main()</code></pre>
+
+  <h3>Pattern: API ingestion with retries</h3>
+  <pre><code><span class="kw">import</span> requests
+<span class="kw">from</span> tenacity <span class="kw">import</span> retry, wait_exponential, stop_after_attempt
+
+<span class="cm">@retry(wait=wait_exponential(multiplier=1, max=30), stop=stop_after_attempt(5))</span>
+<span class="kw">def</span> <span class="fn">fetch_page</span>(url, params):
+    r = requests.get(url, params=params, timeout=<span class="num">30</span>)
+    r.raise_for_status()
+    <span class="kw">return</span> r.json()</code></pre>
+
+  <h3>Fast-Pointer Cards</h3>
+  <div class="fastcards">
+    <div class="fastcard"><div class="term">venv / poetry</div><div class="def">Isolate deps per project. Never <code>pip install</code> globally.</div></div>
+    <div class="fastcard"><div class="term">f-strings</div><div class="def"><code>f"Hello {name}"</code> — modern formatting</div></div>
+    <div class="fastcard"><div class="term">type hints</div><div class="def"><code>def f(x: int) -> str</code> — reviewers will ask for them</div></div>
+    <div class="fastcard"><div class="term">logging > print</div><div class="def"><code>logger.info</code>, never <code>print()</code> in production</div></div>
+    <div class="fastcard"><div class="term">pathlib > os.path</div><div class="def"><code>Path("data") / "raw.csv"</code></div></div>
+    <div class="fastcard"><div class="term">try/except/finally</div><div class="def">Catch specific exceptions, not bare <code>except:</code></div></div>
+    <div class="fastcard"><div class="term">pytest</div><div class="def">Standard for tests; functions starting with <code>test_</code></div></div>
+    <div class="fastcard"><div class="term">ruff / black</div><div class="def">Formatter + linter; run on save</div></div>
+  </div>
+
+  <div class="quiz" data-quiz="m2q1">
+    <div class="quiz-title">Python Check</div>
+    <div class="quiz-q">In PySpark, you call <code>df.filter(...)</code> then <code>df.groupBy(...)</code>. Nothing runs. Why?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'PySpark cluster is fine — the operations just haven\'t triggered yet.')">PySpark cluster isn't running.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — Spark is lazy. Only an action (show, collect, write) triggers execution. Transformations build a plan.')">Spark is lazy — only an action (show/collect/write) triggers execution.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'You don\'t need explicit caching for execution.')">You forgot to .cache() the DataFrame.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Filter and groupBy aren\'t blocked; they\'re just deferred.')">filter and groupBy block each other.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>You don't need to "learn Python" — you need 5 areas: data structures, pandas, requests, DB drivers, CLI.</li>
+      <li>Pandas ≈ SQL with different syntax. Make a translation table cheat sheet.</li>
+      <li>PySpark = pandas-adjacent + lazy + distributed.</li>
+      <li>Patterns: idempotent scripts (date param + --full-refresh), retries with tenacity, logging not print.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m2')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 3: GIT & CI/CD ============================== -->
+<section class="module" id="m3">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 3 · Foundations <span class="level-badge level-beginner">Beginner</span></span>
+    <h2>Git, GitHub & CI/CD</h2>
+    <p class="module-subtitle">The single biggest "looking like an engineer" lever.</p>
+  </div>
+
+  <p class="lead">Analysts often live in notebooks or Tableau workbooks — no version control. AEs live in Git. The mental model: <em>every change is a branch → PR → review → merge</em>.</p>
+
+  <h3>The Git Mental Model</h3>
+  <table>
+    <tr><th>Concept</th><th>What it is</th></tr>
+    <tr><td>Repository</td><td>A folder + complete history of every change</td></tr>
+    <tr><td>Branch</td><td>An independent line of work. <code>main</code> = production. Feature branches off main.</td></tr>
+    <tr><td>Commit</td><td>A snapshot + message. Atomic — one logical change.</td></tr>
+    <tr><td>Push</td><td>Upload your branch to GitHub.</td></tr>
+    <tr><td>Pull Request</td><td>"Please review and merge my branch."</td></tr>
+    <tr><td>Merge</td><td>Integrate one branch into another.</td></tr>
+    <tr><td>Rebase</td><td>Replay your commits on top of latest main. Cleaner history than merge.</td></tr>
+  </table>
+
+  <h3>The Daily Loop</h3>
+  <pre><code><span class="cm"># start a new feature</span>
+git checkout main
+git pull origin main
+git checkout -b feat/DAE-422-stg-accounts
+
+<span class="cm"># work, then save it</span>
+git add models/staging/stg_accounts.sql
+git commit -m <span class="str">"feat: [DAE-422] Add staging model for accounts"</span>
+
+<span class="cm"># push and open a PR</span>
+git push -u origin feat/DAE-422-stg-accounts
+gh pr create --title <span class="str">"feat: [DAE-422] stg_accounts"</span> --body <span class="str">"..."</span>
+
+<span class="cm"># after review, merge via GitHub UI (squash merge)</span></code></pre>
+
+  <h3>Commit Hygiene</h3>
+  <ul>
+    <li><b>One logical change per commit.</b> "Add stg_accounts" not "stg_accounts and some other fix and docs."</li>
+    <li><b>Conventional Commits</b>: <code>feat: …</code>, <code>fix: …</code>, <code>chore: …</code>, <code>refactor: …</code>, <code>docs: …</code></li>
+    <li><b>Imperative mood</b>: "Add", "Fix", "Refactor" — not "Added", "Fixing".</li>
+    <li><b>Reference ticket</b>: <code>feat: [DAE-422] Add staging model</code></li>
+  </ul>
+
+  <h3>Resolving Merge Conflicts</h3>
+  <pre><code><span class="cm"># your branch is behind main — rebase to bring it up</span>
+git fetch origin main
+git rebase origin/main
+
+<span class="cm"># conflict in a file — open it, look for &lt;&lt;&lt;&lt;&lt;&lt;&lt; markers</span>
+<span class="cm"># fix it, then:</span>
+git add &lt;file&gt;
+git rebase --continue
+
+<span class="cm"># abort if it's a mess</span>
+git rebase --abort</code></pre>
+
+  <div class="callout danger">
+    <div class="callout-title">Never force-push to main</div>
+    <code>git push --force</code> on main rewrites everyone's history. Use it only on your own feature branches, and prefer <code>--force-with-lease</code>.
+  </div>
+
+  <h3>CI/CD for Data Projects</h3>
+  <p>CI = Continuous Integration. Every PR triggers automated checks: lint, compile, test, run dbt on a sample.</p>
+  <p>For a dbt project, a typical PR pipeline:</p>
+  <ol>
+    <li><b>Lint</b> — sqlfluff checks SQL style</li>
+    <li><b>Compile</b> — <code>dbt compile</code> catches syntax errors</li>
+    <li><b>Build modified</b> — <code>dbt build --select state:modified+</code> runs only changed models</li>
+    <li><b>Test</b> — schema + data tests run automatically as part of build</li>
+    <li><b>Slim CI</b> — only re-run what actually changed since main</li>
+  </ol>
+
+  <h3>Fast-Pointer Cards</h3>
+  <div class="fastcards">
+    <div class="fastcard"><div class="term">git status</div><div class="def">Show working tree state — run constantly</div></div>
+    <div class="fastcard"><div class="term">git diff</div><div class="def">See unstaged changes; <code>--staged</code> for staged</div></div>
+    <div class="fastcard"><div class="term">git log --oneline</div><div class="def">Compact history view</div></div>
+    <div class="fastcard"><div class="term">git stash</div><div class="def">Temporarily shelve changes</div></div>
+    <div class="fastcard"><div class="term">git reset --soft HEAD~1</div><div class="def">Undo last commit, keep changes staged</div></div>
+    <div class="fastcard"><div class="term">git cherry-pick</div><div class="def">Apply a specific commit from elsewhere</div></div>
+    <div class="fastcard"><div class="term">gh pr view</div><div class="def">CLI to read PR status</div></div>
+    <div class="fastcard"><div class="term">.gitignore</div><div class="def">Files git should never track (creds, build artifacts)</div></div>
+  </div>
+
+  <div class="quiz" data-quiz="m3q1">
+    <div class="quiz-title">Git Check</div>
+    <div class="quiz-q">You're working on a feature branch. Main has new commits you need. What's the safer + cleaner approach?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Force-pushing main would overwrite everyone\'s work.')">git push --force origin main</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — rebase your feature branch on top of fresh main for a linear history. Merge works too but creates a merge commit.')">git fetch origin main && git rebase origin/main</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Hard reset destroys your branch\'s commits.')">git reset --hard origin/main</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Deleting and re-cloning loses your work.')">Delete the branch and re-clone.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Every change → branch → commit → push → PR → review → merge. No exceptions.</li>
+      <li>Conventional Commits + Jira reference: <code>feat: [DAE-422] description</code></li>
+      <li>Rebase to keep history linear; never force-push to main.</li>
+      <li>CI for dbt: lint, compile, build state:modified+, test.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m3')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 4: DATA MODELING ============================== -->
+<section class="module" id="m4">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 4 · Core <span class="level-badge level-intermediate">Intermediate</span></span>
+    <h2>Data Modeling</h2>
+    <p class="module-subtitle">The hardest, highest-leverage skill. This is where AE earns its title.</p>
+  </div>
+
+  <p class="lead">Modeling = deciding the <em>shape</em> of your tables: what's a fact, what's a dimension, what's the grain, how do they relate. Get this wrong and every dashboard is wrong forever.</p>
+
+  <h3>Normalization (3NF) vs Dimensional</h3>
+  <table>
+    <tr><th></th><th>3NF / Normalized</th><th>Dimensional (Kimball)</th></tr>
+    <tr><td>Where used</td><td>OLTP — transactional databases</td><td>OLAP — warehouses</td></tr>
+    <tr><td>Goal</td><td>No duplication, fast writes</td><td>Fast reads, intuitive queries</td></tr>
+    <tr><td>Shape</td><td>Many tables, lots of joins</td><td>Star schema — fact + dims</td></tr>
+    <tr><td>Example</td><td>production MySQL DBs</td><td>your dbt marts/ layer</td></tr>
+  </table>
+
+  <h3>Kimball Star Schema — the AE bread & butter</h3>
+  <p>A <b>fact</b> is something that happened (a transaction, an event). A <b>dimension</b> describes the actors (who, what, where, when).</p>
+
+  <div class="two-col">
+    <div class="card">
+      <h4>Fact table</h4>
+      <ul>
+        <li>One row = one event (1 booking, 1 job posted)</li>
+        <li>Mostly foreign keys + numerical measures</li>
+        <li>Grain stated explicitly (e.g. "one row per job posted")</li>
+        <li>Examples: <code>fct_jobs</code>, <code>fct_bookings</code>, <code>fct_payments</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Dimension table</h4>
+      <ul>
+        <li>One row = one entity (1 account, 1 contractor, 1 product)</li>
+        <li>Mostly descriptive attributes</li>
+        <li>Slowly changes over time (SCDs)</li>
+        <li>Examples: <code>dim_accounts</code>, <code>dim_contractors</code>, <code>dim_dates</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>The Grain — what one row represents</h3>
+  <p>Always declare it. Write it in the model docs. Every join, every aggregate either preserves or changes the grain. Confusion about grain = duplicated rows = wrong metrics.</p>
+  <pre><code><span class="cm">-- fct_job_assignments grain: one row per (job_id, contractor_id)
+-- fct_jobs            grain: one row per job_id
+-- fct_daily_revenue   grain: one row per (account_id, date_day)</span></code></pre>
+
+  <h3>Slowly Changing Dimensions (SCDs)</h3>
+  <table>
+    <tr><th>Type</th><th>Behavior</th><th>Use case</th></tr>
+    <tr><td>Type 0</td><td>Never change</td><td>Birth date</td></tr>
+    <tr><td><b>Type 1</b></td><td>Overwrite — only current value</td><td>Customer email (don't care about history)</td></tr>
+    <tr><td><b>Type 2</b></td><td>Keep history with <code>valid_from</code> / <code>valid_to</code> / <code>is_current</code></td><td>Plan tier, sales rep — most common in AE</td></tr>
+    <tr><td>Type 3</td><td>Add column for "previous value"</td><td>Rare; limited history</td></tr>
+    <tr><td>Type 4</td><td>Separate history table</td><td>Heavy-history dims</td></tr>
+    <tr><td>Type 6</td><td>1+2+3 hybrid</td><td>Edge cases</td></tr>
+  </table>
+
+  <h4>SCD Type 2 in dbt — snapshots</h4>
+  <pre><code><span class="cm">-- snapshots/accounts_snapshot.sql</span>
+<span class="fn">{% snapshot accounts_snapshot %}</span>
+<span class="fn">{{ config(</span>
+    target_schema=<span class="str">'snapshots'</span>,
+    unique_key=<span class="str">'account_id'</span>,
+    strategy=<span class="str">'timestamp'</span>,
+    updated_at=<span class="str">'updated_at'</span>
+<span class="fn">) }}</span>
+<span class="kw">select</span> * <span class="kw">from</span> <span class="fn">{{ source('raw', 'accounts') }}</span>
+<span class="fn">{% endsnapshot %}</span></code></pre>
+  <p>This builds a table with <code>dbt_valid_from</code> and <code>dbt_valid_to</code> columns — every change to <code>updated_at</code> creates a new row.</p>
+
+  <h3>Surrogate vs Natural Keys</h3>
+  <ul>
+    <li><b>Natural key</b> — comes from source: <code>email</code>, <code>job_number</code>. Can change.</li>
+    <li><b>Surrogate key</b> — generated, immutable: <code>account_sk = md5(account_id || updated_at)</code>.</li>
+    <li>For SCD2 dims: surrogate key must include the time component, otherwise joins break.</li>
+    <li>dbt: <code>{{ dbt_utils.generate_surrogate_key(['col_a','col_b']) }}</code></li>
+  </ul>
+  <div class="callout warn">
+    <div class="callout-title">Production gotcha</div>
+    <code>generate_surrogate_key</code> with a nullable column gives identical hashes for different NULL rows. Always use a column that's unique-per-row.
+  </div>
+
+  <h3>The Three-Layer Pattern (a common dbt convention)</h3>
+  <table>
+    <tr><th>Layer</th><th>Purpose</th><th>Examples</th></tr>
+    <tr><td><b>staging/</b></td><td>Light cleaning + rename. 1:1 with source.</td><td><code>stg_accounts</code>, <code>stg_jobs</code></td></tr>
+    <tr><td><b>intermediate/</b></td><td>Business logic, joins, fan-out resolution.</td><td><code>int_account_jobs_joined</code></td></tr>
+    <tr><td><b>marts/</b></td><td>Final fact/dim tables exposed to BI.</td><td><code>fct_jobs</code>, <code>dim_accounts</code></td></tr>
+  </table>
+
+  <h3>Medallion Architecture (Databricks/Lakehouse term)</h3>
+  <p>Same idea, different naming:</p>
+  <ul>
+    <li><b>Bronze</b> — raw ingested data, minimal transformation. Mirrors source.</li>
+    <li><b>Silver</b> — cleaned, conformed, joined. Roughly = staging + intermediate.</li>
+    <li><b>Gold</b> — business-ready aggregates. Roughly = marts.</li>
+  </ul>
+
+  <h3>Modeling Anti-Patterns</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>The "one big table"</h4>
+      <p>Dumping every column from every source into <code>fct_everything</code>. Looks easy, becomes unmaintainable. Resist.</p>
+    </div>
+    <div class="card">
+      <h4>Mixing grains</h4>
+      <p>Joining <code>fct_jobs</code> (one row per job) to <code>fct_job_events</code> (many per job) without aggregating first. Fan-out everywhere.</p>
+    </div>
+    <div class="card">
+      <h4>Wide skinny dim</h4>
+      <p>Dimension with 200 columns, 90% nulls. Split into role-playing or junk dimensions.</p>
+    </div>
+    <div class="card">
+      <h4>Forgetting the date dim</h4>
+      <p>Always have <code>dim_dates</code>. Lets you reason about fiscal weeks, holidays, business days — without case statements.</p>
+    </div>
+  </div>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What's the grain of a fact table and why does it matter?</div>
+      <div class="answer">Grain = what one row represents (e.g. "one row per job per day"). It's the contract for the table — every metric is implicitly per-grain. Mixing grains in joins causes silent fan-out and wrong sums.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">When do you use SCD Type 2 vs Type 1?</div>
+      <div class="answer">Type 2 when historical accuracy matters (was this account on "Pro" plan when this lead was sold?). Type 1 when you only ever need the current value (their current email address).</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Star schema vs snowflake schema?</div>
+      <div class="answer">Star: dims are denormalized — fewer joins, easier for BI. Snowflake: dims are normalized into sub-dims (e.g. product → category → department) — more joins, less redundancy. Star wins in most modern warehouses.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m4q1">
+    <div class="quiz-title">Modeling Check</div>
+    <div class="quiz-q">A stakeholder asks "show me revenue by account, where 'account tier' should reflect the tier they were on at the time of revenue." Which modeling approach do you need?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Type 1 overwrites — you\'d lose the historical tier.')">SCD Type 1 on dim_accounts</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — SCD Type 2 keeps versioned tier rows with valid_from/valid_to. Fact joins to the dim row valid on the revenue date.')">SCD Type 2 on dim_accounts, joined on a valid date range</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'A single dim row per account loses history by definition.')">A single dim_accounts row per account</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'COALESCE doesn\'t reconstruct historical state.')">COALESCE the current tier with a fallback</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Star schema = fact (events) + dim (entities). Most warehouses live here.</li>
+      <li>Declare the grain of every fact table. Honor it in every join.</li>
+      <li>SCD Type 2 for historical accuracy; Type 1 for "only current" use cases.</li>
+      <li>Three-layer dbt pattern: staging → intermediate → marts (= bronze/silver/gold).</li>
+      <li>Always have a <code>dim_dates</code>. Anti-pattern: one big table, mixing grains.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m4')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 5: WAREHOUSING ============================== -->
+<section class="module" id="m5">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 5 · Core <span class="level-badge level-intermediate">Intermediate</span></span>
+    <h2>Data Warehousing Concepts</h2>
+    <p class="module-subtitle">Why your query is slow — and how to make it 100× faster.</p>
+  </div>
+
+  <p class="lead">Modern warehouses (Databricks, Snowflake, BigQuery) are columnar, distributed, and lazy. Knowing what they actually do under the hood is the difference between a 5-second query and a 5-minute one — at the same cost.</p>
+
+  <h3>OLTP vs OLAP</h3>
+  <table>
+    <tr><th></th><th>OLTP (transactional)</th><th>OLAP (analytical)</th></tr>
+    <tr><td>Example</td><td>production MySQL</td><td>Databricks, Snowflake, BigQuery</td></tr>
+    <tr><td>Workload</td><td>Many tiny writes/reads</td><td>Few large scans / aggregations</td></tr>
+    <tr><td>Storage</td><td>Row-oriented</td><td>Column-oriented</td></tr>
+    <tr><td>Optimised for</td><td>Latency on single row</td><td>Throughput on millions of rows</td></tr>
+  </table>
+
+  <h3>Columnar storage — the OLAP secret</h3>
+  <p>Row-store writes a row's fields together: <code>[id1, name1, age1] [id2, name2, age2] …</code></p>
+  <p>Column-store writes each column together: <code>[id1, id2, …] [name1, name2, …] [age1, age2, …]</code></p>
+  <p><b>Implication:</b> <code>SELECT AVG(age)</code> reads ONLY the age column. <code>SELECT *</code> reads everything. <em>This is why <code>SELECT *</code> is expensive in OLAP and basically free in OLTP.</em></p>
+
+  <h3>File formats</h3>
+  <table>
+    <tr><th>Format</th><th>Type</th><th>Use case</th></tr>
+    <tr><td>CSV</td><td>Row, text</td><td>Interchange, never analytical storage</td></tr>
+    <tr><td>JSON</td><td>Row, nested</td><td>API responses, semi-structured raw</td></tr>
+    <tr><td><b>Parquet</b></td><td>Columnar, compressed</td><td>The standard for warehouse storage</td></tr>
+    <tr><td>ORC</td><td>Columnar, compressed</td><td>Hive ecosystem</td></tr>
+    <tr><td>Avro</td><td>Row, schema'd</td><td>Streaming (Kafka payloads)</td></tr>
+    <tr><td><b>Delta / Iceberg / Hudi</b></td><td>Parquet + transaction log</td><td>Lakehouse table formats — ACID on object storage</td></tr>
+  </table>
+
+  <h3>Delta Lake — the lakehouse table format</h3>
+  <p>Delta = Parquet files + a <code>_delta_log/</code> JSON transaction log. The log records every commit (add files, remove files, schema change). This gives you:</p>
+  <ul>
+    <li><b>ACID transactions</b> on cheap object storage (S3/ADLS/GCS).</li>
+    <li><b>Time travel</b>: <code>SELECT * FROM t VERSION AS OF 12</code></li>
+    <li><b>Schema enforcement & evolution</b></li>
+    <li><b>MERGE INTO</b> — upserts (the CDC backbone)</li>
+    <li><b>OPTIMIZE</b> + <b>ZORDER</b> — small-file compaction + clustering</li>
+  </ul>
+
+  <h3>Partitioning</h3>
+  <p>Physically splits a table by a column value. Queries that filter on that column skip entire partitions.</p>
+  <pre><code><span class="cm">-- partitioned by date_day → query only scans 1 day</span>
+<span class="kw">create table</span> events (
+  event_id <span class="kw">bigint</span>,
+  user_id <span class="kw">bigint</span>,
+  date_day <span class="kw">date</span>,
+  ...
+)
+<span class="kw">using delta</span>
+<span class="kw">partitioned by</span> (date_day);</code></pre>
+  <div class="callout warn">
+    <div class="callout-title">Don't over-partition</div>
+    Partition cardinality should be moderate (10s–1000s). Partitioning by <code>user_id</code> with 10M users = 10M tiny files = disaster.
+  </div>
+
+  <h3>Clustering / Z-Ordering</h3>
+  <p>Within a partition (or whole table), sort the physical files by a column so scans can skip files via min/max stats.</p>
+  <pre><code><span class="kw">optimize</span> events <span class="kw">zorder by</span> (user_id);</code></pre>
+  <p>Use Z-order on high-cardinality columns frequently filtered on. Liquid Clustering (newer) replaces Z-order — pick this on new Delta tables.</p>
+
+  <h3>The 4 Performance Levers</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Partition pruning</h4>
+      <p>Filter on partition column. Skip whole folders.</p>
+    </div>
+    <div class="card">
+      <h4>2. Predicate pushdown</h4>
+      <p>Filter before any join. Engine reads less Parquet.</p>
+    </div>
+    <div class="card">
+      <h4>3. Column projection</h4>
+      <p>SELECT only what you need. Columnar storage rewards this.</p>
+    </div>
+    <div class="card">
+      <h4>4. Broadcast joins</h4>
+      <p>Small dim broadcast to all workers — no shuffle. <code>/*+ BROADCAST(dim) */</code></p>
+    </div>
+  </div>
+
+  <h3>Compute Models</h3>
+  <table>
+    <tr><th></th><th>Description</th><th>Examples</th></tr>
+    <tr><td>Storage = Compute</td><td>Tied — bigger table needs bigger box</td><td>Old Postgres data warehouses</td></tr>
+    <tr><td><b>Storage ≠ Compute</b></td><td>Decoupled — scale them independently</td><td>Databricks, Snowflake, BigQuery</td></tr>
+    <tr><td>Serverless</td><td>Auto-scale, pay per query</td><td>Databricks SQL Serverless, BigQuery</td></tr>
+  </table>
+
+  <h3>Costs — the new AE concern</h3>
+  <ul>
+    <li>You're billed for compute time, not data volume scanned (mostly). Bigger warehouse = faster but more $/sec.</li>
+    <li>Rule of thumb: small warehouse for dev/sandbox; right-size production by p95 query latency.</li>
+    <li>Common waste: <code>SELECT *</code> in dashboards, queries running 24/7 on a giant warehouse, no auto-stop.</li>
+  </ul>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Why is <code>SELECT *</code> bad in OLAP but fine in OLTP?</div>
+      <div class="answer">Columnar storage reads only requested columns. SELECT * forces every column off disk — often 10–50× more I/O than needed. OLTP is row-oriented so it costs the same regardless.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What does <code>OPTIMIZE … ZORDER BY (col)</code> do?</div>
+      <div class="answer">Compacts small Parquet files into bigger ones AND sorts data by <code>col</code> so engines can skip files via min/max stats during filtered queries. Speeds up filters on high-cardinality columns.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Why does Delta Lake give you ACID on S3/cloud storage?</div>
+      <div class="answer">A transaction log (<code>_delta_log/</code>) ordered as a sequence of JSON commits. Atomic file rename guarantees serializability. Without it, S3 is "eventually consistent" and you can't do upserts safely.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m5q1">
+    <div class="quiz-title">Warehouse Check</div>
+    <div class="quiz-q">Your dbt model on a 2B-row Delta table runs in 4 minutes. The query filters <code>WHERE event_date >= '2026-05-01'</code> but the table is partitioned by <code>year</code>. What's the cheapest first move?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Bigger cluster masks the problem but burns money.')">Increase cluster size.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — the filter only prunes if it touches the partition column. Adding &quot;AND year = 2026&quot; lets partition pruning skip all other years.')">Add <code>AND year = 2026</code> to use partition pruning, then consider repartitioning by date_day.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Indexes aren\'t a primary concept in columnar warehouses.')">Add an index on event_date.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Caching helps repeat queries, not the first run.')">Cache the table.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>OLAP = columnar + distributed + decoupled storage/compute.</li>
+      <li>Parquet is the standard format; Delta/Iceberg add ACID + time travel on top.</li>
+      <li>4 levers: partition pruning, predicate pushdown, projection, broadcast joins.</li>
+      <li>Don't over-partition. Z-order/Liquid Clustering for high-cardinality filters.</li>
+      <li>Cost = compute time. Right-size warehouse; SELECT only what you need.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m5')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 6: DBT ============================== -->
+<section class="module" id="m6">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 6 · Core <span class="level-badge level-intermediate">Int→Adv</span></span>
+    <h2>dbt Mastery</h2>
+    <p class="module-subtitle">The framework that defined Analytics Engineering.</p>
+  </div>
+
+  <p class="lead">dbt is the tool, but more importantly, it's the workflow. SELECT statements → version-controlled, tested, documented, lineage-aware models. If you can ship dbt comfortably, you can call yourself an AE.</p>
+
+  <h3>The dbt Mental Model</h3>
+  <ol>
+    <li>You write SELECT statements in <code>.sql</code> files inside <code>models/</code>.</li>
+    <li>dbt wraps each one in <code>CREATE TABLE AS</code> or <code>CREATE VIEW AS</code>.</li>
+    <li>You reference other models with <code>{{ ref('model_name') }}</code> — dbt builds the DAG.</li>
+    <li><code>dbt run</code> executes them in dependency order.</li>
+    <li><code>dbt test</code> runs assertions you've declared.</li>
+    <li><code>dbt build</code> = run + test together.</li>
+  </ol>
+
+  <h3>Project Anatomy</h3>
+  <pre><code>my_dbt_project/
+├── dbt_project.yml         <span class="cm"># project config</span>
+├── profiles.yml             <span class="cm"># warehouse connection</span>
+├── models/
+│   ├── staging/
+│   │   ├── _sources.yml     <span class="cm"># declare raw tables</span>
+│   │   ├── _models.yml      <span class="cm"># tests + docs</span>
+│   │   └── stg_accounts.sql
+│   ├── intermediate/
+│   │   └── int_account_jobs.sql
+│   └── marts/
+│       ├── fct_jobs.sql
+│       └── dim_accounts.sql
+├── tests/                   <span class="cm"># custom data tests</span>
+├── macros/                  <span class="cm"># reusable Jinja</span>
+├── snapshots/               <span class="cm"># SCD2 tracking</span>
+└── seeds/                   <span class="cm"># static CSVs to load</span></code></pre>
+
+  <h3>Materializations</h3>
+  <table>
+    <tr><th>Type</th><th>What it builds</th><th>When to use</th></tr>
+    <tr><td><b>view</b></td><td>View — runs underlying SQL every time</td><td>Tiny lookup, no perf concern</td></tr>
+    <tr><td><b>table</b></td><td>Full table — recreated each run</td><td>Default for most marts</td></tr>
+    <tr><td><b>incremental</b></td><td>Only new/changed rows appended each run</td><td>Big fact tables, append-only events</td></tr>
+    <tr><td><b>ephemeral</b></td><td>Inlined CTE in downstream models</td><td>Reusable logic, no physical table</td></tr>
+    <tr><td><b>snapshot</b></td><td>Type 2 SCD with valid_from/to</td><td>Track historical changes</td></tr>
+    <tr><td><b>materialized_view</b></td><td>Auto-refreshed by warehouse (newer)</td><td>Near-real-time aggregates</td></tr>
+  </table>
+
+  <h3>Incremental Models — the most-asked AE topic</h3>
+  <pre><code><span class="cm">-- models/marts/fct_events.sql</span>
+<span class="fn">{{ config(</span>
+    materialized=<span class="str">'incremental'</span>,
+    unique_key=<span class="str">'event_id'</span>,
+    on_schema_change=<span class="str">'sync_all_columns'</span>,
+    incremental_strategy=<span class="str">'merge'</span>
+<span class="fn">) }}</span>
+
+<span class="kw">select</span> *
+<span class="kw">from</span> <span class="fn">{{ ref('stg_events') }}</span>
+<span class="fn">{% if is_incremental() %}</span>
+  <span class="kw">where</span> updated_at > (<span class="kw">select</span> <span class="fn">max</span>(updated_at) <span class="kw">from</span> <span class="fn">{{ this }}</span>)
+<span class="fn">{% endif %}</span></code></pre>
+  <p>On first run, no filter → full build. After that, only new rows. <code>unique_key + merge strategy</code> updates existing rows where the key matches.</p>
+
+  <div class="callout warn">
+    <div class="callout-title">Incremental gotchas</div>
+    <ul>
+      <li>Late-arriving data: filter on <code>updated_at &gt; max - 1 hour</code> for safety margin.</li>
+      <li>Schema changes: set <code>on_schema_change</code> or you'll get errors.</li>
+      <li>Always rebuildable: <code>dbt run --full-refresh</code> drops and rebuilds.</li>
+      <li>In a CDC pipeline: first run after adding a CDC checkpoint column may need <code>--full-refresh</code>.</li>
+    </ul>
+  </div>
+
+  <h3>Tests — the safety net</h3>
+  <p>dbt ships with 4 generic tests built-in:</p>
+  <ul>
+    <li><code>unique</code> — column has no duplicates</li>
+    <li><code>not_null</code> — column has no NULLs</li>
+    <li><code>accepted_values</code> — column ∈ set</li>
+    <li><code>relationships</code> — every value exists in another table's column (FK check)</li>
+  </ul>
+  <pre><code><span class="cm"># models/marts/_models.yml</span>
+<span class="kw">version:</span> 2
+<span class="kw">models:</span>
+  - <span class="kw">name:</span> fct_jobs
+    <span class="kw">columns:</span>
+      - <span class="kw">name:</span> job_id
+        <span class="kw">tests:</span>
+          - unique
+          - not_null
+      - <span class="kw">name:</span> account_id
+        <span class="kw">tests:</span>
+          - relationships:
+              to: ref(<span class="str">'dim_accounts'</span>)
+              field: account_id
+      - <span class="kw">name:</span> status
+        <span class="kw">tests:</span>
+          - accepted_values:
+              values: [<span class="str">'open'</span>, <span class="str">'closed'</span>, <span class="str">'cancelled'</span>]</code></pre>
+
+  <h4>dbt_utils + dbt-expectations</h4>
+  <p>Add packages for ~50 more tests: <code>expression_is_true</code>, <code>row_count_delta</code>, <code>not_null_proportion</code>, <code>recency</code>, etc.</p>
+
+  <h3>Macros & Jinja — reuse without copy-paste</h3>
+  <pre><code><span class="cm">-- macros/audit_columns.sql</span>
+<span class="fn">{% macro audit_columns() %}</span>
+  current_timestamp() <span class="kw">as</span> dbt_loaded_at,
+  <span class="str">'{{ invocation_id }}'</span> <span class="kw">as</span> dbt_run_id,
+  <span class="str">'{{ this.identifier }}'</span> <span class="kw">as</span> dbt_model_name
+<span class="fn">{% endmacro %}</span>
+
+<span class="cm">-- used in any model:</span>
+<span class="kw">select</span>
+  *,
+  <span class="fn">{{ audit_columns() }}</span>
+<span class="kw">from</span> <span class="fn">{{ ref('stg_accounts') }}</span></code></pre>
+  <div class="callout">
+    <div class="callout-title">A common convention</div>
+    Every dbt model ends with <code>{{ audit_columns() }}</code>. Captures load time + run id for debugging.
+  </div>
+
+  <h3>Sources, Refs, and Lineage</h3>
+  <ul>
+    <li><b>source</b>: a raw table dbt didn't create. Declared in <code>_sources.yml</code>. Reference via <code>{{ source('raw', 'accounts') }}</code>.</li>
+    <li><b>ref</b>: another dbt model. Reference via <code>{{ ref('stg_accounts') }}</code>.</li>
+    <li>dbt parses these to build the DAG. <code>dbt docs generate &amp;&amp; dbt docs serve</code> gives you a visual lineage browser.</li>
+  </ul>
+
+  <h3>Selectors — control what runs</h3>
+  <table>
+    <tr><th>Syntax</th><th>Meaning</th></tr>
+    <tr><td><code>dbt build -s fct_jobs</code></td><td>Just this model</td></tr>
+    <tr><td><code>dbt build -s +fct_jobs</code></td><td>fct_jobs + all upstream</td></tr>
+    <tr><td><code>dbt build -s fct_jobs+</code></td><td>fct_jobs + all downstream</td></tr>
+    <tr><td><code>dbt build -s +fct_jobs+</code></td><td>fct_jobs + upstream + downstream</td></tr>
+    <tr><td><code>dbt build -s tag:daily</code></td><td>All models tagged 'daily'</td></tr>
+    <tr><td><code>dbt build -s state:modified+</code></td><td>Changed since main, plus downstream — CI gold</td></tr>
+  </table>
+
+  <h3>Snapshots (SCD2)</h3>
+  <pre><code><span class="fn">{% snapshot accounts_snapshot %}</span>
+<span class="fn">{{ config(</span>
+    target_schema=<span class="str">'snapshots'</span>,
+    unique_key=<span class="str">'account_id'</span>,
+    strategy=<span class="str">'check'</span>,
+    check_cols=[<span class="str">'plan_tier'</span>, <span class="str">'status'</span>]
+<span class="fn">) }}</span>
+<span class="kw">select</span> account_id, plan_tier, status
+<span class="kw">from</span> <span class="fn">{{ source('raw', 'accounts') }}</span>
+<span class="fn">{% endsnapshot %}</span></code></pre>
+  <p>Strategies: <code>timestamp</code> (compare updated_at column) or <code>check</code> (compare specific columns hash). Adds <code>dbt_valid_from</code>, <code>dbt_valid_to</code>, <code>dbt_scd_id</code>.</p>
+
+  <h3>Exposures + Documentation</h3>
+  <p>Declare BI dashboards/reports that depend on your models — they appear in lineage.</p>
+  <pre><code><span class="cm"># models/marts/_exposures.yml</span>
+<span class="kw">exposures:</span>
+  - <span class="kw">name:</span> sales_dashboard
+    <span class="kw">type:</span> dashboard
+    <span class="kw">owner:</span>
+      email: sales-ops@example.com
+    <span class="kw">depends_on:</span>
+      - ref(<span class="str">'fct_jobs'</span>)
+      - ref(<span class="str">'dim_accounts'</span>)</code></pre>
+
+  <h3>Daily dbt Commands</h3>
+  <div class="cheatsheet">
+<span class="label">dbt run</span>                          <span class="comment"># build all models</span>
+<span class="label">dbt test</span>                         <span class="comment"># run all tests</span>
+<span class="label">dbt build</span>                        <span class="comment"># run + test in DAG order (preferred)</span>
+<span class="label">dbt build -s +fct_jobs</span>           <span class="comment"># this model + all upstream</span>
+<span class="label">dbt build -s state:modified+</span>    <span class="comment"># CI: changed + downstream</span>
+<span class="label">dbt run --full-refresh -s fct_jobs</span> <span class="comment"># drop & rebuild incremental</span>
+<span class="label">dbt compile</span>                      <span class="comment"># compile to SQL, don't run</span>
+<span class="label">dbt docs generate && dbt docs serve</span> <span class="comment"># lineage UI</span>
+<span class="label">dbt snapshot</span>                     <span class="comment"># build snapshots</span>
+<span class="label">dbt seed</span>                         <span class="comment"># load CSVs from seeds/</span>
+<span class="label">dbt clean</span>                        <span class="comment"># nuke target/ and dbt_packages/</span>
+  </div>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What does <code>{{ ref('stg_accounts') }}</code> compile to?</div>
+      <div class="answer">The fully-qualified table or view name in the target schema (e.g. <code>analytics_dev.stg_accounts</code>). dbt rewrites refs based on the current target.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">When is an incremental model the wrong choice?</div>
+      <div class="answer">When data backfills retroactively change old rows (rebuild logic doesn't catch them), when the table is small (overhead not worth it), or when you can't reliably detect "new rows" via a high-watermark column.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Difference between sources and refs?</div>
+      <div class="answer"><code>source</code> = raw table from upstream system (not built by dbt). <code>ref</code> = another dbt model. Both contribute to lineage; source freshness can be tested.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What's the <code>relationships</code> test?</div>
+      <div class="answer">Asserts every value in column A exists in column B of another model — essentially a referential integrity / FK check.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m6q1">
+    <div class="quiz-title">dbt Check 1</div>
+    <div class="quiz-q">Your incremental model added a new column. Running <code>dbt run</code> fails with a column-mismatch error. Cheapest fix?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'You\'d lose the existing data — overkill for a column add.')">Drop the table manually and re-run.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — full-refresh rebuilds with the new schema. Set on_schema_change=\'sync_all_columns\' to avoid this next time.')">Run with <code>--full-refresh</code> once, and set <code>on_schema_change: sync_all_columns</code>.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Just running again doesn\'t resolve schema drift.')">Just retry <code>dbt run</code>.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Removing the column undoes the work you intended.')">Remove the new column.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz" data-quiz="m6q2">
+    <div class="quiz-title">dbt Check 2</div>
+    <div class="quiz-q">In CI, you only want to build models that changed since main + their downstream impact. Which selector?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'state:new is for brand-new models only.')">dbt build -s state:new</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Correct — state:modified+ catches changed models plus everything downstream of them.')">dbt build -s state:modified+</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'All models defeats the purpose of slim CI.')">dbt build (no selector)</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'tag:daily is a tag-based selector, not change-based.')">dbt build -s tag:daily</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>dbt = SELECT → table/view + DAG + tests + docs + lineage.</li>
+      <li>Materializations: view / table / incremental / ephemeral / snapshot.</li>
+      <li>Incremental needs <code>unique_key</code> + a high-watermark filter + <code>on_schema_change</code>.</li>
+      <li>4 built-in tests; expand with dbt_utils + dbt_expectations.</li>
+      <li>Slim CI: <code>dbt build -s state:modified+</code>.</li>
+      <li>Convention: every model ends with <code>{{ audit_columns() }}</code>.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m6')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 7: DATABRICKS & SPARK ============================== -->
+<section class="module" id="m7">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 7 · Core <span class="level-badge level-intermediate">Int→Adv</span></span>
+    <h2>Databricks & Spark</h2>
+    <p class="module-subtitle">The platform you're already using — but probably under-using.</p>
+  </div>
+
+  <p class="lead">Spark is the engine; Databricks is the managed product around it. As an AE, knowing how Spark thinks about your query is a force multiplier — you'll diagnose 10x slowdowns yourself instead of escalating.</p>
+
+  <h3>Spark Architecture (one-paragraph version)</h3>
+  <p>A <b>Driver</b> coordinates. Multiple <b>Executors</b> on worker nodes run tasks in parallel. Data is partitioned across executors. The driver builds a <b>DAG</b> of stages from your code, then schedules tasks. <b>Shuffles</b> (data movement between executors) are the expensive operation.</p>
+
+  <h3>The Spark Vocabulary</h3>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><b>Transformation</b></td><td>Lazy op (filter, groupBy, join). Builds plan, doesn't execute.</td></tr>
+    <tr><td><b>Action</b></td><td>Triggers execution (show, collect, count, write).</td></tr>
+    <tr><td><b>Partition</b></td><td>A chunk of data on one executor.</td></tr>
+    <tr><td><b>Stage</b></td><td>A group of tasks that can run without a shuffle in between.</td></tr>
+    <tr><td><b>Shuffle</b></td><td>Repartitioning data across nodes — expensive.</td></tr>
+    <tr><td><b>Job</b></td><td>One action = one job.</td></tr>
+    <tr><td><b>AQE</b></td><td>Adaptive Query Execution — runtime re-optimisation.</td></tr>
+    <tr><td><b>Photon</b></td><td>Databricks' vectorised native execution engine. Free speed.</td></tr>
+  </table>
+
+  <h3>Join Strategies</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Broadcast Hash Join</h4>
+      <p>Small side broadcast to all executors. No shuffle. <b>Fastest</b>.<br>Triggers if smaller side < <code>autoBroadcastJoinThreshold</code> (default 10MB).</p>
+    </div>
+    <div class="card">
+      <h4>Sort-Merge Join</h4>
+      <p>Both sides shuffled by key, sorted, merged. Default for big-vs-big.</p>
+    </div>
+    <div class="card">
+      <h4>Shuffle Hash Join</h4>
+      <p>Less common; both shuffled, hash table built on smaller.</p>
+    </div>
+    <div class="card">
+      <h4>BNLJ (Cartesian)</h4>
+      <p>Broadcast nested loop. The "you broke something" join — usually a missing join key.</p>
+    </div>
+  </div>
+
+  <h3>Reading a Spark UI / Query Profile</h3>
+  <ol>
+    <li><b>Jobs tab</b> — find the slow job, click in.</li>
+    <li><b>Stages tab</b> — look for a stage with high duration or high shuffle read/write.</li>
+    <li><b>Tasks</b> — check for <b>skew</b>: one task taking 10× the rest = skewed partition key.</li>
+    <li><b>SQL/DataFrame tab</b> — see the physical plan. Look for <code>SortMergeJoin</code> where you expected <code>BroadcastHashJoin</code> → missing broadcast hint or stale stats.</li>
+  </ol>
+
+  <h3>Common Spark Performance Issues</h3>
+  <table>
+    <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+    <tr><td>One task takes 10× longer than others</td><td>Data skew (one key has 90% of rows)</td><td>Salting, AQE skew handling, broadcast if other side is small</td></tr>
+    <tr><td>Many tiny output files</td><td>Too many partitions → too many writers</td><td><code>coalesce(n)</code> or <code>OPTIMIZE</code> after</td></tr>
+    <tr><td>Job takes ages on small data</td><td>Cluster spin-up overhead</td><td>Use serverless or warm cluster pool</td></tr>
+    <tr><td>SortMergeJoin where BHJ expected</td><td>Stats stale or table too big</td><td>ANALYZE TABLE; explicit <code>/*+ BROADCAST(t) */</code></td></tr>
+    <tr><td>Driver OOM</td><td><code>.collect()</code> on huge DataFrame</td><td>Never collect big data to driver</td></tr>
+  </table>
+
+  <h3>Databricks Platform Concepts</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Unity Catalog</h4>
+      <p>Governance layer: 3-level namespace <code>catalog.schema.table</code>, RBAC, lineage, tags. The successor to Hive metastore.</p>
+    </div>
+    <div class="card">
+      <h4>Delta Lake</h4>
+      <p>Default table format. ACID, time travel, MERGE, OPTIMIZE, vacuum.</p>
+    </div>
+    <div class="card">
+      <h4>DBSQL Warehouses</h4>
+      <p>Serverless SQL endpoints for BI/dbt. Sizing: 2X-Small → 4X-Large. Auto-stop is critical.</p>
+    </div>
+    <div class="card">
+      <h4>Workflows</h4>
+      <p>Databricks' orchestrator. Job = DAG of tasks (notebooks/SQL/dbt/Python).</p>
+    </div>
+    <div class="card">
+      <h4>AI/BI Dashboards</h4>
+      <p>The Lakeview successor. SQL datasets + widgets. JSON-defined, deployable via CLI.</p>
+    </div>
+    <div class="card">
+      <h4>Genie</h4>
+      <p>Natural-language BI layer; configured via instructions, sample queries, joins.</p>
+    </div>
+  </div>
+
+  <h3>PySpark Patterns You'll Actually Use</h3>
+  <pre><code><span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F, Window
+
+<span class="cm"># Read Delta</span>
+df = spark.read.format(<span class="str">"delta"</span>).table(<span class="str">"main.silver.jobs"</span>)
+
+<span class="cm"># Filter + project (predicate pushdown happens automatically)</span>
+df = df.filter(F.col(<span class="str">"is_deleted"</span>) == <span class="kw">False</span>) \
+       .select(<span class="str">"job_id"</span>, <span class="str">"account_id"</span>, <span class="str">"created_at"</span>)
+
+<span class="cm"># Dedupe latest per key</span>
+w = Window.partitionBy(<span class="str">"job_id"</span>).orderBy(F.col(<span class="str">"updated_at"</span>).desc())
+df = df.withColumn(<span class="str">"rn"</span>, F.row_number().over(w)).filter(<span class="str">"rn = 1"</span>).drop(<span class="str">"rn"</span>)
+
+<span class="cm"># Join with explicit broadcast</span>
+dims = spark.read.table(<span class="str">"main.silver.dim_accounts"</span>)
+joined = df.join(F.broadcast(dims), <span class="str">"account_id"</span>, <span class="str">"left"</span>)
+
+<span class="cm"># Write to Delta with merge (upsert)</span>
+<span class="kw">from</span> delta.tables <span class="kw">import</span> DeltaTable
+tgt = DeltaTable.forName(spark, <span class="str">"main.gold.fct_jobs"</span>)
+tgt.alias(<span class="str">"t"</span>).merge(
+    df.alias(<span class="str">"s"</span>), <span class="str">"t.job_id = s.job_id"</span>
+).whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()</code></pre>
+
+  <h3>Delta Maintenance — the boring critical stuff</h3>
+  <pre><code><span class="cm">-- compact small files + sort by access patterns</span>
+<span class="kw">optimize</span> main.gold.fct_jobs <span class="kw">zorder by</span> (account_id, event_date);
+
+<span class="cm">-- liquid clustering (newer, preferred for new tables)</span>
+<span class="kw">alter table</span> fct_jobs <span class="kw">cluster by</span> (account_id, event_date);
+
+<span class="cm">-- remove old files older than retention period</span>
+<span class="kw">vacuum</span> main.gold.fct_jobs <span class="kw">retain</span> <span class="num">168</span> <span class="kw">hours</span>;
+
+<span class="cm">-- time travel for debugging</span>
+<span class="kw">select</span> * <span class="kw">from</span> fct_jobs <span class="kw">version as of</span> <span class="num">42</span>;
+<span class="kw">select</span> * <span class="kw">from</span> fct_jobs <span class="kw">timestamp as of</span> <span class="str">'2026-05-01 00:00:00'</span>;</code></pre>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Why is a broadcast hash join faster than a sort-merge join?</div>
+      <div class="answer">No shuffle. The small side is sent to every executor once; each executor joins locally. Sort-merge shuffles both sides across the network and sorts them — expensive.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">You see one task in a stage taking 20× longer than the others. What's likely?</div>
+      <div class="answer">Data skew — one key in the join/groupBy has dramatically more rows. Fix: AQE skew handling, salting, or broadcast the smaller side.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What does <code>VACUUM</code> on a Delta table do? When NOT to run it?</div>
+      <div class="answer">Removes data files older than the retention period (default 7 days) that are no longer referenced. Don't run with a short retention if you rely on time travel — you'll lose history.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m7q1">
+    <div class="quiz-title">Spark Check</div>
+    <div class="quiz-q">Your join takes 12 minutes. EXPLAIN shows <code>SortMergeJoin</code>. The dim table is only 5 MB. What's the fix?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Bigger cluster does linear improvement — broadcast is exponential.')">Make the cluster bigger.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — force broadcast with the hint. Or raise spark.sql.autoBroadcastJoinThreshold if 5 MB falls under your current limit.')">Add <code>/*+ BROADCAST(dim) */</code> hint or raise autoBroadcastJoinThreshold.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Indexes aren\'t a primary Spark concept.')">Add an index on the join key.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Caching doesn\'t change join strategy.')">Cache the dim table.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Driver schedules, executors run, shuffles cost. Photon = free speedup.</li>
+      <li>Transformations lazy, actions trigger. Skew = the #1 hidden killer.</li>
+      <li>Broadcast small dims, sort-merge big-vs-big.</li>
+      <li>Delta needs OPTIMIZE/VACUUM; time travel is a debugging superpower.</li>
+      <li>Unity Catalog = 3-level namespace + RBAC + lineage.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m7')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 8: ORCHESTRATION ============================== -->
+<section class="module" id="m8">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 8 · Production <span class="level-badge level-intermediate">Intermediate</span></span>
+    <h2>Orchestration</h2>
+    <p class="module-subtitle">DAGs, schedules, retries, SLAs — making "run every morning" reliable.</p>
+  </div>
+
+  <p class="lead">An orchestrator schedules and runs your pipeline, handling retries, alerts, and dependency order. Whether it's Airflow, Dagster, Prefect, or Databricks Workflows — the concepts are the same.</p>
+
+  <h3>The Universal Concepts</h3>
+  <table>
+    <tr><th>Concept</th><th>What it is</th></tr>
+    <tr><td><b>DAG</b></td><td>Directed Acyclic Graph — tasks + dependencies</td></tr>
+    <tr><td><b>Task / Operator</b></td><td>One unit of work (run SQL, call API, run dbt)</td></tr>
+    <tr><td><b>Schedule</b></td><td>When DAG runs (cron or interval)</td></tr>
+    <tr><td><b>Execution Date</b></td><td>The logical date the run represents (often "yesterday")</td></tr>
+    <tr><td><b>Retries</b></td><td>Auto-retry failed tasks N times with backoff</td></tr>
+    <tr><td><b>SLA</b></td><td>Max acceptable duration; breach = alert</td></tr>
+    <tr><td><b>Backfill</b></td><td>Re-run for historical dates</td></tr>
+    <tr><td><b>Idempotency</b></td><td>Same input → same output, every time</td></tr>
+  </table>
+
+  <h3>Airflow Mental Model</h3>
+  <pre><code><span class="cm"># dags/daily_revenue.py</span>
+<span class="kw">from</span> airflow <span class="kw">import</span> DAG
+<span class="kw">from</span> airflow.providers.databricks.operators.databricks <span class="kw">import</span> DatabricksRunNowOperator
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta
+
+default_args = {
+    <span class="str">'owner'</span>: <span class="str">'data-team'</span>,
+    <span class="str">'retries'</span>: <span class="num">2</span>,
+    <span class="str">'retry_delay'</span>: timedelta(minutes=<span class="num">10</span>),
+    <span class="str">'sla'</span>: timedelta(hours=<span class="num">2</span>),
+}
+
+<span class="kw">with</span> DAG(
+    dag_id=<span class="str">'daily_revenue'</span>,
+    default_args=default_args,
+    schedule=<span class="str">'0 6 * * *'</span>,  <span class="cm"># every day 6am</span>
+    start_date=datetime(<span class="num">2026</span>, <span class="num">1</span>, <span class="num">1</span>),
+    catchup=<span class="kw">False</span>,
+    tags=[<span class="str">'finance'</span>, <span class="str">'daily'</span>],
+) <span class="kw">as</span> dag:
+
+    ingest = DatabricksRunNowOperator(
+        task_id=<span class="str">'ingest_salesforce'</span>,
+        job_id=<span class="num">123</span>,
+    )
+    transform = DatabricksRunNowOperator(
+        task_id=<span class="str">'dbt_build'</span>,
+        job_id=<span class="num">456</span>,
+    )
+    publish = DatabricksRunNowOperator(
+        task_id=<span class="str">'publish_dashboard'</span>,
+        job_id=<span class="num">789</span>,
+    )
+
+    ingest >> transform >> publish  <span class="cm"># dependency order</span></code></pre>
+
+  <h3>Idempotency — the non-negotiable property</h3>
+  <p>If your job runs twice for the same date, it should produce the same result. Otherwise retries and backfills corrupt your data.</p>
+  <ul>
+    <li><b>Bad</b>: <code>INSERT INTO fact_x VALUES ...</code> — duplicates on retry.</li>
+    <li><b>Good</b>: <code>MERGE INTO fact_x USING ... ON id = id</code> — upserts cleanly.</li>
+    <li><b>Better</b>: <code>DELETE FROM fact_x WHERE date = '{{ ds }}'; INSERT ...</code> — "rebuild this date's slice."</li>
+    <li><b>Best</b>: dbt incremental with <code>unique_key</code> — dbt handles the MERGE.</li>
+  </ul>
+
+  <h3>Orchestrator Comparison</h3>
+  <table>
+    <tr><th></th><th>Airflow</th><th>Dagster</th><th>Prefect</th><th>DBX Workflows</th></tr>
+    <tr><td>Style</td><td>Task-first</td><td>Asset-first</td><td>Pythonic</td><td>Job-first</td></tr>
+    <tr><td>Strength</td><td>Mature, huge ecosystem</td><td>Asset lineage</td><td>Dev UX, dynamic</td><td>Native Databricks</td></tr>
+    <tr><td>Your stack</td><td>Yes (likely primary)</td><td>—</td><td>—</td><td>Yes (for dbt + Spark jobs)</td></tr>
+  </table>
+
+  <h3>Scheduling Patterns</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Time-based</h4>
+      <p><code>0 6 * * *</code> — every day 6am UTC. Most common. Watch out for daylight savings.</p>
+    </div>
+    <div class="card">
+      <h4>Sensor-triggered</h4>
+      <p>Wait for upstream signal — file arrives in S3, partition appears, API publishes.</p>
+    </div>
+    <div class="card">
+      <h4>Event-driven</h4>
+      <p>Kafka message / S3 event triggers the run. Near-real-time.</p>
+    </div>
+    <div class="card">
+      <h4>Manual</h4>
+      <p>Backfills, ad-hoc reruns. Always have a button.</p>
+    </div>
+  </div>
+
+  <h3>Alerts & SLAs</h3>
+  <ul>
+    <li><b>Failure alert</b> — task failed after all retries. Page on-call.</li>
+    <li><b>SLA miss</b> — task didn't finish in time. Soft alert.</li>
+    <li><b>Freshness check</b> — downstream-aware: "did dim_accounts update today?" dbt's <code>source freshness</code> tests this.</li>
+    <li>Route alerts to Slack channel + PagerDuty for true critical.</li>
+  </ul>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What makes a pipeline idempotent?</div>
+      <div class="answer">Running it N times with the same input parameters produces the same output. Requires MERGE/upsert semantics or "delete-then-insert" for the date partition — not bare INSERTs.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">When would you use a sensor over a cron schedule?</div>
+      <div class="answer">When the upstream data arrival time is unpredictable — e.g., a Salesforce dump that might land 5–60 min after midnight. Sensor polls, fires when ready.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m8q1">
+    <div class="quiz-title">Orchestration Check</div>
+    <div class="quiz-q">Your DAG failed mid-run yesterday. You re-trigger it today. The output table has duplicated rows. What's the root cause?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Airflow retries don\'t cause duplicates if the underlying task is idempotent.')">Airflow bug.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — pure INSERTs append on every run. Switch to MERGE or delete-then-insert for the affected partition.')">Task isn't idempotent — likely uses INSERT, not MERGE/upsert.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Retries doesn\'t set the count too high — it\'s the task semantics that matter.')">Retries set too high.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Schedule timing doesn\'t cause duplication.')">DAG schedule too frequent.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>DAG = tasks + deps. Orchestrator handles schedule, retries, alerts, SLAs.</li>
+      <li>Idempotency is non-negotiable: MERGE or delete-then-insert.</li>
+      <li>Airflow is the industry default; Dagster gaining traction with asset-first model.</li>
+      <li>Sensors for unpredictable upstream; cron for fixed-time.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m8')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 9: CDC ============================== -->
+<section class="module" id="m9">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 9 · Production <span class="level-badge level-advanced">Advanced</span></span>
+    <h2>Ingestion & CDC</h2>
+    <p class="module-subtitle">How data gets into the warehouse — and why CDC is the silent killer of analyst metrics.</p>
+  </div>
+
+  <p class="lead">"How does the data get here?" Batch dumps, ELT tools, Kafka streams — each has trade-offs. CDC (Change Data Capture) is the AE-critical pattern: streaming row-level changes from prod databases into the lake.</p>
+
+  <h3>Ingestion Patterns</h3>
+  <table>
+    <tr><th>Pattern</th><th>How it works</th><th>Latency</th><th>Use case</th></tr>
+    <tr><td>Batch ETL</td><td>Daily SELECT * FROM prod → warehouse</td><td>24h</td><td>Small dims, historical data</td></tr>
+    <tr><td>Incremental batch</td><td>SELECT * WHERE updated_at > last_run</td><td>1h-24h</td><td>Most cases</td></tr>
+    <tr><td><b>CDC streaming</b></td><td>Read DB binlog, stream changes</td><td>seconds</td><td>Near-real-time, high-volume</td></tr>
+    <tr><td>Event streams</td><td>Apps write events to Kafka, consumed by stream → lake</td><td>seconds</td><td>Behavioral data, telemetry</td></tr>
+    <tr><td>Managed ELT</td><td>Fivetran/Airbyte/Stitch handles it</td><td>15min-24h</td><td>SaaS sources (Salesforce, Stripe)</td></tr>
+  </table>
+
+  <h3>CDC Deep Dive</h3>
+  <p>CDC reads the database's transaction log (MySQL binlog, Postgres WAL, MongoDB oplog) and emits one event per row change: <code>insert</code>, <code>update</code>, <code>delete</code>.</p>
+
+  <h4>Typical CDC stack</h4>
+  <p>Prod DB (MySQL) → Debezium → Kafka → Spark Streaming → Delta Lake (Bronze) → dbt (Silver) → Marts (Gold).</p>
+
+  <h4>The CDC payload shape</h4>
+  <pre><code>{
+  <span class="str">"op"</span>: <span class="str">"u"</span>,                       <span class="cm"># c=create, u=update, d=delete, r=read (snapshot)</span>
+  <span class="str">"ts_ms"</span>: <span class="num">1716000000000</span>,
+  <span class="str">"before"</span>: { <span class="str">"id"</span>: <span class="num">1</span>, <span class="str">"status"</span>: <span class="str">"active"</span> },
+  <span class="str">"after"</span>:  { <span class="str">"id"</span>: <span class="num">1</span>, <span class="str">"status"</span>: <span class="str">"closed"</span> },
+  <span class="str">"source"</span>: { <span class="str">"db"</span>: <span class="str">"prod"</span>, <span class="str">"table"</span>: <span class="str">"accounts"</span> }
+}</code></pre>
+
+  <h3>The CDC Reality</h3>
+  <div class="callout danger">
+    <div class="callout-title">Critical knowledge — memorise</div>
+    <p>Raw kafka_cdc tables have <code>__is_deleted</code> column. <b>Missing this filter = production bug.</b> Required on:</p>
+    <p style="font-family:monospace;font-size:12px;color:var(--text);"><code>job_assignments, accounts, sites, contacts, activation_keys, account_movements, subscriptions, ad_campaigns, site_abns, site_galleries, license_details</code></p>
+    <p>Always: <code>WHERE __is_deleted = false</code> (or <code>= 0</code> for raw kafka).</p>
+    <p>Also: rows with <code>active = 0</code> on these tables are <b>in-place updates</b>, not separate insert rows. Confirm mechanics before writing dedup logic.</p>
+  </div>
+
+  <h3>Soft Delete vs Hard Delete</h3>
+  <ul>
+    <li><b>Soft delete</b>: <code>UPDATE accounts SET is_deleted=true</code>. Row still in table.</li>
+    <li><b>Hard delete</b>: <code>DELETE FROM accounts</code>. Row gone — only CDC <code>op=d</code> events remember it existed.</li>
+    <li>CDC pipelines must apply tombstone logic for hard deletes — usually flag <code>__is_deleted = true</code> in the silver layer and let downstream filter.</li>
+  </ul>
+
+  <h3>Kafka 101</h3>
+  <table>
+    <tr><th>Concept</th><th>Meaning</th></tr>
+    <tr><td>Topic</td><td>Named log of messages (e.g. <code>prod.accounts.cdc</code>)</td></tr>
+    <tr><td>Partition</td><td>Topic split for parallelism. Ordering is per-partition.</td></tr>
+    <tr><td>Offset</td><td>Position of a message in a partition. Consumers track their offset.</td></tr>
+    <tr><td>Producer</td><td>Writes messages (Debezium, app code)</td></tr>
+    <tr><td>Consumer</td><td>Reads messages (Spark Streaming, downstream apps)</td></tr>
+    <tr><td>Consumer Group</td><td>Coordinated set of consumers; partition assigned to one consumer in group</td></tr>
+    <tr><td>Retention</td><td>How long messages stick around (e.g. 7 days)</td></tr>
+  </table>
+
+  <h3>Building a CDC Silver Model</h3>
+  <pre><code><span class="cm">-- silver layer: latest non-deleted row per account_id</span>
+<span class="kw">with</span> ranked <span class="kw">as</span> (
+  <span class="kw">select</span> *,
+    <span class="fn">row_number</span>() <span class="kw">over</span> (
+      <span class="kw">partition by</span> account_id
+      <span class="kw">order by</span> __op_ts <span class="kw">desc</span>
+    ) <span class="kw">as</span> rn
+  <span class="kw">from</span> bronze.kafka_cdc_accounts
+)
+<span class="kw">select</span> *
+<span class="kw">from</span> ranked
+<span class="kw">where</span> rn = <span class="num">1</span>
+  <span class="kw">and</span> __is_deleted = <span class="kw">false</span>;</code></pre>
+
+  <h3>Schema Evolution</h3>
+  <p>Source DB adds a column → CDC payload changes shape → downstream models break. Strategies:</p>
+  <ul>
+    <li><b>Schema Registry</b> (Confluent) — central schema authority; producers/consumers validate.</li>
+    <li><b>Delta schema evolution</b>: <code>MERGE WITH SCHEMA EVOLUTION</code> auto-adds new columns.</li>
+    <li><b>Contracts</b> — explicit agreement upstream/downstream on field types & required fields.</li>
+  </ul>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What's the difference between batch incremental ingestion and CDC streaming?</div>
+      <div class="answer">Batch incremental runs SELECTs at intervals (every hour, etc.) — misses deletes & hard-to-detect updates if no <code>updated_at</code>. CDC reads the DB's binlog/WAL and emits every change in near-real-time, including deletes.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">Why is <code>__is_deleted</code> critical on kafka_cdc tables?</div>
+      <div class="answer">Hard deletes in prod produce a CDC tombstone row with <code>__is_deleted = true</code>. The row stays in bronze for replayability. If you don't filter it out in silver/marts, you're counting deleted records — production correctness bug.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m9q1">
+    <div class="quiz-title">CDC Check</div>
+    <div class="quiz-q">A stakeholder reports the "active contractors" count from your model is 12% higher than the Sales team's CRM. You query <code>accounts</code> directly. What's the FIRST thing to check?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Possible but unlikely to cause 12% drift. Check the obvious bug first.')">Cluster sizing.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — accounts is a CDC table. Missing __is_deleted = false includes tombstones, inflating counts. Check this before anything else.')">Whether <code>WHERE __is_deleted = false</code> is applied.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Salesforce-side issues come after you\'ve verified your own query.')">Salesforce sync timing.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Z-order is performance, not correctness.')">Whether the table is z-ordered.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Ingestion spectrum: batch ETL → incremental batch → CDC streaming → events.</li>
+      <li>CDC = DB transaction log → Kafka → bronze; preserves inserts, updates, deletes.</li>
+      <li>Always filter <code>__is_deleted = false</code> on CDC tables. Always.</li>
+      <li>Schema evolution: registry + Delta SCHEMA EVOLUTION + contracts.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m9')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 10: DQ & TESTING ============================== -->
+<section class="module" id="m10">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 10 · Production <span class="level-badge level-intermediate">Intermediate</span></span>
+    <h2>Data Quality & Testing</h2>
+    <p class="module-subtitle">Trust is built one assertion at a time.</p>
+  </div>
+
+  <p class="lead">A correct query running on bad data still gives a wrong answer. AE owns the assertions that protect the company from "the dashboard is wrong" Slack messages at 9pm.</p>
+
+  <h3>The 6 Dimensions of Data Quality</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Completeness</h4>
+      <p>No missing rows or columns. "Yesterday's orders should have ~1k rows; today says 12."</p>
+    </div>
+    <div class="card">
+      <h4>Uniqueness</h4>
+      <p>Primary keys are actually unique. No duplicate user_ids.</p>
+    </div>
+    <div class="card">
+      <h4>Validity</h4>
+      <p>Values conform to format/type. Email looks like an email. Status ∈ allowed set.</p>
+    </div>
+    <div class="card">
+      <h4>Accuracy</h4>
+      <p>Values are right. Revenue matches Stripe / Salesforce / Zuora.</p>
+    </div>
+    <div class="card">
+      <h4>Consistency</h4>
+      <p>Same metric, same number across tools. SF vs Tableau vs dbt agree.</p>
+    </div>
+    <div class="card">
+      <h4>Timeliness</h4>
+      <p>Data is fresh — yesterday's data is available by 8am.</p>
+    </div>
+  </div>
+
+  <h3>Test Layers</h3>
+  <table>
+    <tr><th>Layer</th><th>What it checks</th><th>Tool</th></tr>
+    <tr><td>Source freshness</td><td>Did source update recently?</td><td>dbt source freshness</td></tr>
+    <tr><td>Schema tests</td><td>Unique, not_null, accepted_values, relationships</td><td>dbt generic tests</td></tr>
+    <tr><td>Data tests</td><td>Custom SQL assertions (e.g. revenue > 0)</td><td>dbt singular tests</td></tr>
+    <tr><td>Anomaly detection</td><td>Row count today vs 7-day avg</td><td>dbt-expectations, Elementary, Monte Carlo</td></tr>
+    <tr><td>Reconciliation</td><td>Source row count = target row count</td><td>Custom dbt or scripts</td></tr>
+    <tr><td>Contracts</td><td>Schema/types of model match declaration</td><td>dbt model contracts</td></tr>
+  </table>
+
+  <h3>dbt Test Recipes</h3>
+  <pre><code><span class="cm"># 1. Standard built-ins</span>
+<span class="kw">columns:</span>
+  - <span class="kw">name:</span> account_id
+    <span class="kw">tests:</span>
+      - unique
+      - not_null
+
+<span class="cm"># 2. dbt-utils row count delta</span>
+<span class="kw">tests:</span>
+  - dbt_utils.equal_rowcount:
+      compare_model: ref(<span class="str">'stg_accounts'</span>)
+
+<span class="cm"># 3. dbt-expectations expression</span>
+  - dbt_expectations.expect_column_values_to_be_between:
+      column: revenue
+      min_value: 0
+      max_value: 1000000
+
+<span class="cm"># 4. recency check</span>
+  - dbt_utils.recency:
+      datepart: day
+      field: created_at
+      interval: 1</code></pre>
+
+  <h3>Singular Tests (custom SQL)</h3>
+  <pre><code><span class="cm">-- tests/no_negative_revenue.sql
+-- a singular test passes when it returns 0 rows</span>
+<span class="kw">select</span> *
+<span class="kw">from</span> <span class="fn">{{ ref('fct_jobs') }}</span>
+<span class="kw">where</span> revenue < <span class="num">0</span></code></pre>
+
+  <h3>Severity</h3>
+  <ul>
+    <li><code>error</code> (default) — blocks downstream models, alerts immediately.</li>
+    <li><code>warn</code> — logs but doesn't block. Useful for "investigate later" checks.</li>
+    <li><code>config.error_if</code> / <code>warn_if</code> — escalate based on row count thresholds.</li>
+  </ul>
+
+  <h3>The Test Pyramid for Data</h3>
+  <ol>
+    <li><b>Schema tests</b> (cheap, broad) — every model, every PK column</li>
+    <li><b>Business rule tests</b> (focused) — every fact's grain, every metric's bounds</li>
+    <li><b>Reconciliation tests</b> (cross-system) — daily SF vs warehouse row count</li>
+    <li><b>Anomaly tests</b> (statistical) — alert on unusual deltas</li>
+  </ol>
+
+  <h3>Data Contracts (the new hotness)</h3>
+  <p>Producer (source team) and consumer (AE/BI) agree on the schema of a "shared" table. Breaking changes require migration, not "oh sorry the column is gone."</p>
+  <pre><code><span class="kw">models:</span>
+  - <span class="kw">name:</span> dim_accounts
+    <span class="kw">config:</span>
+      <span class="kw">contract:</span>
+        <span class="kw">enforced:</span> true
+    <span class="kw">columns:</span>
+      - <span class="kw">name:</span> account_id
+        <span class="kw">data_type:</span> bigint
+        <span class="kw">constraints:</span>
+          - <span class="kw">type:</span> not_null
+          - <span class="kw">type:</span> primary_key</code></pre>
+
+  <h3>Observability Tools</h3>
+  <table>
+    <tr><th>Tool</th><th>Niche</th></tr>
+    <tr><td>Elementary</td><td>Open-source, dbt-native anomaly detection + alerting</td></tr>
+    <tr><td>Monte Carlo</td><td>Enterprise data observability — auto-discovery</td></tr>
+    <tr><td>Bigeye / Soda / Anomalo</td><td>Similar enterprise space</td></tr>
+    <tr><td>Great Expectations</td><td>Python-first data validation framework</td></tr>
+  </table>
+
+  <h3>Flashcards</h3>
+  <div class="flashcard-set">
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">When should a test be severity <code>warn</code> rather than <code>error</code>?</div>
+      <div class="answer">When the failure is informative but doesn't make downstream data wrong — e.g. "row count down 20%" might be valid (long weekend). For correctness violations (unique, not_null on PK), use error.</div>
+    </div>
+    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+      <div class="hint">Click</div>
+      <div class="question">What's a singular test in dbt?</div>
+      <div class="answer">A custom SQL file in <code>tests/</code> that returns rows on failure. Anything that returns &gt;0 rows = test fail. Useful for business rules that don't fit generic tests.</div>
+    </div>
+  </div>
+
+  <div class="quiz" data-quiz="m10q1">
+    <div class="quiz-title">DQ Check</div>
+    <div class="quiz-q">You add a <code>unique</code> test to <code>account_id</code> in <code>dim_accounts</code>. It passes in dev, fails in prod. Most likely?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'dbt tests work the same in dev vs prod — it\'s data difference.')">dbt version mismatch.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — prod has more data, including cases the dev sample didn\'t hit (e.g., CDC late-arriving duplicates, edge accounts).')">Prod has duplicate account_ids from a CDC dedup edge case or fan-out you didn\'t see in dev.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Connection issues would fail the test outright, not produce a false pass in dev.')">Connection issues.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'A different schema test fail mode, not this one.')">Wrong test syntax.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>6 DQ dims: completeness, uniqueness, validity, accuracy, consistency, timeliness.</li>
+      <li>dbt tests: schema (built-in), singular (custom SQL), dbt-utils, dbt-expectations.</li>
+      <li>Severity: error (block + alert) vs warn (log only).</li>
+      <li>Contracts: enforce schema between producer and consumer.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m10')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 11: SYSTEM DESIGN ============================== -->
+<section class="module" id="m11">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 11 · Senior <span class="level-badge level-advanced">Advanced</span></span>
+    <h2>System Design for Data</h2>
+    <p class="module-subtitle">Architecting for scale, change, and the inevitable retro.</p>
+  </div>
+
+  <p class="lead">Senior AEs/DEs design systems. Given a vague brief ("we need real-time customer insights"), you decompose into ingestion, storage, transformation, serving, governance — and defend the trade-offs.</p>
+
+  <h3>The Lakehouse Reference Architecture</h3>
+  <pre><code>┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│   SOURCES    │ → │  INGESTION   │ → │  LAKEHOUSE   │ → │ TRANSFORMS   │ → │   SERVING    │
+│              │   │              │   │              │   │              │   │              │
+│ OLTP DBs     │   │ CDC          │   │  BRONZE      │   │ dbt          │   │ BI / Tableau │
+│ APIs (SF)    │   │ Fivetran     │   │  ↓ raw delta │   │ Spark SQL    │   │ Reverse ETL  │
+│ Events       │   │ Kafka stream │   │  SILVER      │   │ PySpark      │   │ APIs         │
+│ Files (S3)   │   │ Batch jobs   │   │  ↓ cleaned   │   │              │   │ ML features  │
+│              │   │              │   │  GOLD        │   │              │   │              │
+└──────────────┘   └──────────────┘   │  ↓ marts     │   └──────────────┘   └──────────────┘
+                                       └──────┬───────┘
+                                              ↓
+                                       ┌──────────────┐
+                                       │  GOVERNANCE  │
+                                       │              │
+                                       │ Catalog      │
+                                       │ Lineage      │
+                                       │ DQ tests     │
+                                       │ Contracts    │
+                                       │ Access ctrl  │
+                                       └──────────────┘</code></pre>
+
+  <h3>Trade-Off Frameworks to Reach For</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Latency vs Cost</h4>
+      <p>Real-time = streaming + always-on compute = $$$. Hourly batch = cheap. Map each use case to its real latency SLO.</p>
+    </div>
+    <div class="card">
+      <h4>Schema-on-Read vs Write</h4>
+      <p>Bronze tolerates messy raw; gold enforces schema. Push validation as far left as cheap.</p>
+    </div>
+    <div class="card">
+      <h4>Build vs Buy</h4>
+      <p>Fivetran (~$$$) vs custom Python ingestion (eng time). For SaaS sources: buy. For internal volume: build.</p>
+    </div>
+    <div class="card">
+      <h4>Push vs Pull</h4>
+      <p>Push = producers publish to a stream (eventual consistency, decoupled). Pull = consumer queries source (simple, can hammer prod).</p>
+    </div>
+    <div class="card">
+      <h4>Normalized vs Denormalized Serving</h4>
+      <p>BI loves wide tables; ML wants long. Often both — gold has narrow facts + wide reporting models.</p>
+    </div>
+    <div class="card">
+      <h4>Centralized vs Decentralized</h4>
+      <p>Central platform team vs Data Mesh (each domain owns its data product). Hybrid is reality.</p>
+    </div>
+  </div>
+
+  <h3>Capacity Planning — the back-of-envelope sniff test</h3>
+  <ul>
+    <li>1B rows × 100 bytes = 100 GB raw. Parquet compresses ~5–10× → 10–20 GB on disk.</li>
+    <li>Scan throughput on Photon ≈ 1–3 GB/sec/worker. 20 GB table on 10-worker cluster → ~1s scan with filters.</li>
+    <li>Kafka throughput per partition ≈ 10 MB/s. Need 100 MB/s? ~10+ partitions.</li>
+    <li>dbt run time scales with model count + warehouse size. Slim CI cuts this 10×.</li>
+  </ul>
+
+  <h3>System Design Interview Template</h3>
+  <ol>
+    <li><b>Clarify</b> — what's the latency SLO, volume, accuracy bar, who consumes?</li>
+    <li><b>Pick architecture</b> — batch / streaming / lakehouse / lambda? Justify.</li>
+    <li><b>Sketch flow</b> — sources → ingestion → storage → transform → serve.</li>
+    <li><b>Schema</b> — fact/dim, grain, key choice, SCDs.</li>
+    <li><b>Operational</b> — orchestration, monitoring, alerts, DQ tests, contracts.</li>
+    <li><b>Trade-offs</b> — what did you simplify? What would v2 look like at 10× scale?</li>
+  </ol>
+
+  <h3>Worked Example: "Real-time contractor response-time dashboard"</h3>
+  <div class="callout">
+    <div class="callout-title">Brief</div>
+    Show contractors how their median lead-response-time compares to peers, refreshed within 5 minutes of every action.
+  </div>
+  <ul>
+    <li><b>Sources</b>: lead-issued event, contractor-response event. Both already on Kafka.</li>
+    <li><b>Ingestion</b>: Spark Structured Streaming reads both topics → write to bronze.<br>5-min trigger, exactly-once via Delta + idempotent Kafka offsets.</li>
+    <li><b>Storage</b>: bronze raw events; silver enriched with contractor + category dims (joined at stream-time); gold = rolling 30-day response time agg per contractor + category.</li>
+    <li><b>Transform</b>: dbt incremental on silver→gold every 5 min via Workflows.</li>
+    <li><b>Serve</b>: DBSQL Serverless warehouse, AI/BI dashboard with auto-refresh; or push to Postgres via reverse ETL for in-product widget.</li>
+    <li><b>DQ</b>: unique on (contractor_id, lead_id, event_ts); not_null on contractor_id; row count delta vs 1h ago must be within 30%.</li>
+    <li><b>Cost trade-off</b>: streaming all the way is expensive — 5-min micro-batch with serverless gives 90% of value at 30% of cost.</li>
+  </ul>
+
+  <h3>Anti-Patterns to Avoid in Design</h3>
+  <ul>
+    <li><b>Premature streaming</b> — daily batch is enough; streaming adds 10× complexity.</li>
+    <li><b>One big table</b> — denormalised "kitchen sink" looks easy; impossible to evolve.</li>
+    <li><b>No clear ownership</b> — model has no owner = stale + wrong within 6 months.</li>
+    <li><b>Missing contracts</b> — source team changes column, your model breaks at 3am.</li>
+    <li><b>Untested upserts</b> — MERGE logic that introduces duplicates on edge cases.</li>
+  </ul>
+
+  <div class="quiz" data-quiz="m11q1">
+    <div class="quiz-title">Design Check</div>
+    <div class="quiz-q">Stakeholder asks for "near-real-time" revenue dashboard. They concede 5-minute latency is fine. Which design wins on cost vs complexity?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Sub-second latency wasn\'t needed — overengineering.')">Full Kafka → Flink stateful streaming → push to OLAP store.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, true, 'Right — 5 min latency matches Structured Streaming or dbt running every 5 min on incremental Delta. Cheap and operationally simple.')">Spark Structured Streaming or dbt incremental on 5-min trigger; Delta + DBSQL serverless.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Hourly batch misses the 5-min ask.')">Hourly batch only.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this, false, 'Direct prod queries hammer OLTP and break at scale.')">Tableau queries hitting prod MySQL directly.</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>Lakehouse = source → ingestion → bronze/silver/gold → serving + governance.</li>
+      <li>Always state SLOs (latency, freshness, accuracy) before picking architecture.</li>
+      <li>Streaming costs 10× more than batch — match latency to actual need.</li>
+      <li>Capacity planning: GB/s scan, MB/s Kafka partitions, dbt model count × size.</li>
+      <li>Anti-patterns: premature streaming, kitchen-sink tables, no ownership, no contracts.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m11')">Mark module complete</button>
+</section>
+
+<!-- ============================== MODULE 12: INTERVIEW & PORTFOLIO ============================== -->
+<section class="module" id="m12">
+  <div class="module-header">
+    <span class="module-eyebrow">Module 12 · Portfolio</span>
+    <h2>Interview Prep & Portfolio</h2>
+    <p class="module-subtitle">How to demonstrate AE competence without already having the title.</p>
+  </div>
+
+  <p class="lead">Hiring managers want to see code, not certificates. The fastest path: a public dbt project on GitHub + a writeup. The interview is then mostly "walk me through it."</p>
+
+  <h3>The 4 Interview Loops You'll Face</h3>
+  <table>
+    <tr><th>Loop</th><th>What they test</th><th>How to prep</th></tr>
+    <tr><td>SQL screen</td><td>Window functions, dedup, fan-out, NULLs</td><td>StrataScratch, DataLemur, Mode SQL Tutorial</td></tr>
+    <tr><td>dbt/modeling</td><td>Star schema design, SCDs, incremental, tests</td><td>Build a public dbt project end-to-end</td></tr>
+    <tr><td>System design</td><td>"Design a [analytics platform / pipeline / metric]"</td><td>Read Designing Data-Intensive Apps, Practice with the template above</td></tr>
+    <tr><td>Behavioral</td><td>Stakeholder mgmt, ambiguity, prioritisation</td><td>STAR stories from your analyst experience — you have a lot to draw on</td></tr>
+  </table>
+
+  <h3>Portfolio Project: production-style public dbt repo</h3>
+  <p>Pick a public dataset (NYC taxi, Olist e-commerce, IMDb, Spotify-charts). Build:</p>
+  <ol>
+    <li>Source declaration + freshness</li>
+    <li>3 layers: staging / intermediate / marts</li>
+    <li>At least one snapshot (SCD2) on a slowly-changing entity</li>
+    <li>At least one incremental model with proper unique_key + watermark</li>
+    <li>20+ tests across the project</li>
+    <li>dbt docs site published via GitHub Pages</li>
+    <li>README with: ERD, lineage screenshot, decision log (why these grains), how to run</li>
+    <li>GitHub Actions CI: lint + dbt compile + dbt build state:modified+</li>
+  </ol>
+
+  <h3>Behavioral: STAR stories you can already tell</h3>
+  <ul>
+    <li><b>Ambiguous request</b> — "Sales asked for X, I clarified into Y, delivered Z"</li>
+    <li><b>Trust breach</b> — "Numbers disagreed; I traced root cause to grain mismatch"</li>
+    <li><b>Cross-team blocker</b> — "I worked with eng to add a column to source"</li>
+    <li><b>Performance fix</b> — "Tableau viz timed out; pre-aggregated in dbt, 50× faster"</li>
+    <li><b>Mistake</b> — "I shipped wrong metric, learned to add tests"</li>
+  </ul>
+
+  <h3>SQL Practice — the 20 patterns to drill</h3>
+  <ol>
+    <li>Find the second-highest salary per department.</li>
+    <li>Running total per customer.</li>
+    <li>Cumulative count of distinct users by day.</li>
+    <li>Sessionization: group events into sessions when gap > 30 min.</li>
+    <li>Top N per group.</li>
+    <li>Dedup keeping latest by timestamp.</li>
+    <li>Find customers who placed orders in two consecutive months.</li>
+    <li>Active users yesterday but not today.</li>
+    <li>Rolling 7-day moving average.</li>
+    <li>Percent of total per group.</li>
+    <li>Median per group (without MEDIAN function).</li>
+    <li>Funnel: conversion at each step.</li>
+    <li>Retention cohort: signup_month vs active_month.</li>
+    <li>Gaps and islands: consecutive date ranges.</li>
+    <li>Self-join: manager/employee hierarchy.</li>
+    <li>Pivot fact data by category.</li>
+    <li>Anti-join: customers with no order.</li>
+    <li>Detect duplicates and quantify them.</li>
+    <li>Reconciliation: SUM(a) per id vs SUM(b) per id, find mismatches.</li>
+    <li>Window with frame: 30-day rolling SUM via <code>ROWS BETWEEN INTERVAL …</code>.</li>
+  </ol>
+
+  <h3>Books & Resources Worth the Time</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>"The Data Warehouse Toolkit" — Kimball</h4>
+      <p>The Bible for dimensional modeling. Read chapters 1-3 + your industry chapter.</p>
+    </div>
+    <div class="card">
+      <h4>"Fundamentals of Data Engineering" — Joe Reis / Matt Housley</h4>
+      <p>The modern overview. Read cover to cover.</p>
+    </div>
+    <div class="card">
+      <h4>"Designing Data-Intensive Applications" — Kleppmann</h4>
+      <p>Deep on distributed systems. Skim chapters 1-4 + 10 for AE.</p>
+    </div>
+    <div class="card">
+      <h4>dbt Learn (free courses)</h4>
+      <p>"Fundamentals", "Advanced Materializations", "Jinja, Macros". Official, gold standard.</p>
+    </div>
+    <div class="card">
+      <h4>Locally Optimistic blog</h4>
+      <p>AE practitioners writing about real problems. Searchable archive.</p>
+    </div>
+    <div class="card">
+      <h4>Databricks Academy</h4>
+      <p>Free, self-paced. Get the "Databricks Certified Data Engineer Associate" certification.</p>
+    </div>
+  </div>
+
+  <h3>Certifications — worth it?</h3>
+  <ul>
+    <li><b>Databricks Certified Data Engineer Associate</b> — yes, signals capability + free study material.</li>
+    <li><b>dbt Analytics Engineering Certification</b> — yes, aligned exactly with this transition.</li>
+    <li>Cloud certs (AWS Data Analytics, GCP Data Engineer) — nice-to-have, not critical.</li>
+    <li>Skip "data analyst" certs — you're moving on.</li>
+  </ul>
+
+  <h3>Your 30-Day Action Plan (from today)</h3>
+  <table>
+    <tr><th>Week</th><th>Action</th></tr>
+    <tr><td>1</td><td>Build SQL muscle: 30 problems on DataLemur/StrataScratch (window fns, dedup, fan-out)</td></tr>
+    <tr><td>2</td><td>Scaffold the public dbt project — pick dataset, deploy to free Snowflake/Databricks Community</td></tr>
+    <tr><td>3</td><td>Build 3-layer + snapshots + incremental + 20 tests; publish dbt docs</td></tr>
+    <tr><td>4</td><td>Write the README + post on LinkedIn; do 3 mock system design interviews</td></tr>
+  </table>
+
+  <h3>What to Negotiate Going Internal vs External</h3>
+  <ul>
+    <li><b>Internal</b> — fastest path. You know the domain. Pitch: "I'll shadow the dbt project's repo PRs for 4 weeks, then own one model end-to-end."</li>
+    <li><b>External</b> — bigger pay bump typically. Public portfolio + LinkedIn updates trigger inbound recruiters.</li>
+    <li>Title to target: <em>Analytics Engineer</em> or <em>Senior Data Analyst, Analytics Engineering track</em>. Some companies bundle as "Data Engineer."</li>
+  </ul>
+
+  <div class="recap">
+    <div class="recap-title">Recap</div>
+    <ul>
+      <li>4 interview loops: SQL screen, dbt/modeling, system design, behavioral. You have analyst stories already.</li>
+      <li>Public dbt project + README + GitHub Actions CI = your portfolio.</li>
+      <li>Drill 20 SQL patterns; read Kimball ch.1-3 + Joe Reis cover-to-cover.</li>
+      <li>30-day plan: SQL → project → tests/docs → publish & mock interviews.</li>
+      <li>Internal move is the lowest-friction first step.</li>
+    </ul>
+  </div>
+
+  <button class="complete-btn" onclick="markComplete('m12')">Mark module complete</button>
+</section>
+
+</main>
+
+<!-- Pop Quiz button + modal -->
+<button class="pop-quiz-btn" onclick="popQuiz()">⚡ Pop Quiz</button>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-eyebrow">Pop Quiz</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <h3 id="modal-q"></h3>
+    <div class="quiz-options" id="modal-options"></div>
+    <div class="quiz-feedback" id="modal-feedback"></div>
+    <button class="btn btn-primary" style="margin-top:16px;width:100%;" onclick="popQuiz()">Next Question</button>
+  </div>
+</div>
+
+<script>
+// ============= NAV =============
+const navLinks = document.querySelectorAll('.nav-link');
+const modules = document.querySelectorAll('.module');
+
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    const target = link.dataset.target;
+    navLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    modules.forEach(m => m.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ============= QUIZ =============
+function answerQuiz(btn, isCorrect, feedback) {
+  const quiz = btn.closest('.quiz');
+  const opts = quiz.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fb = quiz.querySelector('.quiz-feedback');
+  fb.textContent = feedback;
+  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+}
+
+// ============= PROGRESS =============
+function loadProgress() {
+  const completed = JSON.parse(localStorage.getItem('ae-progress') || '[]');
+  completed.forEach(id => {
+    const link = document.querySelector(`[data-target="${id}"]`);
+    if (link) link.classList.add('completed');
+    const btn = document.querySelector(`#${id} .complete-btn`);
+    if (btn) {
+      btn.classList.add('done');
+      btn.textContent = '✓ Completed';
+    }
+  });
+  updateProgressBar();
+}
+function markComplete(id) {
+  let completed = JSON.parse(localStorage.getItem('ae-progress') || '[]');
+  if (!completed.includes(id)) {
+    completed.push(id);
+    localStorage.setItem('ae-progress', JSON.stringify(completed));
+  }
+  loadProgress();
+}
+function resetProgress() {
+  if (confirm('Reset all progress?')) {
+    localStorage.removeItem('ae-progress');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('completed'));
+    document.querySelectorAll('.complete-btn').forEach(b => {
+      b.classList.remove('done');
+      b.textContent = 'Mark module complete';
+    });
+    updateProgressBar();
+  }
+}
+function updateProgressBar() {
+  const completed = JSON.parse(localStorage.getItem('ae-progress') || '[]').length;
+  const total = 13;
+  const pct = Math.round(completed / total * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('completed-count').textContent = completed;
+}
+
+// ============= THEME =============
+function toggleTheme() {
+  const cur = document.documentElement.dataset.theme;
+  const next = cur === 'light' ? '' : 'light';
+  if (next) document.documentElement.dataset.theme = next;
+  else delete document.documentElement.dataset.theme;
+  document.getElementById('theme-btn').textContent = next === 'light' ? 'Dark' : 'Light';
+  localStorage.setItem('ae-theme', next);
+}
+const savedTheme = localStorage.getItem('ae-theme');
+if (savedTheme) {
+  document.documentElement.dataset.theme = savedTheme;
+  document.getElementById('theme-btn').textContent = 'Dark';
+}
+
+// ============= POP QUIZ POOL =============
+const popQuizPool = [
+  { q: "What's the difference between RANK() and DENSE_RANK()?",
+    opts: [
+      ["RANK leaves gaps after ties (1,2,2,4), DENSE_RANK doesn't (1,2,2,3).", true],
+      ["RANK is for windows, DENSE_RANK is for aggregations.", false],
+      ["They're identical aliases.", false],
+      ["RANK is older SQL standard; DENSE_RANK is newer.", false],
+    ], explain: "RANK = gaps after ties; DENSE_RANK = no gaps." },
+  { q: "Why is NOT IN (subquery) dangerous when the subquery can return NULL?",
+    opts: [
+      ["NULL in subquery makes the whole NOT IN return zero rows.", true],
+      ["NULL is treated as a regular value.", false],
+      ["NOT IN ignores NULLs by default.", false],
+      ["It causes a syntax error.", false],
+    ], explain: "Three-valued logic: 'x NOT IN (1, NULL)' is NULL, not true. Use NOT EXISTS." },
+  { q: "What's the canonical dedupe-by-latest pattern in SQL?",
+    opts: [
+      ["ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts DESC) = 1", true],
+      ["SELECT DISTINCT key, ts", false],
+      ["GROUP BY key", false],
+      ["LIMIT 1", false],
+    ], explain: "ROW_NUMBER + filter rn=1 preserves all columns of the chosen row." },
+  { q: "Which tables ALWAYS require WHERE __is_deleted = false?",
+    opts: [
+      ["The kafka_cdc tables: accounts, jobs, sites, etc.", true],
+      ["Only dim_accounts in the dbt project.", false],
+      ["Only when ingesting from Salesforce.", false],
+      ["Never — staging handles it.", false],
+    ], explain: "Production bug if you skip __is_deleted on CDC tables. Staging doesn't always propagate it." },
+  { q: "An incremental dbt model on a 100M-row table is duplicating rows after a backfill. Most likely cause?",
+    opts: [
+      ["Missing unique_key in the config — append vs merge.", true],
+      ["The table has too many partitions.", false],
+      ["dbt version mismatch.", false],
+      ["Wrong warehouse size.", false],
+    ], explain: "Without unique_key + merge strategy, incremental just appends — backfill = duplicates." },
+  { q: "What is grain in dimensional modeling?",
+    opts: [
+      ["What one row in the fact table represents.", true],
+      ["The compression ratio of the table.", false],
+      ["The age of the data.", false],
+      ["The number of joins required.", false],
+    ], explain: "Grain = the meaning of a single row. Every fact has one declared grain." },
+  { q: "When would you use SCD Type 2 over Type 1?",
+    opts: [
+      ["When historical accuracy of the attribute matters at the time of the fact.", true],
+      ["When the column never changes.", false],
+      ["When you want to save storage.", false],
+      ["When the source is read-only.", false],
+    ], explain: "Type 2 keeps versioned rows; Type 1 overwrites — losing history." },
+  { q: "In Spark, you call df.filter(...).groupBy(...). No computation happens. Why?",
+    opts: [
+      ["Transformations are lazy — only actions trigger execution.", true],
+      ["The cluster isn't running.", false],
+      ["You need to .cache() first.", false],
+      ["Filter and groupBy conflict.", false],
+    ], explain: "Spark builds a logical plan; only actions like .show(), .collect(), .write() execute." },
+  { q: "Why is a broadcast hash join faster than a sort-merge join?",
+    opts: [
+      ["No shuffle — small side broadcast to all executors.", true],
+      ["It uses indexes.", false],
+      ["It runs only on the driver.", false],
+      ["It's actually slower.", false],
+    ], explain: "Broadcast skips the network shuffle; each executor joins locally with the small table." },
+  { q: "What does Delta Lake's transaction log enable that raw Parquet on S3 doesn't?",
+    opts: [
+      ["ACID transactions, time travel, schema evolution.", true],
+      ["Faster file scans.", false],
+      ["Lower storage cost.", false],
+      ["Automatic partitioning.", false],
+    ], explain: "_delta_log/ is the ordered commit history. Parquet alone has no transaction semantics." },
+  { q: "Slim CI in dbt is achieved with:",
+    opts: [
+      ["dbt build -s state:modified+", true],
+      ["dbt run --threads 1", false],
+      ["dbt build --target prod", false],
+      ["dbt compile only", false],
+    ], explain: "state:modified+ builds changed models + downstream only — typical 10× CI speed up." },
+  { q: "You see one Spark task taking 50× longer than others in the same stage. Diagnosis?",
+    opts: [
+      ["Data skew — one key has disproportionate rows.", true],
+      ["Bad cluster network.", false],
+      ["File format mismatch.", false],
+      ["Out of memory globally.", false],
+    ], explain: "Skew shows as one straggler task. Fix: AQE skew handling, salting, or broadcast." },
+  { q: "Which dbt test would catch 'every order_id in fct_order_items exists in fct_orders'?",
+    opts: [
+      ["relationships test", true],
+      ["unique test", false],
+      ["not_null test", false],
+      ["accepted_values test", false],
+    ], explain: "relationships = referential integrity / FK check across models." },
+  { q: "What makes a pipeline idempotent?",
+    opts: [
+      ["Same input always produces the same output, regardless of how many times run.", true],
+      ["It can run only once per day.", false],
+      ["It has no dependencies.", false],
+      ["It runs in under a second.", false],
+    ], explain: "Idempotency = safe retries and backfills. Achieved via MERGE or delete-then-insert per partition." },
+  { q: "What does VACUUM on a Delta table do?",
+    opts: [
+      ["Removes data files older than retention period that are no longer referenced.", true],
+      ["Recomputes statistics.", false],
+      ["Compacts small files.", false],
+      ["Drops the table.", false],
+    ], explain: "VACUUM frees storage from old versions; OPTIMIZE compacts small files. Different ops." },
+  { q: "Where does the AE typically fix a wrong metric?",
+    opts: [
+      ["At the canonical dbt model, with a test added to prevent regression.", true],
+      ["In the Tableau workbook with a custom calc.", false],
+      ["In the BI semantic layer only.", false],
+      ["Manually each time it comes up.", false],
+    ], explain: "Fix upstream; tests prevent regression; every downstream consumer benefits." },
+  { q: "What's the safe alternative to NOT IN with nullable subqueries?",
+    opts: [
+      ["NOT EXISTS", true],
+      ["IS NOT NULL", false],
+      ["LEFT JOIN ... WHERE = NULL", false],
+      ["DISTINCT", false],
+    ], explain: "NOT EXISTS is NULL-safe; correlated existence check returns true/false only." },
+  { q: "Conventional Commits format used in PRs?",
+    opts: [
+      ["type: [JIRA-ID] description (feat: [DAE-422] Add staging model)", true],
+      ["Just freeform message", false],
+      ["JIRA-ID first, type after", false],
+      ["Emoji prefix", false],
+    ], explain: "Type prefix + ticket reference, imperative description. A common convention." },
+  { q: "What's the silver layer in medallion architecture?",
+    opts: [
+      ["Cleaned, conformed, joined data — roughly staging+intermediate.", true],
+      ["Raw ingested data.", false],
+      ["Final business-ready aggregates.", false],
+      ["BI semantic layer only.", false],
+    ], explain: "Bronze=raw, Silver=cleaned/conformed, Gold=business-ready aggregates." },
+  { q: "When stakeholder says 'real-time' — what's the AE's first move?",
+    opts: [
+      ["Clarify actual latency SLO; usually 5-minute micro-batch is sufficient.", true],
+      ["Immediately design Kafka + Flink streaming.", false],
+      ["Tell them it's impossible.", false],
+      ["Build what they said literally.", false],
+    ], explain: "'Real-time' often = 'sub-hour'. Match latency to actual need; streaming costs 10×." },
+];
+let lastQuizIdx = -1;
+function popQuiz() {
+  let idx;
+  do { idx = Math.floor(Math.random() * popQuizPool.length); } while (idx === lastQuizIdx);
+  lastQuizIdx = idx;
+  const q = popQuizPool[idx];
+  document.getElementById('modal-q').textContent = q.q;
+  const opts = document.getElementById('modal-options');
+  opts.innerHTML = '';
+  const fb = document.getElementById('modal-feedback');
+  fb.classList.remove('show', 'correct', 'wrong');
+  fb.textContent = '';
+  // Shuffle options
+  const shuffled = [...q.opts].sort(() => Math.random() - 0.5);
+  shuffled.forEach(([text, isCorrect]) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = text;
+    btn.onclick = () => {
+      opts.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      fb.textContent = q.explain;
+      fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+    };
+    opts.appendChild(btn);
+  });
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// ============= INIT =============
+loadProgress();
+</script>
+
+<div id="__fb" style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;gap:6px;opacity:.45;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.45">
+  <button onclick="__fbExport()" title="Export progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8595;</button>
+  <button onclick="document.getElementById('__fbFile').click()" title="Import progress" style="width:34px;height:34px;border-radius:8px;border:1px solid #2a3565;background:#1a1f44;color:#a5acd0;font-size:15px;cursor:pointer">&#8593;</button>
+</div>
+<input type="file" id="__fbFile" accept="application/json" style="display:none" onchange="__fbImport(event)">
+<script>
+function __fbSnap(){var s={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('forge-')===0)s[k]=localStorage.getItem(k);}return s;}
+function __fbExport(){var b=new Blob([JSON.stringify(__fbSnap(),null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='forge-progress-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();}
+function __fbImport(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);Object.keys(o).forEach(function(k){if(k.indexOf('forge-')===0)localStorage.setItem(k,o[k]);});location.reload();}catch(x){alert('Invalid backup file');}};r.readAsText(f);}
+</script>
+</body>
+</html>

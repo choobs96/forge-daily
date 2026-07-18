@@ -1,0 +1,22 @@
+[
+ "Always test grain after a join: <code>count(*) vs count(distinct primary_key)</code>. If they differ, you have fan-out.",
+ "<code>NOT IN (subquery)</code> returns zero rows if the subquery has any NULL. Use <code>NOT EXISTS</code>.",
+ "Every model in the dbt project ends with <code>{{ audit_columns() }}</code>. It's how you trace which run loaded what.",
+ "Fix metrics in the canonical dbt model, not in the Tableau calc. Otherwise every dashboard inherits the same bug.",
+ "<code>SELECT *</code> is cheap in OLTP and expensive in OLAP. Columnar storage rewards projecting only what you need.",
+ "Use <code>severity: warn</code> when introducing new tests. Harden to <code>error</code> after the data has proven clean.",
+ "PySpark transformations are lazy. Only an action (<code>.show()</code>, <code>.collect()</code>, <code>.write()</code>) triggers execution.",
+ "Slim CI for dbt: <code>dbt build -s state:modified+</code>. Only builds changed models + their downstream.",
+ "Broadcast small dim tables explicitly: <code>/*+ BROADCAST(dim) */</code>. The planner gets it wrong on bigger sources.",
+ "Surrogate keys built from <code>md5(NULL || …)</code> collapse all NULL-rows to the same key. Always use a guaranteed-unique column.",
+ "Idempotency is non-negotiable. Same input → same output, every retry. MERGE, not INSERT.",
+ "CDC tables (accounts, jobs, etc.) need <code>WHERE __is_deleted = false</code>. Missing it = production correctness bug.",
+ "OPTIMIZE compacts files; ZORDER sorts within. Use both regularly on hot tables.",
+ "When stakeholder says 'real-time', ask 'what latency is actually fine?'. 5-minute micro-batch saves 10× cost vs full streaming.",
+ "Data contracts move the failure left: catch the schema change at PR time, not at 9pm Friday.",
+ "Use <code>{{ ref() }}</code>, never hardcoded paths. The whole dbt DAG depends on it.",
+ "Naming convention beats cleverness. <code>fct_jobs</code> > <code>jobs_v3_final</code>.",
+ "Test for what you'd be embarrassed by, not what's easy to test. Edge cases > happy paths.",
+ "Read query plans bottom-up. The lowest exchange is usually the bottleneck.",
+ "Document the grain in every fact model. 'One row per (job_id, contractor_id, event_ts)' — write it."
+]

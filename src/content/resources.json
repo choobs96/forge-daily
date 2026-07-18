@@ -1,0 +1,436 @@
+{
+ "r-books": [
+  {
+   "type": "Book",
+   "title": "The Data Warehouse Toolkit",
+   "author": "Ralph Kimball & Margy Ross",
+   "tier": "essential",
+   "why": "The Bible for dimensional modeling. Read chapters 1-3 + your industry chapter."
+  },
+  {
+   "type": "Book",
+   "title": "Fundamentals of Data Engineering",
+   "author": "Joe Reis & Matt Housley",
+   "tier": "essential",
+   "why": "Modern overview of the DE lifecycle. Read cover to cover for orientation."
+  },
+  {
+   "type": "Book",
+   "title": "Designing Data-Intensive Applications",
+   "author": "Martin Kleppmann",
+   "tier": "recommended",
+   "why": "Distributed systems deep dive. Skim chapters 1-4 + 10 for AE; full read for DE."
+  },
+  {
+   "type": "Book",
+   "title": "SQL Antipatterns",
+   "author": "Bill Karwin",
+   "tier": "recommended",
+   "why": "200 pages of \"don't do this.\" Inoculates you against common bugs."
+  },
+  {
+   "type": "Book",
+   "title": "Star Schema: The Complete Reference",
+   "author": "Christopher Adamson",
+   "tier": "recommended",
+   "why": "Companion to Kimball — more practical examples, faster reading."
+  },
+  {
+   "type": "Book",
+   "title": "Streaming Systems",
+   "author": "Tyler Akidau et al.",
+   "tier": "advanced",
+   "why": "The reference on event-time, watermarks, exactly-once. Read once you touch streaming."
+  },
+  {
+   "type": "Book",
+   "title": "High Performance Spark",
+   "author": "Holden Karau & Rachel Warren",
+   "tier": "recommended",
+   "why": "Practical Spark tuning. Read alongside the Spark module."
+  },
+  {
+   "type": "Book",
+   "title": "The DataOps Cookbook",
+   "author": "Christopher Bergh et al.",
+   "tier": "optional",
+   "why": "Process patterns for treating analytics like software. Skimmable."
+  },
+  {
+   "type": "Book",
+   "title": "97 Things Every Data Engineer Should Know",
+   "author": "Tobias Macey (ed.)",
+   "tier": "optional",
+   "why": "Short essays. Good for breakfast reading. Mixed quality."
+  },
+  {
+   "type": "Book",
+   "title": "Learning SQL",
+   "author": "Alan Beaulieu",
+   "tier": "optional",
+   "why": "If your SQL foundation feels shaky. Skip if you're already comfortable with windows."
+  }
+ ],
+ "r-courses": [
+  {
+   "type": "Course",
+   "title": "dbt Learn — Fundamentals",
+   "author": "dbt Labs (free)",
+   "tier": "essential",
+   "why": "Official, gold-standard, ~6 hours. Do this first if you're new to dbt."
+  },
+  {
+   "type": "Course",
+   "title": "dbt Learn — Advanced Materializations",
+   "author": "dbt Labs",
+   "tier": "essential",
+   "why": "Incremental, snapshots, contracts. Critical for production dbt."
+  },
+  {
+   "type": "Course",
+   "title": "dbt Learn — Jinja, Macros, Packages",
+   "author": "dbt Labs",
+   "tier": "recommended",
+   "why": "Once you're writing macros. Required for DRY codebases."
+  },
+  {
+   "type": "Course",
+   "title": "Databricks Academy",
+   "author": "Databricks (free)",
+   "tier": "essential",
+   "why": "Self-paced. Cover \"Data Engineer Associate\" prep."
+  },
+  {
+   "type": "Course",
+   "title": "StrataScratch SQL Bootcamp",
+   "author": "StrataScratch",
+   "tier": "recommended",
+   "why": "Real interview SQL problems. Best paid resource for SQL interview prep."
+  },
+  {
+   "type": "Course",
+   "title": "Mode Analytics SQL Tutorial",
+   "author": "Mode (free)",
+   "tier": "recommended",
+   "why": "Free, comprehensive, includes window functions. Good warm-up."
+  },
+  {
+   "type": "Course",
+   "title": "Udacity Data Engineer Nanodegree",
+   "author": "Udacity ($)",
+   "tier": "optional",
+   "why": "Project-driven; good if you need external structure. Pricey."
+  },
+  {
+   "type": "Course",
+   "title": "Confluent Kafka Tutorial",
+   "author": "Confluent (free)",
+   "tier": "recommended",
+   "why": "When you're ready to deeply understand Kafka. Hands-on."
+  },
+  {
+   "type": "Course",
+   "title": "Maven Analytics — Data Modeling",
+   "author": "Maven ($)",
+   "tier": "optional",
+   "why": "Practical Kimball walkthrough if Kimball's book feels heavy."
+  }
+ ],
+ "r-blogs": [
+  {
+   "type": "Blog",
+   "title": "Locally Optimistic",
+   "author": "AE practitioner collective",
+   "tier": "essential",
+   "why": "AEs writing about real production problems. Searchable archive."
+  },
+  {
+   "type": "Newsletter",
+   "title": "Data Engineering Weekly",
+   "author": "Ananth Packkildurai",
+   "tier": "essential",
+   "why": "The best Sunday digest. ~10 min weekly read."
+  },
+  {
+   "type": "Blog",
+   "title": "dbt Labs Engineering Blog",
+   "author": "dbt Labs",
+   "tier": "recommended",
+   "why": "Updates on dbt features and patterns. Practical not theoretical."
+  },
+  {
+   "type": "Blog",
+   "title": "Databricks Blog",
+   "author": "Databricks",
+   "tier": "recommended",
+   "why": "Filter for \"engineering\" and \"patterns.\" Marketing content is noise."
+  },
+  {
+   "type": "Blog",
+   "title": "The Daily Pull",
+   "author": "Various",
+   "tier": "optional",
+   "why": "Curated DE news. Light reading."
+  },
+  {
+   "type": "Newsletter",
+   "title": "Benn.substack",
+   "author": "Benn Stancil",
+   "tier": "recommended",
+   "why": "Industry strategy + the metric layer wars. Good for sense-making."
+  },
+  {
+   "type": "Blog",
+   "title": "Towards Data Science",
+   "author": "Medium pub",
+   "tier": "optional",
+   "why": "Mixed quality. Cherry-pick by author after a few reads."
+  },
+  {
+   "type": "Blog",
+   "title": "Maxime Beauchemin's Medium",
+   "author": "Maxime Beauchemin",
+   "tier": "recommended",
+   "why": "Founder of Airflow + Superset. His \"Functional Data Engineering\" essay is a must."
+  },
+  {
+   "type": "Newsletter",
+   "title": "Recurse SQL",
+   "author": "Various",
+   "tier": "optional",
+   "why": "Weekly SQL puzzles. Good for keeping skills sharp."
+  },
+  {
+   "type": "Blog",
+   "title": "High Growth Engineer",
+   "author": "Jordan Cutler",
+   "tier": "optional",
+   "why": "Engineering-career-arc content. Not data-specific but applicable."
+  }
+ ],
+ "r-yt": [
+  {
+   "type": "YouTube",
+   "title": "Coalesce (annual dbt conference)",
+   "author": "dbt Labs",
+   "tier": "essential",
+   "why": "Annual conference talks. Real production stories. Watch the talks tagged \"case study.\""
+  },
+  {
+   "type": "YouTube",
+   "title": "Databricks Data + AI Summit",
+   "author": "Databricks",
+   "tier": "recommended",
+   "why": "Annual. Watch \"performance\" and \"architecture\" tracks for tuning intuition."
+  },
+  {
+   "type": "YouTube",
+   "title": "Seattle Data Guy",
+   "author": "Ben Rogojan",
+   "tier": "recommended",
+   "why": "Practical interview prep + DE career content. ~10 min videos."
+  },
+  {
+   "type": "YouTube",
+   "title": "Joe Reis (autodidacts)",
+   "author": "Joe Reis",
+   "tier": "recommended",
+   "why": "Author of Fundamentals of Data Engineering. Industry-wide perspective."
+  },
+  {
+   "type": "YouTube",
+   "title": "Mehdi Ouazza (mehdio DataTV)",
+   "author": "Mehdi Ouazza",
+   "tier": "optional",
+   "why": "Modern data stack walkthroughs. French accent ✨."
+  },
+  {
+   "type": "YouTube",
+   "title": "Karpov.courses",
+   "author": "Karpov",
+   "tier": "optional",
+   "why": "Russian channel, English subs. Solid SQL and warehousing tutorials."
+  },
+  {
+   "type": "YouTube",
+   "title": "Andreas Kretz",
+   "author": "Andreas Kretz",
+   "tier": "recommended",
+   "why": "Engineering-track Data Engineer content. Heavy Kafka/Spark."
+  },
+  {
+   "type": "YouTube",
+   "title": "Data with Zach",
+   "author": "Zach Wilson",
+   "tier": "optional",
+   "why": "Hot takes + career advice. Skim for signal."
+  }
+ ],
+ "r-pods": [
+  {
+   "type": "Podcast",
+   "title": "Analytics Engineering Podcast",
+   "author": "Tristan Handy",
+   "tier": "essential",
+   "why": "The AE category-defining conversations. ~45 min episodes."
+  },
+  {
+   "type": "Podcast",
+   "title": "Data Engineering Podcast",
+   "author": "Tobias Macey",
+   "tier": "essential",
+   "why": "Deep technical interviews. Longer (~1hr) but high-density."
+  },
+  {
+   "type": "Podcast",
+   "title": "The Sequel Show",
+   "author": "Mikkel Dengsøe + Petr Janda",
+   "tier": "recommended",
+   "why": "Modern data stack culture + operational topics."
+  },
+  {
+   "type": "Podcast",
+   "title": "Data Brew by Databricks",
+   "author": "Databricks",
+   "tier": "optional",
+   "why": "Heavily Databricks-flavoured but good Spark internals episodes."
+  },
+  {
+   "type": "Podcast",
+   "title": "Open||Source||Data",
+   "author": "OpenLineage et al.",
+   "tier": "optional",
+   "why": "Open-source DE projects. Episodic quality."
+  },
+  {
+   "type": "Podcast",
+   "title": "Catalog & Cocktails",
+   "author": "Tim Gasper + Juan Sequeda",
+   "tier": "recommended",
+   "why": "Metadata, catalogs, governance — the unsexy critical stuff."
+  }
+ ],
+ "r-certs": [
+  {
+   "type": "Cert",
+   "title": "Databricks Certified Data Engineer Associate",
+   "author": "Databricks",
+   "tier": "essential",
+   "why": "Free study material + nominal $200 exam. Signals capability + forces structured study."
+  },
+  {
+   "type": "Cert",
+   "title": "dbt Analytics Engineering Certification",
+   "author": "dbt Labs",
+   "tier": "essential",
+   "why": "$200 exam. Aligned exactly with the AE role. Renewed yearly."
+  },
+  {
+   "type": "Cert",
+   "title": "Databricks Certified Data Engineer Professional",
+   "author": "Databricks",
+   "tier": "recommended",
+   "why": "After Associate. Tests deeper Spark + Delta + production patterns."
+  },
+  {
+   "type": "Cert",
+   "title": "AWS Certified Data Analytics — Specialty",
+   "author": "AWS",
+   "tier": "optional",
+   "why": "Useful if your stack is on AWS. Otherwise skip."
+  },
+  {
+   "type": "Cert",
+   "title": "GCP Professional Data Engineer",
+   "author": "Google Cloud",
+   "tier": "optional",
+   "why": "Useful if on GCP. Snowflake/Databricks certs are higher leverage."
+  },
+  {
+   "type": "Cert",
+   "title": "Snowflake SnowPro Core",
+   "author": "Snowflake",
+   "tier": "optional",
+   "why": "Only if your future role uses Snowflake. Skip if Databricks-bound."
+  },
+  {
+   "type": "Cert",
+   "title": "Confluent Certified Developer for Apache Kafka",
+   "author": "Confluent",
+   "tier": "optional",
+   "why": "Worth it if you'll own streaming pipelines."
+  }
+ ],
+ "r-tools": [
+  {
+   "type": "Tool",
+   "title": "DBeaver",
+   "author": "Open source",
+   "tier": "essential",
+   "why": "Free SQL IDE. Connects to Databricks, Postgres, MySQL — works everywhere."
+  },
+  {
+   "type": "Tool",
+   "title": "dbt-core CLI",
+   "author": "dbt Labs (free)",
+   "tier": "essential",
+   "why": "The terminal tool. Install via pip. Foundation of everything dbt."
+  },
+  {
+   "type": "Tool",
+   "title": "sqlfluff",
+   "author": "Open source",
+   "tier": "essential",
+   "why": "SQL linter. Make CI fail on style violations. Configure once, save reviews forever."
+  },
+  {
+   "type": "Tool",
+   "title": "Databricks CLI",
+   "author": "Databricks",
+   "tier": "essential",
+   "why": "Talk to your workspace from the terminal. Deploy dashboards, manage jobs."
+  },
+  {
+   "type": "Tool",
+   "title": "Elementary",
+   "author": "Elementary Data",
+   "tier": "recommended",
+   "why": "Open-source data observability for dbt. Anomaly detection + Slack alerts."
+  },
+  {
+   "type": "Tool",
+   "title": "dbt-codegen",
+   "author": "dbt Labs",
+   "tier": "recommended",
+   "why": "Auto-generate model yml from warehouse schemas. Saves hours."
+  },
+  {
+   "type": "Tool",
+   "title": "dbt-utils",
+   "author": "dbt Labs",
+   "tier": "essential",
+   "why": "~50 extra macros and tests. Treat as part of dbt core."
+  },
+  {
+   "type": "Tool",
+   "title": "dbt-expectations",
+   "author": "Calogica",
+   "tier": "recommended",
+   "why": "Great Expectations-style assertions for dbt. ~100 extra tests."
+  },
+  {
+   "type": "Tool",
+   "title": "pre-commit",
+   "author": "Open source",
+   "tier": "essential",
+   "why": "Hooks for sqlfluff, ruff, black, yaml-lint. Catches mistakes before push."
+  },
+  {
+   "type": "Tool",
+   "title": "pytest",
+   "author": "Open source",
+   "tier": "recommended",
+   "why": "Standard for Python tests. Use for custom dbt macros, ingestion scripts."
+  }
+ ]
+}

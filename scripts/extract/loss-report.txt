@@ -1,0 +1,15 @@
+handbook.json: 13 top-level entries, 99.4KB
+modules.json: 13 top-level entries, 79.9KB
+problems.json: 43 top-level entries, 68.3KB
+levels.json: 20 top-level entries, 0.9KB
+popQuiz.json: 30 top-level entries, 8.4KB
+tips.json: 20 top-level entries, 2.1KB
+practices.json: 20 top-level entries, 2.6KB
+resources.json: 7 top-level entries, 9.9KB
+faq.json: 10 top-level entries, 2.1KB
+---
+modules: 13 | lessons: 52 | screens: 55 | lesson words: 1980
+problems merged: 43 (learn 43 ∪ practice 43)
+boss questions from index.html inline quizzes: 14
+pop quiz pool: 10 + 20 from index
+handbook (index.html deep prose): 13 chapters, 8131 words

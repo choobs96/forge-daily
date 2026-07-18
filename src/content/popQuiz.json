@@ -1,0 +1,692 @@
+[
+ {
+  "q": "NOT IN with NULL subquery returns?",
+  "opts": [
+   [
+    "Zero rows",
+    true,
+    "NOT IN + NULL → NULL → no rows match."
+   ],
+   [
+    "All rows",
+    false,
+    ""
+   ],
+   [
+    "Errors",
+    false,
+    ""
+   ],
+   [
+    "Same as NOT EXISTS",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "ROW_NUMBER PARTITION BY x ORDER BY y DESC = 1 gives?",
+  "opts": [
+   [
+    "Latest row per x by y",
+    true,
+    "Canonical dedupe."
+   ],
+   [
+    "First row",
+    false,
+    ""
+   ],
+   [
+    "Random",
+    false,
+    ""
+   ],
+   [
+    "Errors",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Common CDC bug?",
+  "opts": [
+   [
+    "Missing __is_deleted = false filter",
+    true,
+    "Inflates counts with tombstones."
+   ],
+   [
+    "Wrong cluster",
+    false,
+    ""
+   ],
+   [
+    "Schema drift",
+    false,
+    ""
+   ],
+   [
+    "Slow joins",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Spark transformation lazy — when executes?",
+  "opts": [
+   [
+    "On action (show/collect/write)",
+    true,
+    "Actions trigger plan execution."
+   ],
+   [
+    "Immediately",
+    false,
+    ""
+   ],
+   [
+    "On .cache()",
+    false,
+    ""
+   ],
+   [
+    "Never",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Slim CI selector?",
+  "opts": [
+   [
+    "state:modified+",
+    true,
+    "Changed + downstream."
+   ],
+   [
+    "state:new",
+    false,
+    ""
+   ],
+   [
+    "tag:daily",
+    false,
+    ""
+   ],
+   [
+    "all",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Best severity to introduce a new test on legacy code?",
+  "opts": [
+   [
+    "severity: warn",
+    true,
+    "Log don't block."
+   ],
+   [
+    "severity: error",
+    false,
+    ""
+   ],
+   [
+    "disable",
+    false,
+    ""
+   ],
+   [
+    "singular only",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "What does Delta's _delta_log enable?",
+  "opts": [
+   [
+    "ACID + time travel + schema evolution",
+    true,
+    "Transaction log magic."
+   ],
+   [
+    "Compression",
+    false,
+    ""
+   ],
+   [
+    "Column pruning",
+    false,
+    ""
+   ],
+   [
+    "Stats",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Idempotency requires?",
+  "opts": [
+   [
+    "MERGE or delete-then-insert (not raw INSERT)",
+    true,
+    "Same input → same output."
+   ],
+   [
+    "Faster execution",
+    false,
+    ""
+   ],
+   [
+    "Larger cluster",
+    false,
+    ""
+   ],
+   [
+    "No deps",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Star schema?",
+  "opts": [
+   [
+    "Fact = events; dim = entities",
+    true,
+    ""
+   ],
+   [
+    "Fact = small; dim = big",
+    false,
+    ""
+   ],
+   [
+    "Fact = wide; dim = narrow",
+    false,
+    ""
+   ],
+   [
+    "Same",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "Broadcast join faster than sort-merge because?",
+  "opts": [
+   [
+    "No shuffle — small side to all executors",
+    true,
+    ""
+   ],
+   [
+    "Uses indexes",
+    false,
+    ""
+   ],
+   [
+    "Driver-only",
+    false,
+    ""
+   ],
+   [
+    "Skips reads",
+    false,
+    ""
+   ]
+  ]
+ },
+ {
+  "q": "What's the difference between RANK() and DENSE_RANK()?",
+  "opts": [
+   [
+    "RANK leaves gaps after ties (1,2,2,4), DENSE_RANK doesn't (1,2,2,3).",
+    true
+   ],
+   [
+    "RANK is for windows, DENSE_RANK is for aggregations.",
+    false
+   ],
+   [
+    "They're identical aliases.",
+    false
+   ],
+   [
+    "RANK is older SQL standard; DENSE_RANK is newer.",
+    false
+   ]
+  ],
+  "explain": "RANK = gaps after ties; DENSE_RANK = no gaps."
+ },
+ {
+  "q": "Why is NOT IN (subquery) dangerous when the subquery can return NULL?",
+  "opts": [
+   [
+    "NULL in subquery makes the whole NOT IN return zero rows.",
+    true
+   ],
+   [
+    "NULL is treated as a regular value.",
+    false
+   ],
+   [
+    "NOT IN ignores NULLs by default.",
+    false
+   ],
+   [
+    "It causes a syntax error.",
+    false
+   ]
+  ],
+  "explain": "Three-valued logic: 'x NOT IN (1, NULL)' is NULL, not true. Use NOT EXISTS."
+ },
+ {
+  "q": "What's the canonical dedupe-by-latest pattern in SQL?",
+  "opts": [
+   [
+    "ROW_NUMBER() OVER (PARTITION BY key ORDER BY ts DESC) = 1",
+    true
+   ],
+   [
+    "SELECT DISTINCT key, ts",
+    false
+   ],
+   [
+    "GROUP BY key",
+    false
+   ],
+   [
+    "LIMIT 1",
+    false
+   ]
+  ],
+  "explain": "ROW_NUMBER + filter rn=1 preserves all columns of the chosen row."
+ },
+ {
+  "q": "Which tables ALWAYS require WHERE __is_deleted = false?",
+  "opts": [
+   [
+    "The kafka_cdc tables: accounts, jobs, sites, etc.",
+    true
+   ],
+   [
+    "Only dim_accounts in the dbt project.",
+    false
+   ],
+   [
+    "Only when ingesting from Salesforce.",
+    false
+   ],
+   [
+    "Never — staging handles it.",
+    false
+   ]
+  ],
+  "explain": "Production bug if you skip __is_deleted on CDC tables. Staging doesn't always propagate it."
+ },
+ {
+  "q": "An incremental dbt model on a 100M-row table is duplicating rows after a backfill. Most likely cause?",
+  "opts": [
+   [
+    "Missing unique_key in the config — append vs merge.",
+    true
+   ],
+   [
+    "The table has too many partitions.",
+    false
+   ],
+   [
+    "dbt version mismatch.",
+    false
+   ],
+   [
+    "Wrong warehouse size.",
+    false
+   ]
+  ],
+  "explain": "Without unique_key + merge strategy, incremental just appends — backfill = duplicates."
+ },
+ {
+  "q": "What is grain in dimensional modeling?",
+  "opts": [
+   [
+    "What one row in the fact table represents.",
+    true
+   ],
+   [
+    "The compression ratio of the table.",
+    false
+   ],
+   [
+    "The age of the data.",
+    false
+   ],
+   [
+    "The number of joins required.",
+    false
+   ]
+  ],
+  "explain": "Grain = the meaning of a single row. Every fact has one declared grain."
+ },
+ {
+  "q": "When would you use SCD Type 2 over Type 1?",
+  "opts": [
+   [
+    "When historical accuracy of the attribute matters at the time of the fact.",
+    true
+   ],
+   [
+    "When the column never changes.",
+    false
+   ],
+   [
+    "When you want to save storage.",
+    false
+   ],
+   [
+    "When the source is read-only.",
+    false
+   ]
+  ],
+  "explain": "Type 2 keeps versioned rows; Type 1 overwrites — losing history."
+ },
+ {
+  "q": "In Spark, you call df.filter(...).groupBy(...). No computation happens. Why?",
+  "opts": [
+   [
+    "Transformations are lazy — only actions trigger execution.",
+    true
+   ],
+   [
+    "The cluster isn't running.",
+    false
+   ],
+   [
+    "You need to .cache() first.",
+    false
+   ],
+   [
+    "Filter and groupBy conflict.",
+    false
+   ]
+  ],
+  "explain": "Spark builds a logical plan; only actions like .show(), .collect(), .write() execute."
+ },
+ {
+  "q": "Why is a broadcast hash join faster than a sort-merge join?",
+  "opts": [
+   [
+    "No shuffle — small side broadcast to all executors.",
+    true
+   ],
+   [
+    "It uses indexes.",
+    false
+   ],
+   [
+    "It runs only on the driver.",
+    false
+   ],
+   [
+    "It's actually slower.",
+    false
+   ]
+  ],
+  "explain": "Broadcast skips the network shuffle; each executor joins locally with the small table."
+ },
+ {
+  "q": "What does Delta Lake's transaction log enable that raw Parquet on S3 doesn't?",
+  "opts": [
+   [
+    "ACID transactions, time travel, schema evolution.",
+    true
+   ],
+   [
+    "Faster file scans.",
+    false
+   ],
+   [
+    "Lower storage cost.",
+    false
+   ],
+   [
+    "Automatic partitioning.",
+    false
+   ]
+  ],
+  "explain": "_delta_log/ is the ordered commit history. Parquet alone has no transaction semantics."
+ },
+ {
+  "q": "Slim CI in dbt is achieved with:",
+  "opts": [
+   [
+    "dbt build -s state:modified+",
+    true
+   ],
+   [
+    "dbt run --threads 1",
+    false
+   ],
+   [
+    "dbt build --target prod",
+    false
+   ],
+   [
+    "dbt compile only",
+    false
+   ]
+  ],
+  "explain": "state:modified+ builds changed models + downstream only — typical 10× CI speed up."
+ },
+ {
+  "q": "You see one Spark task taking 50× longer than others in the same stage. Diagnosis?",
+  "opts": [
+   [
+    "Data skew — one key has disproportionate rows.",
+    true
+   ],
+   [
+    "Bad cluster network.",
+    false
+   ],
+   [
+    "File format mismatch.",
+    false
+   ],
+   [
+    "Out of memory globally.",
+    false
+   ]
+  ],
+  "explain": "Skew shows as one straggler task. Fix: AQE skew handling, salting, or broadcast."
+ },
+ {
+  "q": "Which dbt test would catch 'every order_id in fct_order_items exists in fct_orders'?",
+  "opts": [
+   [
+    "relationships test",
+    true
+   ],
+   [
+    "unique test",
+    false
+   ],
+   [
+    "not_null test",
+    false
+   ],
+   [
+    "accepted_values test",
+    false
+   ]
+  ],
+  "explain": "relationships = referential integrity / FK check across models."
+ },
+ {
+  "q": "What makes a pipeline idempotent?",
+  "opts": [
+   [
+    "Same input always produces the same output, regardless of how many times run.",
+    true
+   ],
+   [
+    "It can run only once per day.",
+    false
+   ],
+   [
+    "It has no dependencies.",
+    false
+   ],
+   [
+    "It runs in under a second.",
+    false
+   ]
+  ],
+  "explain": "Idempotency = safe retries and backfills. Achieved via MERGE or delete-then-insert per partition."
+ },
+ {
+  "q": "What does VACUUM on a Delta table do?",
+  "opts": [
+   [
+    "Removes data files older than retention period that are no longer referenced.",
+    true
+   ],
+   [
+    "Recomputes statistics.",
+    false
+   ],
+   [
+    "Compacts small files.",
+    false
+   ],
+   [
+    "Drops the table.",
+    false
+   ]
+  ],
+  "explain": "VACUUM frees storage from old versions; OPTIMIZE compacts small files. Different ops."
+ },
+ {
+  "q": "Where does the AE typically fix a wrong metric?",
+  "opts": [
+   [
+    "At the canonical dbt model, with a test added to prevent regression.",
+    true
+   ],
+   [
+    "In the Tableau workbook with a custom calc.",
+    false
+   ],
+   [
+    "In the BI semantic layer only.",
+    false
+   ],
+   [
+    "Manually each time it comes up.",
+    false
+   ]
+  ],
+  "explain": "Fix upstream; tests prevent regression; every downstream consumer benefits."
+ },
+ {
+  "q": "What's the safe alternative to NOT IN with nullable subqueries?",
+  "opts": [
+   [
+    "NOT EXISTS",
+    true
+   ],
+   [
+    "IS NOT NULL",
+    false
+   ],
+   [
+    "LEFT JOIN ... WHERE = NULL",
+    false
+   ],
+   [
+    "DISTINCT",
+    false
+   ]
+  ],
+  "explain": "NOT EXISTS is NULL-safe; correlated existence check returns true/false only."
+ },
+ {
+  "q": "Conventional Commits format used in PRs?",
+  "opts": [
+   [
+    "type: [JIRA-ID] description (feat: [DAE-422] Add staging model)",
+    true
+   ],
+   [
+    "Just freeform message",
+    false
+   ],
+   [
+    "JIRA-ID first, type after",
+    false
+   ],
+   [
+    "Emoji prefix",
+    false
+   ]
+  ],
+  "explain": "Type prefix + ticket reference, imperative description. A common convention."
+ },
+ {
+  "q": "What's the silver layer in medallion architecture?",
+  "opts": [
+   [
+    "Cleaned, conformed, joined data — roughly staging+intermediate.",
+    true
+   ],
+   [
+    "Raw ingested data.",
+    false
+   ],
+   [
+    "Final business-ready aggregates.",
+    false
+   ],
+   [
+    "BI semantic layer only.",
+    false
+   ]
+  ],
+  "explain": "Bronze=raw, Silver=cleaned/conformed, Gold=business-ready aggregates."
+ },
+ {
+  "q": "When stakeholder says 'real-time' — what's the AE's first move?",
+  "opts": [
+   [
+    "Clarify actual latency SLO; usually 5-minute micro-batch is sufficient.",
+    true
+   ],
+   [
+    "Immediately design Kafka + Flink streaming.",
+    false
+   ],
+   [
+    "Tell them it's impossible.",
+    false
+   ],
+   [
+    "Build what they said literally.",
+    false
+   ]
+  ],
+  "explain": "'Real-time' often = 'sub-hour'. Match latency to actual need; streaming costs 10×."
+ }
+]

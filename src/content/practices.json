@@ -1,0 +1,102 @@
+[
+ {
+  "n": "01",
+  "t": "CTEs over subqueries",
+  "d": "Every dbt model is a top-down CTE chain. Subqueries become unreadable past 2 levels."
+ },
+ {
+  "n": "02",
+  "t": "Declare the grain",
+  "d": "In every fact, state explicitly what one row represents. Validate with COUNT(*) vs COUNT(DISTINCT pk)."
+ },
+ {
+  "n": "03",
+  "t": "Never SELECT * in marts",
+  "d": "Project explicitly. Schema changes upstream break dashboards silently otherwise."
+ },
+ {
+  "n": "04",
+  "t": "Test the FK at the mart layer",
+  "d": "relationships test on consumer-facing fact. Use severity: warn to start."
+ },
+ {
+  "n": "05",
+  "t": "audit_columns() everywhere",
+  "d": "Every model ends with {{ audit_columns() }}. dbt_loaded_at + run_id traces incidents."
+ },
+ {
+  "n": "06",
+  "t": "Filter CDC tombstones",
+  "d": "WHERE __is_deleted = false on every CDC table. Always."
+ },
+ {
+  "n": "07",
+  "t": "Idempotent loads",
+  "d": "MERGE on unique_key, never bare INSERT. Backfills must replay safely."
+ },
+ {
+  "n": "08",
+  "t": "Slim CI in PRs",
+  "d": "dbt build -s state:modified+ runs only changed models + downstream. 10× faster than full builds."
+ },
+ {
+  "n": "09",
+  "t": "Document Why, not What",
+  "d": "Code shows what. Description should explain why this column exists, what business concept it encodes."
+ },
+ {
+  "n": "10",
+  "t": "Declare meta.join_to on every FK",
+  "d": "Structured intent feeds catalogs, AI tools, and future metric views."
+ },
+ {
+  "n": "11",
+  "t": "Surrogate keys without NULLs",
+  "d": "dbt_utils.generate_surrogate_key with a nullable column collapses NULL-rows. Use guaranteed-unique input."
+ },
+ {
+  "n": "12",
+  "t": "Aggregate before joining big × big",
+  "d": "Fan-out kills sums. GROUP BY one side first, then join — preserves grain."
+ },
+ {
+  "n": "13",
+  "t": "OPTIMIZE + ZORDER weekly",
+  "d": "Hot Delta tables need OPTIMIZE for compaction, ZORDER for high-cardinality filter pruning."
+ },
+ {
+  "n": "14",
+  "t": "Broadcast small dims explicitly",
+  "d": "Stats-based broadcasting is unreliable. Use the hint when you know one side is small."
+ },
+ {
+  "n": "15",
+  "t": "Latency before architecture",
+  "d": "Real-time? Ask what SLO. 5-min micro-batch covers 90% of \"real-time\" asks at 30% of cost."
+ },
+ {
+  "n": "16",
+  "t": "Source contracts > goodwill",
+  "d": "Producer agrees a schema; consumer validates it. Schema change = explicit migration, not surprise."
+ },
+ {
+  "n": "17",
+  "t": "Lowercase all SQL in PRs",
+  "d": "Style is a lint gate. Consistency reduces review time and code-review fatigue."
+ },
+ {
+  "n": "18",
+  "t": "Conventional commits + Jira",
+  "d": "feat: [DAE-422] Add stg_accounts. Searchable, traceable, automated changelog."
+ },
+ {
+  "n": "19",
+  "t": "PRs ship one model chain",
+  "d": "src + stg + downstream in one PR. Reviewers see the full data flow, not isolated pieces."
+ },
+ {
+  "n": "20",
+  "t": "Never force-push main",
+  "d": "Rebase your feature branch. Main is sacred — its history is the audit trail."
+ }
+]

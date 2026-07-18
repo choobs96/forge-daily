@@ -1,0 +1,523 @@
+[
+ {
+  "id": "sql-01",
+  "title": "Second-highest salary",
+  "diff": "easy",
+  "statement": "Given an <code>employees(id, name, dept, salary)</code> table, return the name and salary of the second-highest paid employee in each department. If a dept has no second-highest (only one employee), exclude it.",
+  "hint": "Window functions. DENSE_RANK vs RANK matters when there are ties.",
+  "solution": "<pre><code><span class=\"kw\">with</span> ranked <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> name, dept, salary,\n    <span class=\"fn\">dense_rank</span>() <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> dept <span class=\"kw\">order by</span> salary <span class=\"kw\">desc</span>) <span class=\"kw\">as</span> rnk\n  <span class=\"kw\">from</span> employees\n)\n<span class=\"kw\">select</span> name, dept, salary\n<span class=\"kw\">from</span> ranked\n<span class=\"kw\">where</span> rnk = <span class=\"num\">2</span>;</code></pre>",
+  "explain": "<code>DENSE_RANK</code> (not <code>RANK</code>) so two top earners in a dept still have a second-highest. Filter to rnk=2 to return the answer; departments without a rnk=2 row naturally drop out.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-02",
+  "title": "Dedupe by latest update",
+  "diff": "easy",
+  "statement": "From a CDC stream <code>events(account_id, status, updated_at)</code>, return the most recent row per <code>account_id</code>.",
+  "hint": "ROW_NUMBER + filter to 1. SELECT DISTINCT won't work — it dedupes by all columns.",
+  "solution": "<pre><code><span class=\"kw\">with</span> ranked <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> *,\n    <span class=\"fn\">row_number</span>() <span class=\"kw\">over</span> (\n      <span class=\"kw\">partition by</span> account_id\n      <span class=\"kw\">order by</span> updated_at <span class=\"kw\">desc</span>\n    ) <span class=\"kw\">as</span> rn\n  <span class=\"kw\">from</span> events\n)\n<span class=\"kw\">select</span> * <span class=\"kw\">from</span> ranked <span class=\"kw\">where</span> rn = <span class=\"num\">1</span>;</code></pre>",
+  "explain": "The canonical CDC dedupe pattern. <code>ROW_NUMBER</code> picks exactly one row per key; ordering DESC by <code>updated_at</code> selects the most recent. Preserves all columns of the chosen row, unlike GROUP BY MAX.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-03",
+  "title": "Running total per customer",
+  "diff": "easy",
+  "statement": "From <code>orders(customer_id, order_date, value)</code>, compute the running total of <code>value</code> per customer ordered by date.",
+  "hint": "Frame the window: <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.",
+  "solution": "<pre><code><span class=\"kw\">select</span> customer_id, order_date, value,\n  <span class=\"fn\">sum</span>(value) <span class=\"kw\">over</span> (\n    <span class=\"kw\">partition by</span> customer_id\n    <span class=\"kw\">order by</span> order_date\n    <span class=\"kw\">rows between unbounded preceding and current row</span>\n  ) <span class=\"kw\">as</span> running_total\n<span class=\"kw\">from</span> orders;</code></pre>",
+  "explain": "The explicit <code>ROWS BETWEEN</code> frame is best practice. Without it, some engines default to RANGE which behaves unexpectedly on duplicate order_dates.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-04",
+  "title": "Top N per group",
+  "diff": "medium",
+  "statement": "From <code>sales(rep_id, customer_id, revenue, sale_date)</code>, return the top 3 customers by total revenue for each rep.",
+  "hint": "Two steps: aggregate per (rep, customer) first; then ROW_NUMBER over reps to take top 3.",
+  "solution": "<pre><code><span class=\"kw\">with</span> totals <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> rep_id, customer_id, <span class=\"fn\">sum</span>(revenue) <span class=\"kw\">as</span> total_rev\n  <span class=\"kw\">from</span> sales\n  <span class=\"kw\">group by</span> rep_id, customer_id\n),\nranked <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> *,\n    <span class=\"fn\">row_number</span>() <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> rep_id <span class=\"kw\">order by</span> total_rev <span class=\"kw\">desc</span>) <span class=\"kw\">as</span> rn\n  <span class=\"kw\">from</span> totals\n)\n<span class=\"kw\">select</span> rep_id, customer_id, total_rev\n<span class=\"kw\">from</span> ranked\n<span class=\"kw\">where</span> rn &lt;= <span class=\"num\">3</span>;</code></pre>",
+  "explain": "The classic top-N-per-group pattern. Aggregate first to define the ranking metric, then rank, then filter. Putting all three in one SELECT will silently fail or be unreadable.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-05",
+  "title": "Sessionization",
+  "diff": "hard",
+  "statement": "From <code>events(user_id, event_ts)</code>, group events into sessions where consecutive events within 30 minutes belong to the same session. Output: <code>user_id, session_id, started_at, ended_at, event_count</code>.",
+  "hint": "Two windows: (1) lag to compare current event to previous, (2) sum to assign cumulative session IDs.",
+  "solution": "<pre><code><span class=\"kw\">with</span> gaps <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> user_id, event_ts,\n    <span class=\"fn\">lag</span>(event_ts) <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> user_id <span class=\"kw\">order by</span> event_ts) <span class=\"kw\">as</span> prev_ts\n  <span class=\"kw\">from</span> events\n),\nsessions_marked <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> user_id, event_ts,\n    <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> prev_ts <span class=\"kw\">is null</span>\n              <span class=\"kw\">or</span> <span class=\"fn\">datediff</span>(<span class=\"str\">'minute'</span>, prev_ts, event_ts) &gt; <span class=\"num\">30</span>\n              <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>)\n      <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> user_id <span class=\"kw\">order by</span> event_ts\n             <span class=\"kw\">rows between unbounded preceding and current row</span>) <span class=\"kw\">as</span> session_num\n  <span class=\"kw\">from</span> gaps\n)\n<span class=\"kw\">select</span> user_id, session_num <span class=\"kw\">as</span> session_id,\n  <span class=\"fn\">min</span>(event_ts) <span class=\"kw\">as</span> started_at,\n  <span class=\"fn\">max</span>(event_ts) <span class=\"kw\">as</span> ended_at,\n  <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> event_count\n<span class=\"kw\">from</span> sessions_marked\n<span class=\"kw\">group by</span> user_id, session_num;</code></pre>",
+  "explain": "Sessionization is a rite of passage. The key trick: a \"new session\" marker (1 or 0) summed cumulatively gives each session a unique increasing ID.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-06",
+  "title": "Detect fan-out",
+  "diff": "medium",
+  "statement": "You joined <code>orders</code> (1M rows) to <code>order_items</code> (5M rows) and now your <code>SUM(orders.value)</code> is 5× too large. Write a query that quantifies the fan-out factor per order.",
+  "hint": "COUNT(*) GROUP BY order_id after the join. Compare to 1.",
+  "solution": "<pre><code><span class=\"kw\">with</span> joined <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> o.order_id, o.value, i.item_id\n  <span class=\"kw\">from</span> orders o\n  <span class=\"kw\">left join</span> order_items i <span class=\"kw\">on</span> i.order_id = o.order_id\n),\nfanout <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> order_id, <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> rows_per_order\n  <span class=\"kw\">from</span> joined\n  <span class=\"kw\">group by</span> order_id\n)\n<span class=\"kw\">select</span>\n  <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> n_orders,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> rows_per_order &gt; <span class=\"num\">1</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> n_with_fanout,\n  <span class=\"fn\">avg</span>(rows_per_order) <span class=\"kw\">as</span> avg_fanout,\n  <span class=\"fn\">max</span>(rows_per_order) <span class=\"kw\">as</span> max_fanout\n<span class=\"kw\">from</span> fanout;</code></pre>",
+  "explain": "The diagnostic query you run BEFORE writing the aggregate. If <code>avg_fanout > 1</code>, your SUM is inflated; you must aggregate one side first.",
+  "cats": [
+   "sql",
+   "model"
+  ]
+ },
+ {
+  "id": "sql-07",
+  "title": "Gaps and islands",
+  "diff": "hard",
+  "statement": "From <code>availability(user_id, day)</code> — one row per day a user was active — return consecutive date ranges per user: <code>user_id, range_start, range_end, days</code>.",
+  "hint": "Classic gaps-and-islands. ROW_NUMBER + date subtraction creates a constant-per-island grouping key.",
+  "solution": "<pre><code><span class=\"kw\">with</span> with_grp <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> user_id, day,\n    <span class=\"fn\">date_sub</span>(day,\n      <span class=\"fn\">row_number</span>() <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> user_id <span class=\"kw\">order by</span> day)) <span class=\"kw\">as</span> grp\n  <span class=\"kw\">from</span> availability\n)\n<span class=\"kw\">select</span> user_id,\n  <span class=\"fn\">min</span>(day) <span class=\"kw\">as</span> range_start,\n  <span class=\"fn\">max</span>(day) <span class=\"kw\">as</span> range_end,\n  <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> days\n<span class=\"kw\">from</span> with_grp\n<span class=\"kw\">group by</span> user_id, grp\n<span class=\"kw\">order by</span> user_id, range_start;</code></pre>",
+  "explain": "If days are consecutive, <code>day - row_number()</code> stays constant. Grouping by that constant gives you the islands. Stares at it long enough and it makes sense.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-08",
+  "title": "Pivot status counts",
+  "diff": "easy",
+  "statement": "From <code>deals(account_id, status)</code>, return one row per account with three counts: <code>open_count</code>, <code>won_count</code>, <code>lost_count</code>.",
+  "hint": "Conditional aggregation. SUM(CASE WHEN ... THEN 1 ELSE 0 END).",
+  "solution": "<pre><code><span class=\"kw\">select</span> account_id,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> status = <span class=\"str\">'open'</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> open_count,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> status = <span class=\"str\">'won'</span>  <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> won_count,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> status = <span class=\"str\">'lost'</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> lost_count\n<span class=\"kw\">from</span> deals\n<span class=\"kw\">group by</span> account_id;</code></pre>",
+  "explain": "Portable pivot pattern that works in every SQL dialect. Beats <code>PIVOT</code> syntax for review-clarity.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-09",
+  "title": "Anti-join (find missing)",
+  "diff": "easy",
+  "statement": "Find <code>accounts</code> that have <b>no</b> rows in <code>jobs</code> table. Use the NULL-safe approach.",
+  "hint": "<code>NOT IN</code> is NULL-trapped. Use <code>NOT EXISTS</code> or <code>LEFT JOIN ... WHERE x IS NULL</code>.",
+  "solution": "<pre><code><span class=\"cm\">-- preferred: NOT EXISTS (NULL-safe)</span>\n<span class=\"kw\">select</span> a.*\n<span class=\"kw\">from</span> accounts a\n<span class=\"kw\">where not exists</span> (\n  <span class=\"kw\">select</span> <span class=\"num\">1</span> <span class=\"kw\">from</span> jobs j\n  <span class=\"kw\">where</span> j.account_id = a.account_id\n);\n\n<span class=\"cm\">-- equivalent: LEFT JOIN ... WHERE NULL</span>\n<span class=\"kw\">select</span> a.*\n<span class=\"kw\">from</span> accounts a\n<span class=\"kw\">left join</span> jobs j <span class=\"kw\">on</span> j.account_id = a.account_id\n<span class=\"kw\">where</span> j.account_id <span class=\"kw\">is null</span>;</code></pre>",
+  "explain": "Never use <code>NOT IN (subquery)</code> — if the subquery has any NULL, you get zero rows. Both alternatives are safe and correct.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-10",
+  "title": "Cohort retention table",
+  "diff": "hard",
+  "statement": "Given <code>users(user_id, signup_date)</code> and <code>activity(user_id, active_date)</code>, build a cohort retention matrix: rows = signup month, columns = months since signup (0,1,2,...), values = % retained.",
+  "hint": "Compute months_since_signup per active row. Aggregate per (cohort_month, months_since_signup) and divide by cohort size.",
+  "solution": "<pre><code><span class=\"kw\">with</span> cohorts <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> user_id, <span class=\"fn\">date_trunc</span>(<span class=\"str\">'month'</span>, signup_date) <span class=\"kw\">as</span> cohort_month\n  <span class=\"kw\">from</span> users\n),\ncohort_sizes <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> cohort_month, <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> cohort_size\n  <span class=\"kw\">from</span> cohorts <span class=\"kw\">group by</span> cohort_month\n),\nactivity_months <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span>\n    c.cohort_month,\n    <span class=\"fn\">datediff</span>(<span class=\"str\">'month'</span>, c.cohort_month, <span class=\"fn\">date_trunc</span>(<span class=\"str\">'month'</span>, a.active_date)) <span class=\"kw\">as</span> months_since,\n    <span class=\"fn\">count</span>(<span class=\"kw\">distinct</span> c.user_id) <span class=\"kw\">as</span> active_users\n  <span class=\"kw\">from</span> cohorts c\n  <span class=\"kw\">join</span> activity a <span class=\"kw\">on</span> a.user_id = c.user_id\n  <span class=\"kw\">group by</span> c.cohort_month, months_since\n)\n<span class=\"kw\">select</span>\n  am.cohort_month,\n  am.months_since,\n  am.active_users,\n  cs.cohort_size,\n  am.active_users * <span class=\"num\">100.0</span> / cs.cohort_size <span class=\"kw\">as</span> retention_pct\n<span class=\"kw\">from</span> activity_months am\n<span class=\"kw\">join</span> cohort_sizes cs <span class=\"kw\">on</span> cs.cohort_month = am.cohort_month\n<span class=\"kw\">order by</span> am.cohort_month, am.months_since;</code></pre>",
+  "explain": "Two-table reconciliation pattern. Cohort size is the denominator; active users at each month-since is the numerator. The \"wide format\" version comes from pivoting <code>months_since</code> in BI layer or another CASE-WHEN pivot.",
+  "cats": [
+   "sql",
+   "model"
+  ]
+ },
+ {
+  "id": "sql-11",
+  "title": "Median per group",
+  "diff": "medium",
+  "statement": "Compute the median order value per customer without using <code>MEDIAN()</code> (some warehouses lack it).",
+  "hint": "PERCENTILE_CONT or split via row_number + count.",
+  "solution": "<pre><code><span class=\"cm\">-- Preferred: percentile_cont (Spark, Postgres, Snowflake)</span>\n<span class=\"kw\">select</span>\n  customer_id,\n  <span class=\"fn\">percentile_cont</span>(<span class=\"num\">0.5</span>) <span class=\"kw\">within group</span> (<span class=\"kw\">order by</span> value) <span class=\"kw\">as</span> median_value\n<span class=\"kw\">from</span> orders\n<span class=\"kw\">group by</span> customer_id;\n\n<span class=\"cm\">-- Without percentile_cont:</span>\n<span class=\"kw\">with</span> ranked <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> customer_id, value,\n    <span class=\"fn\">row_number</span>() <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> customer_id <span class=\"kw\">order by</span> value) <span class=\"kw\">as</span> rn,\n    <span class=\"fn\">count</span>(*) <span class=\"kw\">over</span> (<span class=\"kw\">partition by</span> customer_id) <span class=\"kw\">as</span> cnt\n  <span class=\"kw\">from</span> orders\n)\n<span class=\"kw\">select</span> customer_id, <span class=\"fn\">avg</span>(value) <span class=\"kw\">as</span> median_value\n<span class=\"kw\">from</span> ranked\n<span class=\"kw\">where</span> rn <span class=\"kw\">in</span> ((cnt + <span class=\"num\">1</span>) / <span class=\"num\">2</span>, (cnt + <span class=\"num\">2</span>) / <span class=\"num\">2</span>)\n<span class=\"kw\">group by</span> customer_id;</code></pre>",
+  "explain": "Median = middle row(s). For even counts, average the two middle. The integer division <code>(cnt+1)/2</code> and <code>(cnt+2)/2</code> gives the right pair regardless of parity.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "sql-12",
+  "title": "Funnel conversion",
+  "diff": "hard",
+  "statement": "From <code>events(user_id, event_name, event_ts)</code>, compute the conversion funnel: visited → signed_up → activated → paid. Each step must happen AFTER the previous, per user.",
+  "hint": "Self-joins via min(ts) per (user, step). Filter on ordering.",
+  "solution": "<pre><code><span class=\"kw\">with</span> first_step <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> user_id, event_name, <span class=\"fn\">min</span>(event_ts) <span class=\"kw\">as</span> first_ts\n  <span class=\"kw\">from</span> events\n  <span class=\"kw\">where</span> event_name <span class=\"kw\">in</span> (<span class=\"str\">'visited'</span>, <span class=\"str\">'signed_up'</span>, <span class=\"str\">'activated'</span>, <span class=\"str\">'paid'</span>)\n  <span class=\"kw\">group by</span> user_id, event_name\n),\npivoted <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span>\n    user_id,\n    <span class=\"fn\">max</span>(<span class=\"kw\">case when</span> event_name = <span class=\"str\">'visited'</span>    <span class=\"kw\">then</span> first_ts <span class=\"kw\">end</span>) <span class=\"kw\">as</span> ts_visited,\n    <span class=\"fn\">max</span>(<span class=\"kw\">case when</span> event_name = <span class=\"str\">'signed_up'</span>  <span class=\"kw\">then</span> first_ts <span class=\"kw\">end</span>) <span class=\"kw\">as</span> ts_signed,\n    <span class=\"fn\">max</span>(<span class=\"kw\">case when</span> event_name = <span class=\"str\">'activated'</span>  <span class=\"kw\">then</span> first_ts <span class=\"kw\">end</span>) <span class=\"kw\">as</span> ts_activated,\n    <span class=\"fn\">max</span>(<span class=\"kw\">case when</span> event_name = <span class=\"str\">'paid'</span>       <span class=\"kw\">then</span> first_ts <span class=\"kw\">end</span>) <span class=\"kw\">as</span> ts_paid\n  <span class=\"kw\">from</span> first_step\n  <span class=\"kw\">group by</span> user_id\n)\n<span class=\"kw\">select</span>\n  <span class=\"fn\">count</span>(*) <span class=\"kw\">as</span> step_visited,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> ts_signed    &gt; ts_visited                          <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> step_signed,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> ts_activated &gt; ts_signed <span class=\"kw\">and</span> ts_signed <span class=\"kw\">is not null</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> step_activated,\n  <span class=\"fn\">sum</span>(<span class=\"kw\">case when</span> ts_paid      &gt; ts_activated <span class=\"kw\">and</span> ts_activated <span class=\"kw\">is not null</span> <span class=\"kw\">then</span> <span class=\"num\">1</span> <span class=\"kw\">else</span> <span class=\"num\">0</span> <span class=\"kw\">end</span>) <span class=\"kw\">as</span> step_paid\n<span class=\"kw\">from</span> pivoted\n<span class=\"kw\">where</span> ts_visited <span class=\"kw\">is not null</span>;</code></pre>",
+  "explain": "Funnels need ordering: signed_up at 10am, then visited at 11am, doesn't count as conversion. Take min(ts) per (user, step), then conditionally count where each step is strictly later than the previous.",
+  "cats": [
+   "sql"
+  ]
+ },
+ {
+  "id": "dbt-01",
+  "title": "Incremental with merge",
+  "diff": "medium",
+  "statement": "Write an incremental model <code>fct_events</code> from <code>stg_events</code>. Use merge strategy with <code>event_id</code> as unique_key. Filter only new rows on subsequent runs based on <code>updated_at</code> with a 1-hour safety buffer.",
+  "hint": "<code>is_incremental()</code> guards the filter. Subtract 1 hour from max watermark for late-arriving rows.",
+  "solution": "<pre><code><span class=\"fn\">{{ config(</span>\n    materialized=<span class=\"str\">'incremental'</span>,\n    unique_key=<span class=\"str\">'event_id'</span>,\n    incremental_strategy=<span class=\"str\">'merge'</span>,\n    on_schema_change=<span class=\"str\">'sync_all_columns'</span>\n<span class=\"fn\">) }}</span>\n\n<span class=\"kw\">with</span> source <span class=\"kw\">as</span> (\n  <span class=\"kw\">select</span> *\n  <span class=\"kw\">from</span> <span class=\"fn\">{{ ref('stg_events') }}</span>\n  <span class=\"fn\">{% if is_incremental() %}</span>\n    <span class=\"kw\">where</span> updated_at &gt; (\n      <span class=\"kw\">select</span> <span class=\"fn\">date_sub</span>(<span class=\"fn\">max</span>(updated_at), <span class=\"kw\">interval</span> <span class=\"num\">1</span> <span class=\"kw\">hour</span>)\n      <span class=\"kw\">from</span> <span class=\"fn\">{{ this }}</span>\n    )\n  <span class=\"fn\">{% endif %}</span>\n)\n\n<span class=\"kw\">select</span> *, <span class=\"fn\">{{ audit_columns() }}</span>\n<span class=\"kw\">from</span> source;</code></pre>",
+  "explain": "<code>merge</code> + <code>unique_key</code> upserts cleanly. The 1-hour buffer catches late-arriving rows. <code>on_schema_change</code> auto-adds new columns instead of erroring.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-02",
+  "title": "Snapshot with check strategy",
+  "diff": "medium",
+  "statement": "Build a snapshot for <code>dim_account_status</code> that tracks changes to <code>status</code> and <code>plan_tier</code> over time. The source has no reliable <code>updated_at</code>.",
+  "hint": "Use <code>strategy: check</code> with <code>check_cols</code>. dbt hashes the listed cols and writes a new version when they change.",
+  "solution": "<pre><code><span class=\"fn\">{% snapshot account_status_snapshot %}</span>\n<span class=\"fn\">{{ config(</span>\n    target_schema=<span class=\"str\">'snapshots'</span>,\n    unique_key=<span class=\"str\">'account_id'</span>,\n    strategy=<span class=\"str\">'check'</span>,\n    check_cols=[<span class=\"str\">'status'</span>, <span class=\"str\">'plan_tier'</span>]\n<span class=\"fn\">) }}</span>\n\n<span class=\"kw\">select</span> account_id, status, plan_tier, region\n<span class=\"kw\">from</span> <span class=\"fn\">{{ source('raw', 'accounts') }}</span>\n<span class=\"kw\">where</span> __is_deleted = <span class=\"kw\">false</span>\n<span class=\"fn\">{% endsnapshot %}</span></code></pre>",
+  "explain": "<code>check</code> strategy is for sources without timestamps — dbt computes a hash of <code>check_cols</code> per run and creates a new SCD2 version when it changes. <code>dbt_valid_from</code> / <code>dbt_valid_to</code> are added automatically.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-03",
+  "title": "Custom generic test",
+  "diff": "medium",
+  "statement": "Write a custom generic test <code>positive_value</code> that fails if any row has the tested column &le; 0. Apply it to <code>fct_orders.value</code>.",
+  "hint": "Generic tests live in <code>tests/generic/</code> and take <code>model</code> + <code>column_name</code>. Failure = returning rows.",
+  "solution": "<pre><code><span class=\"cm\">-- tests/generic/positive_value.sql</span>\n<span class=\"fn\">{% test positive_value(model, column_name) %}</span>\n<span class=\"kw\">select</span> *\n<span class=\"kw\">from</span> <span class=\"fn\">{{ model }}</span>\n<span class=\"kw\">where</span> <span class=\"fn\">{{ column_name }}</span> &lt;= <span class=\"num\">0</span>\n   <span class=\"kw\">or</span> <span class=\"fn\">{{ column_name }}</span> <span class=\"kw\">is null</span>\n<span class=\"fn\">{% endtest %}</span>\n\n<span class=\"cm\"># models/marts/_models.yml</span>\n<span class=\"kw\">columns</span>:\n  - <span class=\"kw\">name</span>: value\n    <span class=\"kw\">tests</span>:\n      - positive_value</code></pre>",
+  "explain": "Generic tests are reusable assertions. Any column on any model can now use <code>positive_value</code>. Singular tests (one-off SQL files) are simpler but not reusable.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-04",
+  "title": "Macro to dedupe by latest",
+  "diff": "medium",
+  "statement": "Write a Jinja macro <code>dedupe_latest(model, partition_by, order_by)</code> that returns deduplicated rows keeping the latest per partition. Compose with <code>ref()</code>.",
+  "hint": "Just templates the standard ROW_NUMBER pattern. Macro returns SQL, doesn't run it.",
+  "solution": "<pre><code><span class=\"cm\">-- macros/dedupe_latest.sql</span>\n<span class=\"fn\">{% macro dedupe_latest(model, partition_by, order_by) %}</span>\n  <span class=\"kw\">with</span> _ranked <span class=\"kw\">as</span> (\n    <span class=\"kw\">select</span> *,\n      <span class=\"fn\">row_number</span>() <span class=\"kw\">over</span> (\n        <span class=\"kw\">partition by</span> <span class=\"fn\">{{ partition_by }}</span>\n        <span class=\"kw\">order by</span> <span class=\"fn\">{{ order_by }}</span> <span class=\"kw\">desc</span>\n      ) <span class=\"kw\">as</span> _rn\n    <span class=\"kw\">from</span> <span class=\"fn\">{{ model }}</span>\n  )\n  <span class=\"kw\">select</span> * <span class=\"kw\">except</span> (_rn)\n  <span class=\"kw\">from</span> _ranked\n  <span class=\"kw\">where</span> _rn = <span class=\"num\">1</span>\n<span class=\"fn\">{% endmacro %}</span>\n\n<span class=\"cm\">-- in any model:</span>\n<span class=\"fn\">{{ dedupe_latest(ref('stg_events'), 'event_id', 'updated_at') }}</span></code></pre>",
+  "explain": "Macros DRY up repeated patterns. The dedupe-by-latest pattern shows up in every CDC pipeline — write it once, use it 50 times.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-05",
+  "title": "Slim CI selector",
+  "diff": "easy",
+  "statement": "In CI, your team wants to only build models that changed since <code>main</code>, plus everything downstream. Write the <code>dbt build</code> command.",
+  "hint": "<code>state:</code> + <code>+</code> selector.",
+  "solution": "<pre><code><span class=\"cm\"># With deferred state and selectors</span>\ndbt build -s state:modified+ --defer --state target/\n\n<span class=\"cm\"># Breakdown:</span>\n<span class=\"cm\">#   state:modified  → models that changed since main</span>\n<span class=\"cm\">#   +               → also include downstream models</span>\n<span class=\"cm\">#   --defer         → use prod for unchanged refs (so you don't rebuild upstream)</span>\n<span class=\"cm\">#   --state         → location of the prod manifest.json for comparison</span></code></pre>",
+  "explain": "Slim CI cuts PR build time 5–20×. The combination of <code>state:modified+</code> + <code>--defer</code> is the magic — only build what you touched, but reference prod for everything else.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-06",
+  "title": "Source freshness",
+  "diff": "easy",
+  "statement": "Declare freshness checks on a SF Account source so dbt warns if it's not updated in 12 hours and errors after 24.",
+  "hint": "<code>config.freshness.warn_after</code> + <code>error_after</code> + <code>loaded_at_field</code>.",
+  "solution": "<pre><code><span class=\"cm\"># sources/src__salesforce/_salesforce__sources.yml</span>\n<span class=\"kw\">sources</span>:\n  - <span class=\"kw\">name</span>: salesforce\n    <span class=\"kw\">tables</span>:\n      - <span class=\"kw\">name</span>: account\n        <span class=\"kw\">config</span>:\n          <span class=\"kw\">loaded_at_field</span>: _fivetran_synced\n          <span class=\"kw\">freshness</span>:\n            <span class=\"kw\">warn_after</span>: { count: <span class=\"num\">12</span>, period: hour }\n            <span class=\"kw\">error_after</span>: { count: <span class=\"num\">24</span>, period: hour }\n\n<span class=\"cm\"># Run: dbt source freshness --select source:salesforce.account</span></code></pre>",
+  "explain": "Freshness checks are how you catch upstream pipelines failing before they cascade. Add them at every source boundary.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-07",
+  "title": "Exposures + meta",
+  "diff": "medium",
+  "statement": "Declare an exposure for a Tableau dashboard \"Sales Pipeline\" that depends on <code>fct_opportunities</code> + <code>dim_contractor_account</code>. Owner: sales-analytics team.",
+  "hint": "Exposures live in <code>_exposures.yml</code>. Type: dashboard.",
+  "solution": "<pre><code><span class=\"cm\"># models/marts/_exposures.yml</span>\n<span class=\"kw\">version</span>: <span class=\"num\">2</span>\n<span class=\"kw\">exposures</span>:\n  - <span class=\"kw\">name</span>: sales_pipeline_dashboard\n    <span class=\"kw\">type</span>: dashboard\n    <span class=\"kw\">label</span>: <span class=\"str\">\"Sales Pipeline (Tableau)\"</span>\n    <span class=\"kw\">url</span>: <span class=\"str\">\"https://tableau.example.com/views/sales-pipeline\"</span>\n    <span class=\"kw\">owner</span>:\n      name: Sales Analytics\n      email: sales-analytics@example.com\n    <span class=\"kw\">depends_on</span>:\n      - ref(<span class=\"str\">'fct_opportunities'</span>)\n      - ref(<span class=\"str\">'dim_contractor_account'</span>)\n    <span class=\"kw\">meta</span>:\n      audience: <span class=\"str\">\"sales-leadership\"</span>\n      refresh_cadence: <span class=\"str\">\"hourly\"</span></code></pre>",
+  "explain": "Exposures make BI/external consumers visible in dbt's lineage graph. Critical for impact analysis (\"if I change this model, what dashboards break?\").",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-08",
+  "title": "Project-level meta defaults",
+  "diff": "medium",
+  "statement": "Add a project-level configuration so every model in <code>domains/contractor_account/marts/</code> inherits <code>meta.owner: contractor-team</code> and <code>meta.layer: gold</code>.",
+  "hint": "<code>dbt_project.yml</code> supports <code>+meta</code> at directory level.",
+  "solution": "<pre><code><span class=\"cm\"># dbt_project.yml</span>\n<span class=\"kw\">models</span>:\n  analytics:\n    domains:\n      contractor_account:\n        marts:\n          <span class=\"kw\">+meta</span>:\n            owner: contractor-team\n            layer: gold\n            contains_salesforce_data: <span class=\"kw\">true</span>\n          <span class=\"kw\">+materialized</span>: table\n          <span class=\"kw\">+tags</span>: [<span class=\"str\">'schedule__daily__morning'</span>]</code></pre>",
+  "explain": "Cascading config saves you from setting the same values on every model. Note: this is MODEL-level meta only — column-level meta has no inheritance.",
+  "cats": [
+   "dbt"
+  ]
+ },
+ {
+  "id": "dbt-09",
+  "title": "Test soft-delete asymmetry",
+  "diff": "hard",
+  "statement": "dim_account filters <code>WHERE __is_deleted = false</code>. fct_jobs keeps history of all jobs. Write a relationships test that catches orphan account_ids in fct_jobs WITHOUT failing on the known soft-delete asymmetry.",
+  "hint": "<code>relationships</code> + <code>where</code> clause + severity warn.",
+  "solution": "<pre><code><span class=\"kw\">columns</span>:\n  - <span class=\"kw\">name</span>: account_id\n    <span class=\"kw\">tests</span>:\n      - <span class=\"kw\">relationships</span>:\n          to: ref(<span class=\"str\">'dim_account'</span>)\n          field: account_id\n          <span class=\"kw\">config</span>:\n            <span class=\"kw\">severity</span>: warn\n            <span class=\"kw\">where</span>: <span class=\"str\">\"event_date &gt;= current_date - interval 90 days\"</span>\n            <span class=\"kw\">error_if</span>: <span class=\"str\">\"&gt;1000\"</span>\n            <span class=\"kw\">warn_if</span>: <span class=\"str\">\"&gt;0\"</span></code></pre>",
+  "explain": "Soft-delete asymmetry is unavoidable in some CDC patterns. The workaround: scope the test to recent data (last 90 days where the dim should still have the row), warn on any drift, escalate to error only if it explodes past a threshold.",
+  "cats": [
+   "dbt",
+   "model"
+  ]
+ },
+ {
+  "id": "py-01",
+  "title": "API with retries",
+  "diff": "medium",
+  "statement": "Write a Python function <code>fetch_page(url, params)</code> that GETs the URL, retries up to 5 times on 429/5xx with exponential backoff, and raises on other errors.",
+  "hint": "<code>tenacity</code> + <code>requests</code>. Define a retry predicate.",
+  "solution": "<pre><code><span class=\"kw\">import</span> requests\n<span class=\"kw\">from</span> tenacity <span class=\"kw\">import</span> retry, wait_exponential, stop_after_attempt, retry_if_exception_type\n\n<span class=\"kw\">class</span> RetryableHTTPError(<span class=\"fn\">Exception</span>): <span class=\"kw\">pass</span>\n\n<span class=\"cm\">@retry(</span>\n    <span class=\"cm\">wait=wait_exponential(multiplier=1, max=30),</span>\n    <span class=\"cm\">stop=stop_after_attempt(5),</span>\n    <span class=\"cm\">retry=retry_if_exception_type(RetryableHTTPError)</span>\n<span class=\"cm\">)</span>\n<span class=\"kw\">def</span> <span class=\"fn\">fetch_page</span>(url: <span class=\"fn\">str</span>, params: <span class=\"fn\">dict</span>) -&gt; <span class=\"fn\">dict</span>:\n    r = requests.get(url, params=params, timeout=<span class=\"num\">30</span>)\n    <span class=\"kw\">if</span> r.status_code == <span class=\"num\">429</span> <span class=\"kw\">or</span> r.status_code &gt;= <span class=\"num\">500</span>:\n        <span class=\"kw\">raise</span> RetryableHTTPError(<span class=\"fn\">f</span><span class=\"str\">\"HTTP {r.status_code}\"</span>)\n    r.raise_for_status()\n    <span class=\"kw\">return</span> r.json()</code></pre>",
+  "explain": "Retry on transient (429, 5xx) but NOT on permanent errors (404, 401) — those will never recover and you'd waste 5 attempts. Exponential backoff prevents hammering recovering services.",
+  "cats": [
+   "python"
+  ]
+ },
+ {
+  "id": "py-02",
+  "title": "Pandas → PySpark conversion",
+  "diff": "medium",
+  "statement": "Convert this pandas snippet to PySpark: <pre><code>df = pd.read_csv('events.csv')\ndf = df[df['status']=='active']\ntop_users = df.groupby('user_id')['value'].sum().nlargest(10)</code></pre>",
+  "hint": "Spark is lazy; transformations build a plan. <code>F.col</code> for column refs.",
+  "solution": "<pre><code><span class=\"kw\">from</span> pyspark.sql <span class=\"kw\">import</span> functions <span class=\"kw\">as</span> F\n\ndf = spark.read.csv(<span class=\"str\">\"events.csv\"</span>, header=<span class=\"kw\">True</span>, inferSchema=<span class=\"kw\">True</span>)\ntop_users = (\n    df.filter(F.col(<span class=\"str\">\"status\"</span>) == <span class=\"str\">\"active\"</span>)\n      .groupBy(<span class=\"str\">\"user_id\"</span>)\n      .agg(F.sum(<span class=\"str\">\"value\"</span>).alias(<span class=\"str\">\"total\"</span>))\n      .orderBy(F.col(<span class=\"str\">\"total\"</span>).desc())\n      .limit(<span class=\"num\">10</span>)\n)\ntop_users.show()   <span class=\"cm\"># action triggers execution</span></code></pre>",
+  "explain": "Pandas executes eagerly; Spark builds a logical plan you execute with an action. <code>filter → groupBy → agg → orderBy → limit</code> all chain without running until <code>.show()</code>.",
+  "cats": [
+   "python",
+   "spark"
+  ]
+ },
+ {
+  "id": "py-03",
+  "title": "Idempotent CLI script",
+  "diff": "medium",
+  "statement": "Write a Python CLI that takes <code>--run-date</code> and <code>--full-refresh</code> flags. Logs structured progress. Uses a date default of today.",
+  "hint": "<code>click</code> for CLI, <code>logging</code> not print, <code>date</code> default via callable.",
+  "solution": "<pre><code><span class=\"kw\">import</span> click, logging\n<span class=\"kw\">from</span> datetime <span class=\"kw\">import</span> date\n\nlogging.basicConfig(level=logging.INFO,\n    format=<span class=\"str\">\"%(asctime)s [%(levelname)s] %(message)s\"</span>)\nlogger = logging.getLogger(__name__)\n\n<span class=\"cm\">@click.command()</span>\n<span class=\"cm\">@click.option('--run-date', default=lambda: str(date.today()), help='YYYY-MM-DD')</span>\n<span class=\"cm\">@click.option('--full-refresh', is_flag=True, help='Rebuild from scratch')</span>\n<span class=\"kw\">def</span> <span class=\"fn\">main</span>(run_date, full_refresh):\n    logger.info(<span class=\"fn\">f</span><span class=\"str\">\"Starting ETL for {run_date} (full_refresh={full_refresh})\"</span>)\n    rows = extract(run_date)\n    logger.info(<span class=\"fn\">f</span><span class=\"str\">\"Extracted {len(rows)} rows\"</span>)\n    rows = transform(rows)\n    load(rows, run_date, full_refresh=full_refresh)\n    logger.info(<span class=\"str\">\"Done.\"</span>)\n\n<span class=\"kw\">if</span> __name__ == <span class=\"str\">\"__main__\"</span>:\n    main()</code></pre>",
+  "explain": "<code>lambda: str(date.today())</code> as default = \"today\" is computed at call time, not module import. Logger over print so output is timestamped and can be filtered by level.",
+  "cats": [
+   "python"
+  ]
+ },
+ {
+  "id": "py-04",
+  "title": "Walk the dbt manifest",
+  "diff": "hard",
+  "statement": "Write a Python script that loads <code>target/manifest.json</code> and prints every FK-shaped column (ending in <code>_id</code>, <code>_key</code>) that doesn't have <code>meta.join_to</code> declared.",
+  "hint": "<code>manifest.json.nodes[].columns</code>. Walk every model.",
+  "solution": "<pre><code><span class=\"kw\">import</span> json, re\n\nfk_pattern = re.compile(<span class=\"str\">r\"_(id|key|uuid|sk)$\"</span>)\n\n<span class=\"kw\">with</span> <span class=\"fn\">open</span>(<span class=\"str\">\"target/manifest.json\"</span>) <span class=\"kw\">as</span> f:\n    manifest = json.load(f)\n\nmissing = []\n<span class=\"kw\">for</span> node_id, node <span class=\"kw\">in</span> manifest[<span class=\"str\">\"nodes\"</span>].items():\n    <span class=\"kw\">if</span> node.get(<span class=\"str\">\"resource_type\"</span>) != <span class=\"str\">\"model\"</span>: <span class=\"kw\">continue</span>\n    <span class=\"kw\">for</span> col_name, col_meta <span class=\"kw\">in</span> node.get(<span class=\"str\">\"columns\"</span>, {}).items():\n        <span class=\"kw\">if</span> fk_pattern.search(col_name):\n            <span class=\"kw\">if</span> <span class=\"kw\">not</span> col_meta.get(<span class=\"str\">\"meta\"</span>, {}).get(<span class=\"str\">\"join_to\"</span>):\n                missing.append((node[<span class=\"str\">\"name\"</span>], col_name))\n\n<span class=\"kw\">print</span>(<span class=\"fn\">f</span><span class=\"str\">\"{len(missing)} FK columns missing meta.join_to:\"</span>)\n<span class=\"kw\">for</span> model, col <span class=\"kw\">in</span> <span class=\"fn\">sorted</span>(missing)[:<span class=\"num\">50</span>]:\n    <span class=\"kw\">print</span>(<span class=\"fn\">f</span><span class=\"str\">\"  {model:50s} {col}\"</span>)</code></pre>",
+  "explain": "<code>manifest.json</code> is your project as data. Once you can read it, you can write CI checks, custom catalogs, and audit scripts.",
+  "cats": [
+   "python",
+   "dbt"
+  ]
+ },
+ {
+  "id": "py-05",
+  "title": "Detect schema drift",
+  "diff": "hard",
+  "statement": "Given a Pandas DataFrame and an expected schema dict <code>{col: dtype}</code>, return a list of mismatches (missing cols, extra cols, type mismatches).",
+  "hint": "Sets for missing/extra; dict-diff for type mismatches.",
+  "solution": "<pre><code><span class=\"kw\">def</span> <span class=\"fn\">schema_diff</span>(df, expected):\n    actual = {col: <span class=\"fn\">str</span>(df[col].dtype) <span class=\"kw\">for</span> col <span class=\"kw\">in</span> df.columns}\n    expected_cols = <span class=\"fn\">set</span>(expected)\n    actual_cols = <span class=\"fn\">set</span>(actual)\n    issues = []\n    <span class=\"kw\">for</span> c <span class=\"kw\">in</span> expected_cols - actual_cols:\n        issues.append((<span class=\"str\">\"missing\"</span>, c, expected[c], <span class=\"kw\">None</span>))\n    <span class=\"kw\">for</span> c <span class=\"kw\">in</span> actual_cols - expected_cols:\n        issues.append((<span class=\"str\">\"extra\"</span>, c, <span class=\"kw\">None</span>, actual[c]))\n    <span class=\"kw\">for</span> c <span class=\"kw\">in</span> expected_cols &amp; actual_cols:\n        <span class=\"kw\">if</span> expected[c] != actual[c]:\n            issues.append((<span class=\"str\">\"type_mismatch\"</span>, c, expected[c], actual[c]))\n    <span class=\"kw\">return</span> issues</code></pre>",
+  "explain": "Three failure modes are distinct. Returning structured tuples (not strings) lets downstream code decide how to handle each — fail vs warn vs ignore.",
+  "cats": [
+   "python"
+  ]
+ },
+ {
+  "id": "sp-01",
+  "title": "Diagnose skew",
+  "diff": "medium",
+  "statement": "Your Spark job has 200 tasks. 199 finish in 30s; 1 takes 25 minutes. What's the diagnosis and what are your options?",
+  "hint": "One outlier task = one partition with disproportionate data. Skew.",
+  "solution": "<pre><code><span class=\"cm\"># Diagnosis: data skew. One key has ~50× more rows than others.</span>\n<span class=\"cm\"># Where it bites: groupBy or join key has a \"heavy hitter\" value.</span>\n\n<span class=\"cm\"># Option 1: Adaptive Query Execution (AQE) skew handling — auto split</span>\nspark.conf.<span class=\"fn\">set</span>(<span class=\"str\">\"spark.sql.adaptive.enabled\"</span>, <span class=\"str\">\"true\"</span>)\nspark.conf.<span class=\"fn\">set</span>(<span class=\"str\">\"spark.sql.adaptive.skewJoin.enabled\"</span>, <span class=\"str\">\"true\"</span>)\n\n<span class=\"cm\"># Option 2: Salt the skewed key</span>\n<span class=\"kw\">from</span> pyspark.sql <span class=\"kw\">import</span> functions <span class=\"kw\">as</span> F\nskewed = skewed.withColumn(<span class=\"str\">\"salt\"</span>,\n    (F.rand() * <span class=\"num\">10</span>).cast(<span class=\"str\">\"int\"</span>))\nbig = big.crossJoin(spark.range(<span class=\"num\">10</span>).withColumnRenamed(<span class=\"str\">\"id\"</span>, <span class=\"str\">\"salt\"</span>))\njoined = skewed.join(big, [<span class=\"str\">\"key\"</span>, <span class=\"str\">\"salt\"</span>])\n\n<span class=\"cm\"># Option 3: If the other side is small, broadcast it</span>\nF.broadcast(small_table)</code></pre>",
+  "explain": "Skew is the #1 cause of \"Spark job hung.\" First check AQE (free). If still skewed, salt the heavy key into N buckets. Last resort: hand-optimise with broadcast hints.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "sp-02",
+  "title": "Broadcast hint",
+  "diff": "easy",
+  "statement": "Your join is using <code>SortMergeJoin</code> when the dim table is only 8 MB. Force a broadcast hash join.",
+  "hint": "<code>F.broadcast(df)</code> or SQL hint <code>/*+ BROADCAST(t) */</code>.",
+  "solution": "<pre><code><span class=\"cm\"># PySpark</span>\n<span class=\"kw\">from</span> pyspark.sql <span class=\"kw\">import</span> functions <span class=\"kw\">as</span> F\nbig_fact = spark.table(<span class=\"str\">\"main.gold.fct_jobs\"</span>)\nsmall_dim = spark.table(<span class=\"str\">\"main.gold.dim_account\"</span>)\n\njoined = big_fact.join(F.broadcast(small_dim), <span class=\"str\">\"account_id\"</span>, <span class=\"str\">\"left\"</span>)\n\n<span class=\"cm\"># SQL equivalent</span>\nspark.sql(<span class=\"str\">\"\"\"</span>\n<span class=\"str\">  SELECT /*+ BROADCAST(dim) */</span>\n<span class=\"str\">    f.*, dim.region</span>\n<span class=\"str\">  FROM main.gold.fct_jobs f</span>\n<span class=\"str\">  LEFT JOIN main.gold.dim_account dim USING(account_id)</span>\n<span class=\"str\">\"\"\"</span>)\n\n<span class=\"cm\"># Verify with EXPLAIN — should show BroadcastHashJoin</span></code></pre>",
+  "explain": "Spark's auto-broadcast threshold defaults to 10MB. If your dim is bigger but you know it fits in memory, hint it. The hint forces the planner; without it, missing stats cause a slow sort-merge.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "sp-03",
+  "title": "Delta MERGE for upsert",
+  "diff": "medium",
+  "statement": "Write a PySpark snippet that upserts new <code>jobs</code> data into a Delta table <code>main.gold.fct_jobs</code> using <code>job_id</code> as the merge key.",
+  "hint": "<code>DeltaTable.forName(...).merge(...)</code>.",
+  "solution": "<pre><code><span class=\"kw\">from</span> delta.tables <span class=\"kw\">import</span> DeltaTable\n<span class=\"kw\">from</span> pyspark.sql <span class=\"kw\">import</span> functions <span class=\"kw\">as</span> F\n\nnew_jobs = spark.read.format(<span class=\"str\">\"delta\"</span>).table(<span class=\"str\">\"main.silver.stg_jobs\"</span>)     .filter(F.col(<span class=\"str\">\"__is_deleted\"</span>) == <span class=\"kw\">False</span>)\n\ntgt = DeltaTable.forName(spark, <span class=\"str\">\"main.gold.fct_jobs\"</span>)\ntgt.alias(<span class=\"str\">\"t\"</span>).merge(\n    new_jobs.alias(<span class=\"str\">\"s\"</span>),\n    <span class=\"str\">\"t.job_id = s.job_id\"</span>\n) .whenMatchedUpdateAll() .whenNotMatchedInsertAll() .execute()</code></pre>",
+  "explain": "MERGE is the idempotent operation. Run it twice with the same input, the result is identical. No INSERT bugs that double rows on retry.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "sp-04",
+  "title": "Read query plan",
+  "diff": "hard",
+  "statement": "Given <code>EXPLAIN FORMATTED</code> output showing a <code>SortMergeJoin</code> + <code>Exchange (shuffle)</code> on a join you expected to broadcast, list 3 root-cause checks.",
+  "hint": "Stats, size, hint syntax. Plan reading bottom-up.",
+  "solution": "<pre><code><span class=\"cm\">Check 1: Are table stats current?</span>\n<span class=\"cm\">  ANALYZE TABLE main.gold.dim_account COMPUTE STATISTICS;</span>\n<span class=\"cm\">  Stale stats = Spark doesn't know the table is small.</span>\n\n<span class=\"cm\">Check 2: Is autoBroadcastJoinThreshold high enough?</span>\n<span class=\"cm\">  spark.conf.get(\"spark.sql.autoBroadcastJoinThreshold\")</span>\n<span class=\"cm\">  Default = 10MB. If your dim is 11MB, no auto-broadcast.</span>\n<span class=\"cm\">  Bump it: spark.conf.set(\"spark.sql.autoBroadcastJoinThreshold\", \"100MB\")</span>\n\n<span class=\"cm\">Check 3: Is the broadcast hint reaching the planner?</span>\n<span class=\"cm\">  EXPLAIN should show BroadcastExchange — if not, the hint was lost</span>\n<span class=\"cm\">  (often happens when you chain .join via a View or temp table).</span>\n<span class=\"cm\">  Move the broadcast as close to the join as possible.</span></code></pre>",
+  "explain": "Reading Spark plans is a senior-AE skill. The 3 most common reasons \"why no broadcast\" are: stale stats, threshold too low, hint stripped by an intermediate node.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "sp-05",
+  "title": "OPTIMIZE + ZORDER",
+  "diff": "medium",
+  "statement": "Your <code>fct_events</code> Delta table is 500GB, partitioned by <code>event_date</code>. Most queries filter by both <code>event_date</code> and <code>user_id</code>. Write the maintenance command + explain when to run it.",
+  "hint": "OPTIMIZE compacts; ZORDER co-locates for high-cardinality cols.",
+  "solution": "<pre><code><span class=\"cm\">-- co-locate user_id within each event_date partition</span>\n<span class=\"kw\">optimize</span> main.gold.fct_events\n<span class=\"kw\">where</span> event_date &gt;= current_date() - <span class=\"kw\">interval</span> <span class=\"num\">7</span> <span class=\"kw\">days</span>\n<span class=\"kw\">zorder by</span> (user_id);\n\n<span class=\"cm\">-- Why partial optimize: re-clustering 500GB nightly is wasteful.</span>\n<span class=\"cm\">--   Recent partitions are queried most. Old partitions don't change.</span>\n<span class=\"cm\">--   Run nightly on last 7 days; full optimize quarterly.</span>\n\n<span class=\"cm\">-- Newer alternative: Liquid Clustering (Databricks 13.3+)</span>\n<span class=\"kw\">alter table</span> main.gold.fct_events <span class=\"kw\">cluster by</span> (user_id);\n<span class=\"cm\">-- Databricks handles incremental re-clustering automatically</span></code></pre>",
+  "explain": "OPTIMIZE = file compaction (small files → bigger). ZORDER = data sorting (faster filters). Run incrementally on hot data. Liquid Clustering removes the manual scheduling burden — newer projects should default to it.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "sp-06",
+  "title": "Time travel for incident",
+  "diff": "easy",
+  "statement": "Yesterday at 3pm, someone ran a bad backfill on <code>fct_revenue</code>. Restore the table to its state at 2:50pm.",
+  "hint": "Delta versions or timestamps.",
+  "solution": "<pre><code><span class=\"cm\">-- See available versions</span>\n<span class=\"kw\">describe history</span> main.gold.fct_revenue;\n\n<span class=\"cm\">-- Read the pre-incident state</span>\n<span class=\"kw\">select</span> * <span class=\"kw\">from</span> main.gold.fct_revenue\n<span class=\"kw\">timestamp as of</span> <span class=\"str\">'2026-05-19 14:50:00'</span>;\n\n<span class=\"cm\">-- Restore — CAUTION: writes a new version</span>\n<span class=\"kw\">restore table</span> main.gold.fct_revenue\n<span class=\"kw\">to timestamp as of</span> <span class=\"str\">'2026-05-19 14:50:00'</span>;\n\n<span class=\"cm\">-- VACUUM hasn't run? Then time travel still works.</span>\n<span class=\"cm\">-- VACUUM with 0 hours = unrecoverable. Don't.</span></code></pre>",
+  "explain": "Delta's time travel is your audit + rollback. Files older than retention (default 7 days) are eligible for VACUUM — past that, can't recover. Always check <code>DESCRIBE HISTORY</code> before restoring.",
+  "cats": [
+   "spark"
+  ]
+ },
+ {
+  "id": "mod-01",
+  "title": "Star schema for events",
+  "diff": "medium",
+  "statement": "Design a star schema for tracking job events in production. Source: a denormalized event log with columns (event_id, account_id, contractor_id, job_id, category_id, event_type, event_ts, value). What facts and dims would you build?",
+  "hint": "Identify entities (dims) and events (facts). Be explicit about grain.",
+  "solution": "<pre><code><span class=\"cm\">FACT TABLES (grain stated explicitly)</span>\n\nfct_job_events\n  grain: one row per event_id\n  cols: event_id (pk), event_type, event_ts,\n        account_dim_key, contractor_dim_key, job_dim_key, category_dim_key,\n        event_date_dim_key, value\n\nfct_jobs_daily          # rollup for fast dashboards\n  grain: one row per (job_id, date)\n  cols: job_id, date, event_count, total_value, ...\n\n<span class=\"cm\">DIMENSION TABLES</span>\n\ndim_account     (one row per account; SCD2 on plan_tier, status)\ndim_contractor  (one row per contractor)\ndim_job         (one row per job; SCD2 on status if status matters historically)\ndim_category    (one row per category — small, slow-changing)\ndim_date        (one row per calendar day; pre-built spine)\n\n<span class=\"cm\">KEY DECISIONS</span>\n- Surrogate keys (dim_key) generated via md5 of (natural_key + valid_from)\n- Foreign keys on facts point to surrogate dim keys (handles SCD2 versions)\n- fct_job_events is event-level; fct_jobs_daily is the rollup</code></pre>",
+  "explain": "The first decision in modeling is grain. Once that's locked, dims and facts fall out naturally. Pre-aggregating into a rollup fact (fct_jobs_daily) trades storage for query speed on common dashboards.",
+  "cats": [
+   "model"
+  ]
+ },
+ {
+  "id": "mod-02",
+  "title": "SCD Type 2 design",
+  "diff": "medium",
+  "statement": "dim_account holds contractor account info. Plan tier (Bronze/Silver/Gold) changes over time, and you need to attribute historical revenue to the tier the account was on at the time. Design the SCD2 columns and explain how facts join.",
+  "hint": "valid_from / valid_to / is_current. Facts join on natural key + event date BETWEEN valid_from AND valid_to.",
+  "solution": "<pre><code><span class=\"cm\">dim_account schema (Type 2 on plan_tier)</span>\naccount_dim_key       <span class=\"cm\">-- surrogate, unique per (account_id, version)</span>\naccount_id            <span class=\"cm\">-- natural key, NOT unique (multiple versions)</span>\nplan_tier             <span class=\"cm\">-- the value being tracked</span>\nstatus                <span class=\"cm\">-- also tracked</span>\nvalid_from            <span class=\"cm\">-- when this version became active</span>\nvalid_to              <span class=\"cm\">-- when superseded (NULL = current)</span>\nis_current            <span class=\"cm\">-- boolean shortcut, derived from valid_to</span>\n\n<span class=\"cm\">fct_revenue joining to dim_account at the historical tier:</span>\n<span class=\"kw\">select</span> f.*, d.plan_tier\n<span class=\"kw\">from</span> fct_revenue f\n<span class=\"kw\">left join</span> dim_account d\n  <span class=\"kw\">on</span> d.account_id = f.account_id\n  <span class=\"kw\">and</span> f.event_date &gt;= d.valid_from\n  <span class=\"kw\">and</span> (f.event_date &lt; d.valid_to <span class=\"kw\">or</span> d.valid_to <span class=\"kw\">is null</span>)</code></pre>",
+  "explain": "SCD2 = keep history with valid_from/valid_to. The fact joins by BETWEEN to grab the correct version-at-time-of-fact. Surrogate key avoids ambiguity when an account_id has multiple dim rows.",
+  "cats": [
+   "model"
+  ]
+ },
+ {
+  "id": "mod-03",
+  "title": "Avoid one-big-table",
+  "diff": "easy",
+  "statement": "A stakeholder asks for \"one table with everything about an account.\" Make the case for and against the OBT pattern, then propose your decision.",
+  "hint": "Convenience vs maintainability. Real warehouses have both, used differently.",
+  "solution": "<pre><code><span class=\"cm\">PROS of OBT (one big table)</span>\n+ Stakeholders/BI tools love it — no JOINs needed\n+ Performance can be great with columnar storage (only reads needed cols)\n+ Self-documenting if columns are well-named\n\n<span class=\"cm\">CONS of OBT</span>\n- Maintenance nightmare: every upstream change ripples to one place\n- Permission/PII control is all-or-nothing on the table\n- Grain ambiguity: \"what's a row\" depends on which join produced it\n- Hard to evolve schema without breaking consumers\n\n<span class=\"cm\">RECOMMENDED PATTERN</span>\n- Keep fact + dim as the canonical models (lineage clear, single grain)\n- Build a \"reporting\" model alongside that JOINs them into a wide OBT\n  for specific BI use cases (e.g., dashboard_account_overview)\n- Mark the OBT clearly as a reporting layer artifact (not source of truth)\n\n<span class=\"cm\">Example:</span>\nfct_revenue + dim_account + dim_contractor + dim_category\n  ↓ (dashboard layer)\nrpt_account_overview (OBT for stakeholder dashboard)</code></pre>",
+  "explain": "OBT isn't evil — it's a reporting pattern. Use it as the LAST step, not the modeling philosophy. Keep facts + dims as the source of truth; wide tables for BI convenience.",
+  "cats": [
+   "model"
+  ]
+ },
+ {
+  "id": "mod-04",
+  "title": "Bridge table for many-to-many",
+  "diff": "hard",
+  "statement": "Contractors can be in multiple categories. Categories can have multiple contractors. Design the dimensional model so a fact (fct_leads) can attribute leads to one or many categories per contractor.",
+  "hint": "Bridge table between dim_contractor and dim_category. Decide on weighting.",
+  "solution": "<pre><code><span class=\"cm\">SCHEMA</span>\n\ndim_contractor     (one row per contractor)\ndim_category       (one row per category)\n\nbridge_contractor_category   <span class=\"cm\">-- many-to-many resolution</span>\n  contractor_dim_key\n  category_dim_key\n  weight              <span class=\"cm\">-- e.g., 1/N for equal split, or business-defined</span>\n  is_primary          <span class=\"cm\">-- one True per contractor if you want a \"main\" category</span>\n\nfct_leads\n  lead_id\n  contractor_dim_key   <span class=\"cm\">-- only contractor FK; category resolved via bridge</span>\n  ...\n\n<span class=\"cm\">QUERY: leads attributed to each category (weighted)</span>\n<span class=\"kw\">select</span>\n  c.category_name,\n  <span class=\"fn\">sum</span>(f.value * b.weight) <span class=\"kw\">as</span> attributed_revenue\n<span class=\"kw\">from</span> fct_leads f\n<span class=\"kw\">join</span> bridge_contractor_category b <span class=\"kw\">on</span> b.contractor_dim_key = f.contractor_dim_key\n<span class=\"kw\">join</span> dim_category c <span class=\"kw\">on</span> c.category_dim_key = b.category_dim_key\n<span class=\"kw\">group by</span> c.category_name;</code></pre>",
+  "explain": "Many-to-many always needs a bridge. The <code>weight</code> column makes attribution explicit (split equally? proportional to lead volume? primary only?). Without weights, you risk multi-counting revenue.",
+  "cats": [
+   "model"
+  ]
+ },
+ {
+  "id": "mod-05",
+  "title": "Slowly changing... but mid-row",
+  "diff": "hard",
+  "statement": "A contractor account has 50 attributes. Only 3 of them are historically important (plan, manager, status). The other 47 should always be \"current value.\" How do you design this?",
+  "hint": "Type 6 hybrid. Or: split into Type 2 + Type 1 sub-dims.",
+  "solution": "<pre><code><span class=\"cm\">OPTION A: Split into two dims</span>\ndim_contractor_current  (Type 1 — all 47 \"live\" attributes)\n  account_id\n  email, phone, billing_state, ..., 47 cols\n\ndim_contractor_history  (Type 2 — only the 3 historical cols)\n  account_dim_key (surrogate)\n  account_id\n  plan_tier, manager_id, status\n  valid_from, valid_to, is_current\n\n<span class=\"cm\">FACTS JOIN BOTH</span>\nfct_revenue\n  ↓\n  ─ joins dim_contractor_current via account_id  (gets latest email etc.)\n  ─ joins dim_contractor_history via account_id + date BETWEEN ranges\n                                              (gets historical plan/manager)\n\n<span class=\"cm\">OPTION B: Type 6 (hybrid in one dim)</span>\ndim_contractor\n  account_dim_key, account_id, ...           <span class=\"cm\">-- Type 2 cols</span>\n  current_email, current_phone, ...          <span class=\"cm\">-- Type 1: overwritten</span>\n  current_plan_tier, ...                     <span class=\"cm\">-- Type 3: prior value tracked</span>\n\n<span class=\"cm\">RECOMMENDATION</span>\nOption A is cleaner — separation of concerns, easier consumer SQL.\nOption B is denser — fewer joins but harder to evolve.</code></pre>",
+  "explain": "Real dims rarely fit neatly into a single SCD type. Splitting Type 1 (current) from Type 2 (historical) is a clean compromise that keeps each dim purpose-focused.",
+  "cats": [
+   "model"
+  ]
+ },
+ {
+  "id": "sd-01",
+  "title": "Real-time contractor dashboard",
+  "diff": "hard",
+  "statement": "Brief: \"Show contractors their median lead-response-time vs peers, refreshed within 5 minutes.\" Sources: existing Kafka topics for lead-issued + contractor-response events. Design the end-to-end.",
+  "hint": "Latency SLO is 5 min — that allows micro-batch, not full streaming. Use Spark Structured Streaming.",
+  "solution": "<pre><code><span class=\"cm\">SOURCES</span>\n- Kafka topic: lead_issued (existing)\n- Kafka topic: contractor_response (existing)\n\n<span class=\"cm\">INGESTION</span>\n- Spark Structured Streaming reads both topics\n- 5-minute trigger interval\n- Exactly-once via Delta + idempotent Kafka offset tracking\n- Write to bronze.lead_response_events (Delta)\n\n<span class=\"cm\">SILVER (cleaned + joined)</span>\n- silver.lead_response_paired\n  - Join lead + response by lead_id; stream-stream join with watermark\n  - Add contractor + category dims (broadcast small dims)\n  - Compute response_seconds = response_ts - lead_ts\n\n<span class=\"cm\">GOLD (aggregated)</span>\n- gold.contractor_response_rolling30d\n  - 30-day rolling median per (contractor_id, category_id)\n  - dbt incremental every 5 min via Workflows\n\n<span class=\"cm\">SERVING</span>\n- DBSQL Serverless warehouse\n- AI/BI dashboard auto-refresh\n- Or reverse-ETL to Postgres for in-product widget\n\n<span class=\"cm\">DATA QUALITY</span>\n- unique on (contractor_id, lead_id, event_ts)\n- not_null on contractor_id\n- row count delta vs 1h ago must be within 30% (anomaly test)\n\n<span class=\"cm\">TRADE-OFFS</span>\n- 5-min latency satisfies \"real-time enough\"\n- Full streaming (Flink) would be ~3-5× more expensive for marginal latency gain\n- Cost: ~$500/mo serverless DBSQL + ~$200/mo cluster for streaming job</code></pre>",
+  "explain": "Match latency to actual SLO. \"Real-time\" almost never means sub-second; 5 minutes is usually fine and costs 1/3 as much as streaming. Structured Streaming is the sweet spot.",
+  "cats": [
+   "design"
+  ]
+ },
+ {
+  "id": "sd-02",
+  "title": "CDC pipeline architecture",
+  "diff": "hard",
+  "statement": "Design a CDC pipeline from MySQL prod (jobs, accounts) to Delta Lake. Handle inserts, updates, deletes correctly. Include schema evolution and DQ.",
+  "hint": "Debezium → Kafka → Spark Streaming → Bronze → MERGE → Silver.",
+  "solution": "<pre><code><span class=\"cm\">STACK</span>\nMySQL prod (jobs, accounts)\n  ↓ binlog\nDebezium connector\n  ↓\nKafka (one topic per table, partitioned by PK)\n  ↓\nSchema Registry (Avro schemas, evolution rules)\n  ↓\nSpark Structured Streaming\n  ↓ raw landing\nBronze Delta (append-only, all changes preserved)\n  ↓ MERGE\nSilver Delta (deduplicated, latest non-deleted row per PK)\n  ↓\ndbt models (Gold)\n\n<span class=\"cm\">BRONZE WRITE</span>\n- One row per CDC event\n- Cols: op (c/u/d/r), ts_ms, before, after, source.{db, table}\n- Partitioned by event_date\n- Used for replay + audit\n\n<span class=\"cm\">SILVER MERGE LOGIC</span>\nWHEN MATCHED AND op='d' THEN UPDATE SET __is_deleted = true\nWHEN MATCHED AND op IN ('c','u') THEN UPDATE all cols\nWHEN NOT MATCHED AND op='c' THEN INSERT\n\n<span class=\"cm\">SCHEMA EVOLUTION</span>\n- Schema Registry validates producer\n- Delta MERGE WITH SCHEMA EVOLUTION auto-adds new cols in silver\n\n<span class=\"cm\">DQ + MONITORING</span>\n- Source freshness: bronze updated &lt; 5 min ago\n- Row count: silver count = bronze (latest per PK, excl deleted)\n- Schema drift: alert if new field appears in bronze that silver doesn't have</code></pre>",
+  "explain": "CDC is the most common DE workload at modern companies. Bronze = full event log (replayable), Silver = current-state (what consumers want). The MERGE logic is where most bugs live — test it heavily.",
+  "cats": [
+   "design"
+  ]
+ },
+ {
+  "id": "sd-03",
+  "title": "Cost reduction",
+  "diff": "hard",
+  "statement": "Your Databricks bill is $80K/month. CFO wants 30% reduction without breaking SLAs. What's your investigation + reduction plan?",
+  "hint": "Audit first, optimize second. Cluster sizing, scheduling, dead jobs, partitioning.",
+  "solution": "<pre><code><span class=\"cm\">INVESTIGATION (week 1)</span>\n1. Query system tables: system.compute.warehouses_costs, system.access.audit\n2. Top 20 most expensive queries — are they running daily, hourly, monthly?\n3. Cluster utilization: avg CPU/memory across jobs (any over-sized?)\n4. Auto-stop misconfig: any clusters running 24/7 unused?\n5. dbt slim CI: are PR builds running --full-refresh?\n\n<span class=\"cm\">QUICK WINS (week 2 — usually 15-20%)</span>\n- Enable auto-stop on all interactive clusters (10 min idle)\n- Switch dev/test to serverless (pay-per-query, not per-hour)\n- Reduce non-prod environments' uptime\n- Drop unused dashboards/scheduled queries (audit before delete)\n- Stop running dbt --full-refresh in CI; use state:modified+\n\n<span class=\"cm\">MEDIUM (week 3-6 — another 10-15%)</span>\n- Right-size warehouses by p95 query latency (often 2x oversized)\n- Add OPTIMIZE + Liquid Clustering to hot tables → query speedup\n- Convert daily batch jobs running 24/7 to scheduled jobs\n\n<span class=\"cm\">STRUCTURAL (week 6+)</span>\n- Move ML feature pipelines off prod cluster to dedicated cheaper one\n- Negotiate enterprise discount with Databricks for committed spend\n\n<span class=\"cm\">EXPECTED</span>\n30% reduction is achievable in 4-6 weeks with above; main resistance is\n\"don't touch X, it's important\" — counter with: \"we'll roll back if SLA breaches\"</code></pre>",
+  "explain": "Cost reduction is investigation-first. Audit usage data, find the 20% of compute driving 80% of spend, target those. Avoid blanket \"shrink all clusters\" — it breaks SLAs.",
+  "cats": [
+   "design"
+  ]
+ },
+ {
+  "id": "sd-04",
+  "title": "Multi-tenant data isolation",
+  "diff": "hard",
+  "statement": "Your warehouse holds data for 3 distinct stakeholder groups (Sales, Partnership, Contractors). Sales must not see Partnership's data. How do you enforce this in Unity Catalog?",
+  "hint": "Catalog/schema level grants, dynamic views, row-level security.",
+  "solution": "<pre><code><span class=\"cm\">LAYER 1: Catalog / Schema-level isolation</span>\n- main.sales.* — granted to sales-analysts group\n- main.partnership.* — granted to partnership group\n- main.shared.* — read-only common dims (dim_date, dim_geo)\n\nGRANT USE CATALOG, USE SCHEMA, SELECT\n  ON SCHEMA main.sales\n  TO `sales-analysts`;\n\n<span class=\"cm\">LAYER 2: Row-level security (dynamic views)</span>\n<span class=\"kw\">create view</span> main.shared.contractor_view <span class=\"kw\">as</span>\n<span class=\"kw\">select</span> * <span class=\"kw\">from</span> main.shared.contractor_master\n<span class=\"kw\">where case</span>\n  <span class=\"kw\">when</span> is_account_group_member(<span class=\"str\">'sales-leads'</span>) <span class=\"kw\">then</span> true\n  <span class=\"kw\">when</span> is_account_group_member(<span class=\"str\">'partnership'</span>) <span class=\"kw\">then</span> partner_managed = <span class=\"kw\">true</span>\n  <span class=\"kw\">else</span> false\n<span class=\"kw\">end</span>;\n\n<span class=\"cm\">LAYER 3: Column masking for PII</span>\n<span class=\"kw\">alter table</span> main.shared.contractor_master\n<span class=\"kw\">alter column</span> email <span class=\"kw\">set</span> mask analytics.mask_email\n  (using columns access_level);\n\n<span class=\"cm\">LAYER 4: Audit + monitoring</span>\n- system.access.audit table: every query logged with user + tables touched\n- Alert on group membership changes\n- Monthly access review\n\n<span class=\"cm\">ENFORCEMENT</span>\n- No raw SELECT from prod_data.* — only via curated catalogs\n- meta.contains_pii flags fail builds if exposed to wrong catalog</code></pre>",
+  "explain": "Unity Catalog's 3-layer model (catalog → schema → table) is the foundation. Layer dynamic views and column masking on top for fine-grained access. Audit is non-negotiable for SOC2/ISO27001.",
+  "cats": [
+   "design"
+  ]
+ },
+ {
+  "id": "sd-05",
+  "title": "Migration plan: DWH → Lakehouse",
+  "diff": "hard",
+  "statement": "Legacy DWH (Oracle, 8TB, 500 tables, 12 years old) needs to migrate to Databricks Lakehouse. Stakeholders rely on 60 dashboards. Plan a 6-month migration.",
+  "hint": "Dual-run, prioritize by usage, contract-first migration.",
+  "solution": "<pre><code><span class=\"cm\">MONTH 1: Foundations</span>\n- Set up Databricks workspace, Unity Catalog\n- Establish CI/CD for dbt\n- Land all 500 tables raw in bronze (Fivetran or scripts)\n- No transformation yet — just shadow the source\n\n<span class=\"cm\">MONTH 2: Prioritize</span>\n- Query log analysis: which 30% of tables drive 80% of consumer queries?\n- Rank top 60 dashboards by usage; pick top 20 for migration sprint 1\n- Map dashboards → upstream tables → required staging models\n\n<span class=\"cm\">MONTH 3-4: Migrate Tier 1 (20 dashboards)</span>\n- Build dbt staging + intermediate + marts for these 20 dashboards' deps\n- Dual-run: query both legacy DWH and new lakehouse from BI\n- Reconcile row counts daily; investigate diffs\n- Add data contracts on critical models\n\n<span class=\"cm\">MONTH 5: Migrate Tier 2 (next 20 dashboards) + Switch BI to lakehouse</span>\n- Tier 1 stakeholders confirm lakehouse matches; cut over BI sources\n- Build Tier 2\n\n<span class=\"cm\">MONTH 6: Tier 3 + Decommission</span>\n- Final 20 dashboards\n- Identify unused tables (no queries in 90 days) — don't migrate\n- Read-only legacy DWH; sunset 60 days later\n\n<span class=\"cm\">RISK MITIGATIONS</span>\n- Dual-run reduces \"wrong number\" surprises\n- Tier-based migration ships value early\n- Skip unused tables — saves 30-40% of work\n- Stakeholder sign-off per tier prevents rollback</code></pre>",
+  "explain": "Migrations are about prioritization and dual-running, not technology. Most legacy DWHs have 50% dead tables — migrating them is waste. Tier by usage, dual-run for reconciliation, sign off per tier.",
+  "cats": [
+   "design"
+  ]
+ },
+ {
+  "id": "sd-06",
+  "title": "Idempotency test",
+  "diff": "medium",
+  "statement": "Your daily DAG re-runs after partial failure. The output table has duplicates. Walk through the diagnosis + fix.",
+  "hint": "Check INSERT vs MERGE. Check unique constraints. Check whether the re-run is truly re-running the same partition.",
+  "solution": "<pre><code><span class=\"cm\">DIAGNOSIS</span>\n1. Is the load operation INSERT or MERGE?\n   - INSERT: appends every run → duplicates expected\n   - MERGE on unique_key: should overwrite → no dupes\n\n2. Is the input data deterministic for the same run_date?\n   - If source changed between runs (CDC stream), MERGE will resolve via latest\n\n3. Is the DAG passing run_date as a parameter, or \"today\"?\n   - \"today\" causes the re-run to land in wrong partition\n\n<span class=\"cm\">FIX</span>\n- Switch INSERT to MERGE (Delta) or DELETE-then-INSERT for the partition\n- Make sure ALL params are passed in, none derived from current time\n- Add a unique constraint or test to catch dupes in CI\n\n<span class=\"cm\">VERIFICATION</span>\nRun the job twice locally with the same --run-date.\nCompare row counts before and after second run. Should be IDENTICAL.</code></pre>",
+  "explain": "Idempotency = same input → same output, every retry. Bare INSERT breaks it; MERGE preserves it. The test: rerun and diff. If counts differ, you have a problem.",
+  "cats": [
+   "design"
+  ]
+ }
+]

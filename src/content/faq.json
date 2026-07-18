@@ -1,0 +1,42 @@
+[
+ {
+  "q": "How long does the full course actually take?",
+  "a": "12 weeks at 5h/week gets you AE-ready with the public portfolio. 16-24 weeks at the same pace covers DE depth. Daily 20-min sharpener keeps you current after."
+ },
+ {
+  "q": "Do I need to do every module in order?",
+  "a": "Foundations (SQL, Python, Git) first. After that, dbt and Data Modeling are the highest-leverage. Spark/Databricks before Orchestration. System Design comes last for context."
+ },
+ {
+  "q": "What if I can't install a local dbt project?",
+  "a": "Use Databricks Community Edition (free) or sign up for dbt Cloud free tier. Both let you complete every dbt exercise without local setup."
+ },
+ {
+  "q": "How do you earn XP and badges?",
+  "a": "XP from completing modules (variable amount) and solving practice problems. Badges trigger when you cross thresholds — complete a module, finish a track, hit a streak."
+ },
+ {
+  "q": "Is this company-specific?",
+  "a": "The patterns are universal. Production-flavored examples (CDC tables, dbt project conventions) ground the concepts. Strip out the names and the same lessons apply to any modern data stack."
+ },
+ {
+  "q": "Should I get certifications?",
+  "a": "Databricks Certified Data Engineer Associate + dbt Analytics Engineering Certification are the only two that signal AE/DE capability strongly. Both worth the $200 + study time."
+ },
+ {
+  "q": "Internal pivot or external job?",
+  "a": "Internal is lowest-friction — you already have domain. Pitch shadowing dbt project PRs for 4 weeks, then owning a model. External pays more but takes longer and harder. Try internal first."
+ },
+ {
+  "q": "What if I don't finish in a year?",
+  "a": "Then it took 18 months. Or 24. The arc matters more than the speed. Daily consistent practice beats sporadic intensity."
+ },
+ {
+  "q": "How is this different from Coursera / Datacamp?",
+  "a": "Those teach concepts in isolation. This course is structured around the actual decisions an AE/DE makes in production, with the patterns wired through every module. And it's free + open source."
+ },
+ {
+  "q": "Can I share my progress?",
+  "a": "Progress is localStorage-only — private to your browser. If you want bragging rights, screenshot the badges and post 🏅"
+ }
+]

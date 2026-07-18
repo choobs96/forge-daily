@@ -1,0 +1,102 @@
+[
+ {
+  "lvl": 1,
+  "xp": 0,
+  "title": "Curious Analyst"
+ },
+ {
+  "lvl": 2,
+  "xp": 100,
+  "title": "Active Learner"
+ },
+ {
+  "lvl": 3,
+  "xp": 250,
+  "title": "SQL Scribbler"
+ },
+ {
+  "lvl": 4,
+  "xp": 450,
+  "title": "Pattern Spotter"
+ },
+ {
+  "lvl": 5,
+  "xp": 700,
+  "title": "Junior Engineer Mindset"
+ },
+ {
+  "lvl": 6,
+  "xp": 1000,
+  "title": "dbt Initiate"
+ },
+ {
+  "lvl": 7,
+  "xp": 1350,
+  "title": "Model Builder"
+ },
+ {
+  "lvl": 8,
+  "xp": 1750,
+  "title": "Lineage Walker"
+ },
+ {
+  "lvl": 9,
+  "xp": 2200,
+  "title": "AE in Training"
+ },
+ {
+  "lvl": 10,
+  "xp": 2700,
+  "title": "Analytics Engineer"
+ },
+ {
+  "lvl": 11,
+  "xp": 3250,
+  "title": "Spark Apprentice"
+ },
+ {
+  "lvl": 12,
+  "xp": 3850,
+  "title": "Pipeline Practitioner"
+ },
+ {
+  "lvl": 13,
+  "xp": 4500,
+  "title": "Mid AE"
+ },
+ {
+  "lvl": 14,
+  "xp": 5200,
+  "title": "System Thinker"
+ },
+ {
+  "lvl": 15,
+  "xp": 6000,
+  "title": "Senior AE"
+ },
+ {
+  "lvl": 16,
+  "xp": 6900,
+  "title": "Data Engineer"
+ },
+ {
+  "lvl": 17,
+  "xp": 7900,
+  "title": "Senior DE"
+ },
+ {
+  "lvl": 18,
+  "xp": 9000,
+  "title": "Staff Engineer"
+ },
+ {
+  "lvl": 19,
+  "xp": 10300,
+  "title": "Domain Expert"
+ },
+ {
+  "lvl": 20,
+  "xp": 12000,
+  "title": "Principal · Forge Master"
+ }
+]

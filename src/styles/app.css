@@ -1,0 +1,205 @@
+/* ============ Forge v2 — "Molten Forge" design tokens ============ */
+:root {
+  --bg: #0a0c1e;
+  --surface: #131632;
+  --surface-2: #1b1f42;
+  --surface-3: #242a56;
+  --border: #2a3160;
+  --text: #edf0ff;
+  --text-dim: #a6adce;
+  --text-muted: #6b7299;
+  --primary: #4f7cff;
+  --primary-soft: rgba(79, 124, 255, 0.16);
+  --ember: #ff8a3d;
+  --ember-2: #ffb84d;
+  --ember-grad: linear-gradient(135deg, #ff8a3d, #ffb84d);
+  --primary-grad: linear-gradient(135deg, #4f7cff, #a78bfa);
+  --success: #3ddc97;
+  --success-soft: rgba(61, 220, 151, 0.14);
+  --error: #ff5d73;
+  --error-soft: rgba(255, 93, 115, 0.14);
+  --gold: #fbbf24;
+  --purple: #a78bfa;
+  --code-bg: #070a18;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --tab-h: calc(60px + env(safe-area-inset-bottom, 0px));
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  overscroll-behavior-y: none;
+}
+body {
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(79, 124, 255, 0.09), transparent 60%),
+    var(--bg);
+  min-height: 100dvh;
+}
+
+#app {
+  max-width: 540px;
+  margin: 0 auto;
+  min-height: 100dvh;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5em; }
+a { color: var(--primary); text-decoration: none; }
+
+.page {
+  padding: 18px 18px calc(var(--tab-h) + 24px);
+  animation: page-in 0.28s var(--spring);
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  padding: 13px 20px;
+  font-weight: 700;
+  font-size: 16px;
+  min-height: 48px;
+  transition: transform 0.15s var(--spring), filter 0.15s;
+  user-select: none;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: var(--primary-grad); color: #fff; box-shadow: 0 4px 18px rgba(79, 124, 255, 0.35); }
+.btn-ember { background: var(--ember-grad); color: #2a1400; box-shadow: 0 4px 18px rgba(255, 138, 61, 0.3); }
+.btn-ghost { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
+.btn-success { background: var(--success); color: #04331f; }
+.btn-danger-ghost { background: var(--error-soft); color: var(--error); }
+.btn-block { display: flex; width: 100%; }
+.btn:disabled { opacity: 0.45; pointer-events: none; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.chip.primary { color: var(--primary); background: var(--primary-soft); border-color: transparent; }
+.chip.ember { color: var(--ember-2); background: rgba(255, 138, 61, 0.12); border-color: transparent; }
+.chip.success { color: var(--success); background: var(--success-soft); border-color: transparent; }
+
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.small { font-size: 13px; }
+
+/* ============ prose (lesson / library / card body content) ============ */
+.prose { font-size: 16px; }
+.prose p { margin: 0 0 0.9em; }
+.prose h3 { font-size: 19px; margin: 1.3em 0 0.5em; color: var(--text); }
+.prose h4 { font-size: 16px; margin: 1.1em 0 0.4em; color: var(--text-dim); }
+.prose ul, .prose ol { padding-left: 1.3em; margin: 0 0 0.9em; }
+.prose li { margin-bottom: 0.35em; }
+.prose code {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: #cfe0ff;
+}
+.prose pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  overflow-x: auto;
+  margin: 0 0 1em;
+  -webkit-overflow-scrolling: touch;
+}
+.prose pre code { background: none; border: none; padding: 0; font-size: 13px; line-height: 1.6; display: block; }
+.prose .kw { color: #ff7edb; font-weight: 600; }
+.prose .str { color: #3ddc97; }
+.prose .cm { color: #6b7299; font-style: italic; }
+.prose .fn { color: #4f7cff; }
+.prose .num { color: #ffb84d; }
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 1em;
+  font-size: 13.5px;
+  display: block;
+  overflow-x: auto;
+}
+.prose th, .prose td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+.prose th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.prose .callout, .prose blockquote {
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 10px 14px;
+  margin: 0 0 1em;
+}
+.prose .callout.warn { background: rgba(251, 191, 36, 0.1); border-color: var(--gold); }
+.prose .callout.danger { background: var(--error-soft); border-color: var(--error); }
+.prose .callout.success { background: var(--success-soft); border-color: var(--success); }
+.prose img, .prose svg { max-width: 100%; }
+.prose em { color: var(--ember-2); }
+
+/* ============ shared bits ============ */
+.progress-track {
+  height: 10px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary-grad);
+  transition: width 0.6s var(--spring);
+}
+.progress-fill.ember { background: var(--ember-grad); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

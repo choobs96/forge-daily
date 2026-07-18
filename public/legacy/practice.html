@@ -1277,7 +1277,7 @@ WHEN NOT MATCHED AND op='c' THEN INSERT
 
 GRANT USE CATALOG, USE SCHEMA, SELECT
   ON SCHEMA main.sales
-  TO `sales-analysts`;
+  TO \`sales-analysts\`;
 
 <span class="cm">LAYER 2: Row-level security (dynamic views)</span>
 <span class="kw">create view</span> main.shared.contractor_view <span class="kw">as</span>
